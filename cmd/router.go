@@ -14,5 +14,6 @@ func routes() http.Handler {
 	mux.Use(SessionLoad)
 	
 	mux.Get("/", handlers.Repo.Home)
+	mux.Post("/api/v1/auth/register", handlers.Repo.Register);
 	return mux
 }
