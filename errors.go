@@ -18,4 +18,5 @@ var (
 	ErrEmailExists        = errors.New("email already exists")
 	ErrNickName           = errors.New("username already taken")
 	ErrNickNameLength = errors.New("invalid username length (min 2, max 33)")
+	ErrPasswordLength = errors.New("invalid password length (min 12, max 64)")
 )

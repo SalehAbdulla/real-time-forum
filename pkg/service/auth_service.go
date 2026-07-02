@@ -90,6 +90,11 @@ func (s authServiceImpl) Register(inputs []string) (int64, error) {
 		return 0, realtimeforum.ErrPasswordsDontMatch
 	}
 
+	if len(password) < 12 || len(password) > 64 {
+		return 0, realtimeforum.ErrPasswordLength
+	}
+
+
 	// Validate password strength
 	if !passwordStrength(password) {
 		return 0, realtimeforum.ErrInvalidPassForm
