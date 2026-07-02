@@ -62,7 +62,7 @@ func (re *Repository) Login(w http.ResponseWriter, r *http.Request) {
 
 	if identifier == "" || password == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResponse{Error: "identifier and password are required"})
+		json.NewEncoder(w).Encode(errorResponse{Error: "email/username and password are required"})
 		return
 	}
 

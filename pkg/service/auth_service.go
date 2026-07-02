@@ -1,8 +1,8 @@
 package service
 
 import (
-	realtimeforum "real-time-forum"
 	"net/mail"
+	realtimeforum "real-time-forum"
 	"strconv"
 	"time"
 	"unicode"
@@ -95,6 +95,10 @@ func (s authServiceImpl) Register(inputs []string) (int64, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return 0, realtimeforum.ErrInternal
+	}
+
+	if gender != "male" && gender != "female" {
+		return 0, realtimeforum.ErrGender
 	}
 
 	// Insert user into the database via repository

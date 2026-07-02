@@ -41,6 +41,7 @@ func (db *DB) InsertUser(nickName, firstName, lastName, email, hashedPassword st
 		nickName, firstName, lastName, email, hashedPassword, yearOfBirth, gender,
 	)
 	if err != nil {
+		println(err.Error())
 		return 0, realtimeforum.ErrInternal
 	}
 
