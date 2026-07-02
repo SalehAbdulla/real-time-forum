@@ -58,6 +58,10 @@ func (s authServiceImpl) Register(inputs []string) (int64, error) {
 	ageStr := inputs[6]
 	gender := inputs[7]
 
+	if len(nickName) < 2 || len(nickName) > 33 {
+		return 0, realtimeforum.ErrNickNameLength
+	}
+
 	// Validate email format using net/mail
 	_, err := mail.ParseAddress(email)
 	if err != nil {
