@@ -2,13 +2,13 @@ package handlers
 
 import (
 	"net/http"
-	"real-time-forum/pkg/service"
+	realtimeforum "real-time-forum"
 )
 
 func (re *Repository) parseForm(w http.ResponseWriter, r *http.Request) bool {
 	if err := r.ParseForm(); err != nil {
-		re.HandleError(w, r, service.ErrBadRequest)
-		// return false 
+		re.HandleError(w, r, realtimeforum.ErrBadRequest)
+		return false 
 	}
 	return true
 }
