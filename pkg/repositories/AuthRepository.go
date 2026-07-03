@@ -7,7 +7,7 @@ import (
 	realtimeforum "real-time-forum"
 )
 
-type UserRepository interface {
+type AuthRepository interface {
 	DoesEmailExists(email string) error
 	DoesNicknameExists(nickname string) error
 	InsertUser(nickName, firstName, lastName, email, hashedPassword string, yearOfBirth int, gender string) (int64, error)

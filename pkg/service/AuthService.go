@@ -19,10 +19,10 @@ type AuthService interface {
 }
 
 type authServiceImpl struct {
-	db db.UserRepository
+	db db.AuthRepository
 }
 
-func NewAuthService(database db.UserRepository) AuthService {
+func NewAuthService(database db.AuthRepository) AuthService {
 	return authServiceImpl{
 		db: database,
 	}
