@@ -72,13 +72,11 @@ func (s authServiceImpl) Register(inputs []string) (int64, error) {
 
 	// Check if email already exists
 	if err := s.db.DoesEmailExists(email); err != nil {
-		slog.Info("email already exists", "email", email)
 		return 0, err
 	}
 
 	// Check if nickname already exists
 	if err := s.db.DoesNicknameExists(nickName); err != nil {
-		slog.Info("nickname already taken", "nickname", nickName)
 		return 0, err
 	}
 

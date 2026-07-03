@@ -39,10 +39,6 @@ func (re *Repository) Register(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := re.AuthService.Register(inputs)
 	if err != nil {
-		re.App.Logger.Info("registration failed",
-			"email", email,
-			"error", err.Error(),
-		)
 		re.HandleError(w, r, err)
 		return
 	}
@@ -71,16 +67,7 @@ func (re *Repository) Login(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := re.AuthService.Login(identifier, password)
 	if err != nil {
-		re.App.Logger.Info("login failed",
-			"identifier", identifier,
-			"error", err.Error(),
-		)
-		if err == realtimeforum.ErrInvalidCredentials {
-			w.WriteHeader(http.StatusUnauthorized)
-		} else {
-			w.WriteHeader(http.StatusBadRequest)
-		}
-		json.NewEncoder(w).Encode(errorResponse{Error: err.Error()})
+		re.HandleError(w, r, err)
 		return
 	}
 

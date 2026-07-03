@@ -47,7 +47,7 @@ func main() {
 	render.NewTemplates(&app)
 
 	// Initialize database
-	database, err := sql.Open("sqlite3", "./pkg/repos/realTimeForum.db")
+	database, err := sql.Open("sqlite3", "./pkg/repositories/realTimeForum.db")
 	if err != nil {
 		app.Logger.Error("failed to open database", "error", err)
 		os.Exit(1)
