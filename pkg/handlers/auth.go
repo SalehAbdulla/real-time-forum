@@ -17,10 +17,6 @@ type loginResponse struct {
 	UserID  int64  `json:"userId"`
 }
 
-type errorResponse struct {
-	Error string `json:"error"`
-}
-
 func (re *Repository) Register(w http.ResponseWriter, r *http.Request) {
 	nickName := strings.TrimSpace(strings.ToLower(r.FormValue("nickName")))
 	email := strings.TrimSpace(strings.ToLower(r.FormValue("email")))
@@ -36,18 +32,26 @@ func (re *Repository) Register(w http.ResponseWriter, r *http.Request) {
 
 	for _, v := range inputs {
 		if v == "" {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(errorResponse{Error: "all fields are required"})
+			re.HandleError(w, r, realtimeforum.ErrBadRequest)
 			return
 		}
 	}
 
 	userID, err := re.AuthService.Register(inputs)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResponse{Error: err.Error()})
+		re.App.Logger.Info("registration failed",
+			"email", email,
+			"error", err.Error(),
+		)
+		re.HandleError(w, r, err)
 		return
 	}
+
+	re.App.Logger.Info("user registered successfully",
+		"user_id", userID,
+		"email", email,
+		"nickname", nickName,
+	)
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(registerResponse{
@@ -61,13 +65,16 @@ func (re *Repository) Login(w http.ResponseWriter, r *http.Request) {
 	password := strings.TrimSpace(r.FormValue("password"))
 
 	if identifier == "" || password == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResponse{Error: "email/username and password are required"})
+		re.HandleError(w, r, realtimeforum.ErrBadRequest)
 		return
 	}
 
 	userID, err := re.AuthService.Login(identifier, password)
 	if err != nil {
+		re.App.Logger.Info("login failed",
+			"identifier", identifier,
+			"error", err.Error(),
+		)
 		if err == realtimeforum.ErrInvalidCredentials {
 			w.WriteHeader(http.StatusUnauthorized)
 		} else {
@@ -76,6 +83,11 @@ func (re *Repository) Login(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(errorResponse{Error: err.Error()})
 		return
 	}
+
+	re.App.Logger.Info("login successful",
+		"user_id", userID,
+		"identifier", identifier,
+	)
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(loginResponse{

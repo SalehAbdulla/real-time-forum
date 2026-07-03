@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 	"real-time-forum/pkg/config"
 	"real-time-forum/pkg/models"
@@ -27,12 +26,12 @@ func NewHandlers(r *Repository) {
 	Repo = r
 }
 
-// Home is the home page handler
 func (m *Repository) Home(w http.ResponseWriter, r *http.Request) {
 	remoteIP := r.RemoteAddr
 	m.App.Session.Put(r.Context(), "remote_ip", remoteIP)
 
 	if err := render.RenderTemplate(w, &models.TemplateData{}); err != nil {
-		log.Fatal(err.Error())
+		m.App.Logger.Error("failed to render home template", "error", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 	}
 }
