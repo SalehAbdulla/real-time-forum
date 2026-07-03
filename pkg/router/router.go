@@ -2,6 +2,7 @@ package router
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"os"
 	realtimeforum "real-time-forum"
@@ -58,6 +59,7 @@ func (r *AppRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if strings.HasPrefix(req.URL.Path, "/static/") {
 
 		if strings.HasSuffix(req.URL.Path, "/") {
+			slog.Warn("static directory listing attempted", "path", req.URL.Path)
 			if r.ErrorHandler != nil {
 				r.ErrorHandler(w, req, realtimeforum.ErrNotFound)
 				return
@@ -68,6 +70,7 @@ func (r *AppRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 		filePath := "./static" + strings.TrimPrefix(req.URL.Path, "/static")
 		if _, err := os.Stat(filePath); os.IsNotExist(err) {
+			slog.Warn("static file not found", "path", req.URL.Path)
 			r.ErrorHandler(w, req, realtimeforum.ErrNotFound)
 			return
 		}
@@ -80,6 +83,7 @@ func (r *AppRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if strings.HasPrefix(req.URL.Path, "/uploads/") {
 
 		if strings.HasSuffix(req.URL.Path, "/") {
+			slog.Warn("uploads directory listing attempted", "path", req.URL.Path)
 			if r.ErrorHandler != nil {
 				r.ErrorHandler(w, req, realtimeforum.ErrNotFound)
 				return
@@ -90,6 +94,7 @@ func (r *AppRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 		filePath := "./uploads" + strings.TrimPrefix(req.URL.Path, "/uploads")
 		if _, err := os.Stat(filePath); os.IsNotExist(err) {
+			slog.Warn("upload file not found", "path", req.URL.Path)
 			r.ErrorHandler(w, req, realtimeforum.ErrNotFound)
 			return
 		}
@@ -120,7 +125,11 @@ func (r *AppRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	if len(allowedMethods) > 0 {
 		w.Header().Set("Allow", strings.Join(allowedMethods, ", "))
-
+		slog.Warn("method not allowed",
+			"method", req.Method,
+			"path", req.URL.Path,
+			"allowed", strings.Join(allowedMethods, ", "),
+		)
 		if r.ErrorHandler != nil {
 			r.ErrorHandler(w, req, realtimeforum.ErrMethodNotAllowed)
 			return
@@ -130,6 +139,7 @@ func (r *AppRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	slog.Warn("route not found", "method", req.Method, "path", req.URL.Path)
 	if r.ErrorHandler != nil {
 		r.ErrorHandler(w, req, realtimeforum.ErrNotFound)
 		return
