@@ -2,6 +2,7 @@ package logger
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"os"
 	"runtime"
@@ -9,10 +10,9 @@ import (
 	"real-time-forum/pkg/config"
 )
 
-// stackTraceHandler wraps an slog.Handler and automatically attaches
-// a stack trace to ERROR-level log entries.
 type stackTraceHandler struct {
-	handler slog.Handler
+	handler      slog.Handler
+	inProduction bool
 }
 
 func (h *stackTraceHandler) Enabled(ctx context.Context, level slog.Level) bool {
@@ -23,22 +23,29 @@ func (h *stackTraceHandler) Handle(ctx context.Context, rec slog.Record) error {
 	if rec.Level == slog.LevelError {
 		stackBuf := make([]byte, 4096)
 		n := runtime.Stack(stackBuf, false)
-		rec.AddAttrs(slog.String("stack", string(stackBuf[:n])))
+
+		if h.inProduction {
+			rec.AddAttrs(slog.String("stack", string(stackBuf[:n])))
+		} else {
+			err := h.handler.Handle(ctx, rec)
+			if err != nil {
+				return err
+			}
+			fmt.Fprintf(os.Stdout, "\n--- Stack Trace ---\n%s-------------------\n\n", string(stackBuf[:n]))
+			return nil
+		}
 	}
 	return h.handler.Handle(ctx, rec)
 }
 
 func (h *stackTraceHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	return &stackTraceHandler{handler: h.handler.WithAttrs(attrs)}
+	return &stackTraceHandler{handler: h.handler.WithAttrs(attrs), inProduction: h.inProduction}
 }
 
 func (h *stackTraceHandler) WithGroup(name string) slog.Handler {
-	return &stackTraceHandler{handler: h.handler.WithGroup(name)}
+	return &stackTraceHandler{handler: h.handler.WithGroup(name), inProduction: h.inProduction}
 }
 
-// InitLogger initializes a slog.Logger based on the app configuration.
-// In production mode, it outputs JSON. In development, it outputs human-readable text.
-// ERROR-level logs include an automatic stack trace.
 func InitLogger(app *config.AppConfig) {
 	level := slog.LevelInfo
 	if app.LogLevel != "" {
@@ -64,6 +71,6 @@ func InitLogger(app *config.AppConfig) {
 		baseHandler = slog.NewTextHandler(os.Stdout, opts)
 	}
 
-	app.Logger = slog.New(&stackTraceHandler{handler: baseHandler})
+	app.Logger = slog.New(&stackTraceHandler{handler: baseHandler, inProduction: app.InProduction})
 	slog.SetDefault(app.Logger)
 }

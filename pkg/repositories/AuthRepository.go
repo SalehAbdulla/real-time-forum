@@ -5,13 +5,15 @@ import (
 	"errors"
 	"log/slog"
 	realtimeforum "real-time-forum"
+	"real-time-forum/pkg/models"
 )
 
 type AuthRepository interface {
 	DoesEmailExists(email string) error
 	DoesNicknameExists(nickname string) error
-	InsertUser(nickName, firstName, lastName, email, hashedPassword string, yearOfBirth int, gender string) (int64, error)
-	GetUserCredentials(identifier string) (int64, string, error)
+	InsertUser(userID, nickName, firstName, lastName, email, hashedPassword string, yearOfBirth int, gender string) error
+	GetUserCredentials(identifier string) (string, string, error)
+	GetUserProfile(userID string) (models.UserProfile, error)
 }
 
 func (db *DB) DoesEmailExists(email string) error {
@@ -38,11 +40,11 @@ func (db *DB) DoesNicknameExists(nickname string) error {
 	return nil
 }
 
-func (db *DB) InsertUser(nickName, firstName, lastName, email, hashedPassword string, yearOfBirth int, gender string) (int64, error) {
-	result, err := db.Conn.Exec(
-		`INSERT INTO users (nickName, firstName, lastName, email, hashedPassword, yearOfBirth, gender)
-		 VALUES (?, ?, ?, ?, ?, ?, ?)`,
-		nickName, firstName, lastName, email, hashedPassword, yearOfBirth, gender,
+func (db *DB) InsertUser(userID, nickName, firstName, lastName, email, hashedPassword string, yearOfBirth int, gender string) error {
+	_, err := db.Conn.Exec(
+		`INSERT INTO users (userId, nickName, firstName, lastName, email, hashedPassword, yearOfBirth, gender)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		userID, nickName, firstName, lastName, email, hashedPassword, yearOfBirth, gender,
 	)
 	if err != nil {
 		slog.Error("failed to insert user into database",
@@ -50,20 +52,14 @@ func (db *DB) InsertUser(nickName, firstName, lastName, email, hashedPassword st
 			"nickname", nickName,
 			"error", err,
 		)
-		return 0, realtimeforum.ErrInternal
+		return realtimeforum.ErrInternal
 	}
 
-	userID, err := result.LastInsertId()
-	if err != nil {
-		slog.Error("failed to get last insert id", "error", err)
-		return 0, realtimeforum.ErrInternal
-	}
-
-	return userID, nil
+	return nil
 }
 
-func (db *DB) GetUserCredentials(identifier string) (int64, string, error) {
-	var userID int64
+func (db *DB) GetUserCredentials(identifier string) (string, string, error) {
+	var userID string
 	var hashedPassword string
 
 	err := db.Conn.QueryRow(
@@ -71,11 +67,28 @@ func (db *DB) GetUserCredentials(identifier string) (int64, string, error) {
 		identifier, identifier,
 	).Scan(&userID, &hashedPassword)
 	if errors.Is(err, sql.ErrNoRows) {
-		return 0, "", realtimeforum.ErrInvalidCredentials
+		return "", "", realtimeforum.ErrInvalidCredentials
 	}
 	if err != nil {
-		return 0, "", realtimeforum.ErrInternal
+		return "", "", realtimeforum.ErrInternal
 	}
 
 	return userID, hashedPassword, nil
+}
+
+func (db *DB) GetUserProfile(userID string) (models.UserProfile, error) {
+	var profile models.UserProfile
+
+	err := db.Conn.QueryRow(
+		"SELECT userId, nickName, firstName, lastName, email FROM users WHERE userId = ?",
+		userID,
+	).Scan(&profile.UserID, &profile.Nickname, &profile.FirstName, &profile.LastName, &profile.Email)
+	if errors.Is(err, sql.ErrNoRows) {
+		return models.UserProfile{}, realtimeforum.ErrNotFound
+	}
+	if err != nil {
+		return models.UserProfile{}, realtimeforum.ErrInternal
+	}
+
+	return profile, nil
 }
