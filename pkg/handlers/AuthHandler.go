@@ -46,23 +46,33 @@ func (re *Repository) Register(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	userID, err := re.AuthService.Register(inputs)
-	if err != nil {
-		re.HandleError(w, r, err)
-		return
-	}
+	userID, token, err := re.AuthService.Register(inputs)
+    if err != nil {
+        re.HandleError(w, r, err)
+        return
+    }
 
-	re.App.Logger.Info("user registered successfully",
-		"user_id", userID,
-		"email", email,
-		"nickname", nickName,
-	)
+    http.SetCookie(w, &http.Cookie{
+        Name:     "session_token",
+        Value:    token,
+        Path:     "/",
+        HttpOnly: true,
+        Secure:   re.App.InProduction,
+        SameSite: http.SameSiteStrictMode,
+    })
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(registerResponse{
-		Message: "user registered successfully",
-		UserID:  userID,
-	})
+    re.App.Logger.Info("user registered and logged in successfully",
+        "user_id", userID,
+        "email", email,
+        "nickname", nickName,
+    )
+
+    w.WriteHeader(http.StatusCreated)
+    json.NewEncoder(w).Encode(registerResponse{
+        Message: "user registered successfully",
+        UserID:  userID,
+    })
+
 }
 
 func (re *Repository) Login(w http.ResponseWriter, r *http.Request) {
@@ -85,7 +95,7 @@ func (re *Repository) Login(w http.ResponseWriter, r *http.Request) {
 		Value:    token,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   re.App.InProduction,
 		SameSite: http.SameSiteStrictMode,
 	})
 
@@ -119,7 +129,7 @@ func (re *Repository) Logout(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		MaxAge:   -1,
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   re.App.InProduction,
 		SameSite: http.SameSiteStrictMode,
 	})
 
