@@ -2,17 +2,17 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
-	"log"
 	"net/http"
+	"os"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 
 	"real-time-forum/pkg/config"
 	"real-time-forum/pkg/handlers"
+	"real-time-forum/pkg/logger"
 	"real-time-forum/pkg/render"
-	db "real-time-forum/pkg/repos"
+	db "real-time-forum/pkg/repositories"
 	"real-time-forum/pkg/service"
 
 	"github.com/alexedwards/scs/v2"
@@ -25,6 +25,10 @@ var session *scs.SessionManager
 func main() {
 	app.InProduction = false
 	app.UseCache = false
+	app.LogLevel = os.Getenv("LOG_LEVEL")
+
+	// Initialize structured logger
+	logger.InitLogger(&app)
 
 	session = scs.New()
 	session.Lifetime = 24 * time.Hour
@@ -35,7 +39,8 @@ func main() {
 
 	templateCache, err := render.CreateTemplateCache()
 	if err != nil {
-		log.Fatal(err)
+		app.Logger.Error("failed to create template cache", "error", err)
+		os.Exit(1)
 	}
 	app.TemplateCache = templateCache
 
@@ -44,7 +49,8 @@ func main() {
 	// Initialize database
 	database, err := sql.Open("sqlite3", "./pkg/repos/realTimeForum.db")
 	if err != nil {
-		log.Fatal(err)
+		app.Logger.Error("failed to open database", "error", err)
+		os.Exit(1)
 	}
 	defer database.Close()
 
@@ -56,7 +62,7 @@ func main() {
 	repo := handlers.NewRepo(&app, authService)
 	handlers.NewHandlers(repo)
 
-	fmt.Printf("Starting application on port %s\n", portNumber)
+	app.Logger.Info("starting application", "port", portNumber)
 
 	serve := &http.Server{
 		Addr:    portNumber,
@@ -65,6 +71,7 @@ func main() {
 
 	err = serve.ListenAndServe()
 	if err != nil {
-		log.Fatal(err)
+		app.Logger.Error("server failed", "error", err)
+		os.Exit(1)
 	}
 }
