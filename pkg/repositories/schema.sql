@@ -13,7 +13,7 @@ PRAGMA foreign_keys = ON;
 
 -- 1. USERS TABLE
 CREATE TABLE users (
-    userId          INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId          TEXT PRIMARY KEY,
     nickName        TEXT NOT NULL UNIQUE,
     firstName       TEXT NOT NULL,
     lastName        TEXT NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE categories (
 -- 3. POSTS TABLE
 CREATE TABLE posts (
     postId           INTEGER PRIMARY KEY AUTOINCREMENT,
-    userId           INTEGER NOT NULL,
+    userId           TEXT NOT NULL,
     title            TEXT NOT NULL,
     content          TEXT NOT NULL,
     categoryId       INTEGER NOT NULL,
@@ -53,7 +53,7 @@ CREATE TABLE posts (
 CREATE TABLE comments (
     commentId   INTEGER PRIMARY KEY AUTOINCREMENT,
     postId      INTEGER NOT NULL,
-    userId      INTEGER NOT NULL,
+    userId      TEXT NOT NULL,
     commentText TEXT NOT NULL,
     score       INTEGER DEFAULT 0,                 -- Cached score for the comment
     createdAt   TEXT DEFAULT (CURRENT_TIMESTAMP),
@@ -64,7 +64,7 @@ CREATE TABLE comments (
 -- 5. POLYMORPHIC REACTIONS TABLE (Abstracted for Posts & Comments)
 CREATE TABLE reactions (
     reactionId  INTEGER PRIMARY KEY AUTOINCREMENT,
-    userId      INTEGER NOT NULL,
+    userId      TEXT NOT NULL,
     entityType  TEXT NOT NULL CHECK(entityType IN ('post', 'comment')),
     entityId    INTEGER NOT NULL,
     score       INTEGER NOT NULL CHECK(score IN (1, -1)), -- 1 = Like, -1 = Dislike
@@ -78,7 +78,7 @@ CREATE TABLE reactions (
 -- 6. SESSIONS TABLE
 CREATE TABLE sessions (
     sessionToken TEXT PRIMARY KEY, -- Clean lookup token as the unique identifier
-    userId       INTEGER NOT NULL,
+    userId       TEXT NOT NULL UNIQUE,
     timeStamp    TEXT DEFAULT (CURRENT_TIMESTAMP),
     createdAt    TEXT DEFAULT (CURRENT_TIMESTAMP),
     expiredAt    TEXT NOT NULL,

@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="SnUdFUMBg76UKAVNT7WN" name="Page-1">
-        <mxGraphModel dx="1432" dy="1661" grid="0" gridSize="7" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="3048" dy="2234" grid="0" gridSize="7" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -578,7 +578,7 @@
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="121" value="&lt;div style=&quot;text-align: start;&quot;&gt;&lt;span style=&quot;background-color: transparent; font-size: 14px; font-weight: 500;&quot;&gt;&lt;font style=&quot;color: rgb(0, 0, 0);&quot; face=&quot;Anthropic Sans, sans-serif&quot;&gt;categories&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;" style="shape=table;startSize=25;container=1;collapsible=1;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="-249" y="-53" width="180" height="140" as="geometry"/>
+                    <mxGeometry x="-249" y="-4" width="180" height="140" as="geometry"/>
                 </mxCell>
                 <mxCell id="122" value="" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;fillColor=none;collapsible=0;dropTarget=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=1;" parent="121" vertex="1">
                     <mxGeometry y="25" width="180" height="30" as="geometry"/>
@@ -762,7 +762,7 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="327" value="&lt;li&gt;&lt;p data-path-to-node=&quot;5,0,0&quot;&gt;&lt;b data-index-in-node=&quot;0&quot; data-path-to-node=&quot;5,0,0&quot;&gt;The Rule:&lt;/b&gt; A user can only react to a specific entity once.&lt;/p&gt;&lt;/li&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+                <mxCell id="327" value="&lt;li&gt;&lt;p data-path-to-node=&quot;5,0,0&quot;&gt;&lt;b data-index-in-node=&quot;0&quot; data-path-to-node=&quot;5,0,0&quot;&gt;The Rule:&lt;/b&gt; A user can only react to a specific entity once.&lt;/p&gt;&lt;/li&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
                     <mxGeometry x="-157" y="1098" width="319" height="56" as="geometry"/>
                 </mxCell>
             </root>
