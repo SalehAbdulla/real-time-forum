@@ -17,7 +17,7 @@ import (
 )
 
 type AuthService interface {
-	Register(inputs []string) (string, string, error)
+	Register(inputs models.RegisterRequest) (string, string, error)
 	Login(identifier, password string) (string, string, error)
 	Logout(token string) error
 	GetMe(userID string) (models.UserProfile, error)
@@ -50,20 +50,16 @@ func passwordStrength(password string) bool {
 	return hasLetter && hasNumber && hasSymbol
 }
 
-func (s authServiceImpl) Register(inputs []string) (string, string, error) {
-	if len(inputs) < 8 {
-		slog.Warn("register called with insufficient inputs")
-		return "", "", realtimeforum.ErrBadRequest
-	}
+func (s authServiceImpl) Register(registerRequest models.RegisterRequest) (string, string, error) {
 
-	nickName := inputs[0]
-	email := inputs[1]
-	firstName := inputs[2]
-	lastName := inputs[3]
-	password := inputs[4]
-	confirmPassword := inputs[5]
-	ageStr := inputs[6]
-	gender := inputs[7]
+	nickName := registerRequest.Nickname
+	email := registerRequest.Email
+	firstName := registerRequest.FirstName
+	lastName := registerRequest.LastName
+	password := registerRequest.Password
+	confirmPassword := registerRequest.ConfirmPassword
+	ageStr := registerRequest.Age
+	gender := registerRequest.Gender
 
 	if len(nickName) < 2 || len(nickName) > 33 {
 		slog.Debug("invalid nickname length", "nickname", nickName, "length", len(nickName))

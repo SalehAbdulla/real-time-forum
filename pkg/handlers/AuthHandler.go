@@ -27,51 +27,51 @@ type logoutResponse struct {
 }
 
 func (re *Repository) Register(w http.ResponseWriter, r *http.Request) {
-	nickName := strings.TrimSpace(strings.ToLower(r.FormValue("nickName")))
-	email := strings.TrimSpace(strings.ToLower(r.FormValue("email")))
-	firstName := strings.TrimSpace(strings.ToLower(r.FormValue("firstName")))
-	lastName := strings.TrimSpace(strings.ToLower(r.FormValue("lastName")))
-	password := strings.TrimSpace(r.FormValue("password"))
-	confirmPassword := strings.TrimSpace(r.FormValue("confirmPassword"))
-	age := strings.TrimSpace(strings.ToLower(r.FormValue("age")))
-	gender := strings.TrimSpace(strings.ToLower(r.FormValue("gender")))
+	registerRequest := models.RegisterRequest{};
 
-	inputs := []string{nickName, email, firstName, lastName, password,
-		confirmPassword, age, gender}
+	registerRequest.Nickname = strings.TrimSpace(strings.ToLower(r.FormValue("nickName")))
+	registerRequest.Email = strings.TrimSpace(strings.ToLower(r.FormValue("email")))
+	registerRequest.FirstName = strings.TrimSpace(strings.ToLower(r.FormValue("firstName")))
+	registerRequest.LastName = strings.TrimSpace(strings.ToLower(r.FormValue("lastName")))
+	registerRequest.Password = strings.TrimSpace(r.FormValue("password"))
+	registerRequest.ConfirmPassword = strings.TrimSpace(r.FormValue("confirmPassword"))
+	registerRequest.Age = strings.TrimSpace(strings.ToLower(r.FormValue("age")))
+	registerRequest.Gender = strings.TrimSpace(strings.ToLower(r.FormValue("gender")))
 
-	for _, v := range inputs {
-		if v == "" {
-			re.HandleError(w, r, realtimeforum.ErrBadRequest)
-			return
-		}
+	if registerRequest.Nickname == "" || registerRequest.Email == "" || 
+	registerRequest.FirstName == "" || registerRequest.LastName == "" ||
+	registerRequest.Password == "" || registerRequest.ConfirmPassword == "" ||
+	registerRequest.Age == "" || registerRequest.Gender == "" {
+		re.HandleError(w, r, realtimeforum.ErrBadRequest)
+		return
 	}
 
-	userID, token, err := re.AuthService.Register(inputs)
-    if err != nil {
-        re.HandleError(w, r, err)
-        return
-    }
+	userID, token, err := re.AuthService.Register(registerRequest)
+	if err != nil {
+		re.HandleError(w, r, err)
+		return
+	}
 
-    http.SetCookie(w, &http.Cookie{
-        Name:     "session_token",
-        Value:    token,
-        Path:     "/",
-        HttpOnly: true,
-        Secure:   re.App.InProduction,
-        SameSite: http.SameSiteStrictMode,
-    })
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    token,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   re.App.InProduction,
+		SameSite: http.SameSiteStrictMode,
+	})
 
-    re.App.Logger.Info("user registered and logged in successfully",
-        "user_id", userID,
-        "email", email,
-        "nickname", nickName,
-    )
+	re.App.Logger.Info("user registered and logged in successfully",
+		"user_id", userID,
+		"email", registerRequest.Email,
+		"nickname", registerRequest.Nickname,
+	)
 
-    w.WriteHeader(http.StatusCreated)
-    json.NewEncoder(w).Encode(registerResponse{
-        Message: "user registered successfully",
-        UserID:  userID,
-    })
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(registerResponse{
+		Message: "user registered successfully",
+		UserID:  userID,
+	})
 
 }
 
