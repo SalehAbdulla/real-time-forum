@@ -2,19 +2,28 @@ package handlers
 
 import (
 	"encoding/json"
-	realtimeforum "real-time-forum"
 	"net/http"
+	realtimeforum "real-time-forum"
+	"real-time-forum/pkg/models"
 	"strings"
 )
 
 type registerResponse struct {
 	Message string `json:"message"`
-	UserID  int64  `json:"userId"`
+	UserID  string `json:"userId"`
 }
 
 type loginResponse struct {
 	Message string `json:"message"`
-	UserID  int64  `json:"userId"`
+	UserID  string `json:"userId"`
+}
+
+type dataResponse[T any] struct {
+	Data T `json:"data"`
+}
+
+type logoutResponse struct {
+	Message string `json:"message"`
 }
 
 func (re *Repository) Register(w http.ResponseWriter, r *http.Request) {
@@ -65,11 +74,20 @@ func (re *Repository) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := re.AuthService.Login(identifier, password)
+	userID, token, err := re.AuthService.Login(identifier, password)
 	if err != nil {
 		re.HandleError(w, r, err)
 		return
 	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    token,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	})
 
 	re.App.Logger.Info("login successful",
 		"user_id", userID,
@@ -80,5 +98,52 @@ func (re *Repository) Login(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(loginResponse{
 		Message: "login successful",
 		UserID:  userID,
+	})
+}
+
+func (re *Repository) Logout(w http.ResponseWriter, r *http.Request) {
+	tokenCookie, err := r.Cookie("session_token")
+	if err != nil || tokenCookie.Value == "" {
+		re.HandleError(w, r, realtimeforum.ErrUnauthorized)
+		return
+	}
+
+	if err := re.AuthService.Logout(tokenCookie.Value); err != nil {
+		re.HandleError(w, r, err)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	})
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(dataResponse[logoutResponse]{
+		Data: logoutResponse{Message: "Logged out"},
+	})
+}
+
+func (re *Repository) Me(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("user_id").(string)
+	if !ok || userID == "" {
+		re.HandleError(w, r, realtimeforum.ErrUnauthorized)
+		return
+	}
+
+	profile, err := re.AuthService.GetMe(userID)
+	if err != nil {
+		re.HandleError(w, r, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(dataResponse[models.UserProfile]{
+		Data: profile,
 	})
 }

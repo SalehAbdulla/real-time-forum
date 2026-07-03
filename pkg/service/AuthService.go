@@ -10,21 +10,28 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
+	"real-time-forum/pkg/models"
 	db "real-time-forum/pkg/repositories"
+
+	"github.com/google/uuid"
 )
 
 type AuthService interface {
-	Register(inputs []string) (int64, error)
-	Login(identifier, password string) (int64, error)
+	Register(inputs []string) (string, error)
+	Login(identifier, password string) (string, string, error)
+	Logout(token string) error
+	GetMe(userID string) (models.UserProfile, error)
 }
 
 type authServiceImpl struct {
-	db db.AuthRepository
+	db             db.AuthRepository
+	sessionManager *SessionManager
 }
 
 func NewAuthService(database db.AuthRepository) AuthService {
 	return authServiceImpl{
-		db: database,
+		db:             database,
+		sessionManager: NewSessionManager(),
 	}
 }
 
@@ -43,10 +50,10 @@ func passwordStrength(password string) bool {
 	return hasLetter && hasNumber && hasSymbol
 }
 
-func (s authServiceImpl) Register(inputs []string) (int64, error) {
+func (s authServiceImpl) Register(inputs []string) (string, error) {
 	if len(inputs) < 8 {
 		slog.Warn("register called with insufficient inputs")
-		return 0, realtimeforum.ErrBadRequest
+		return "", realtimeforum.ErrBadRequest
 	}
 
 	nickName := inputs[0]
@@ -60,80 +67,88 @@ func (s authServiceImpl) Register(inputs []string) (int64, error) {
 
 	if len(nickName) < 2 || len(nickName) > 33 {
 		slog.Debug("invalid nickname length", "nickname", nickName, "length", len(nickName))
-		return 0, realtimeforum.ErrNickNameLength
+		return "", realtimeforum.ErrNickNameLength
 	}
 
-	// Validate email format using net/mail
 	_, err := mail.ParseAddress(email)
 	if err != nil {
 		slog.Debug("invalid email format", "email", email)
-		return 0, realtimeforum.ErrInvalidEmail
+		return "", realtimeforum.ErrInvalidEmail
 	}
 
-	// Check if email already exists
 	if err := s.db.DoesEmailExists(email); err != nil {
-		return 0, err
+		return "", err
 	}
 
-	// Check if nickname already exists
 	if err := s.db.DoesNicknameExists(nickName); err != nil {
-		return 0, err
+		return "", err
 	}
 
-	// Validate age and calculate yearOfBirth
 	age, err := strconv.Atoi(ageStr)
 	if err != nil || age <= 0 || age > 150 {
 		slog.Debug("invalid age", "age", ageStr)
-		return 0, realtimeforum.ErrInvalidAge
+		return "", realtimeforum.ErrInvalidAge
 	}
 	yearOfBirth := time.Now().Year() - age
 
-	// Confirm passwords match
 	if password != confirmPassword {
 		slog.Debug("passwords do not match")
-		return 0, realtimeforum.ErrPasswordsDontMatch
+		return "", realtimeforum.ErrPasswordsDontMatch
 	}
 
 	if len(password) < 12 || len(password) > 64 {
 		slog.Debug("invalid password length", "length", len(password))
-		return 0, realtimeforum.ErrPasswordLength
+		return "", realtimeforum.ErrPasswordLength
 	}
 
-	// Validate password strength
 	if !passwordStrength(password) {
 		slog.Debug("weak password")
-		return 0, realtimeforum.ErrInvalidPassForm
+		return "", realtimeforum.ErrInvalidPassForm
 	}
 
-	// Hash the password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		slog.Error("failed to hash password", "error", err)
-		return 0, realtimeforum.ErrInternal
+		return "", realtimeforum.ErrInternal
 	}
 
 	if gender != "male" && gender != "female" {
 		slog.Debug("invalid gender", "gender", gender)
-		return 0, realtimeforum.ErrGender
+		return "", realtimeforum.ErrGender
 	}
 
-	// Insert user into the database via repository
-	return s.db.InsertUser(nickName, firstName, lastName, email, string(hashedPassword), yearOfBirth, gender)
-}
-
-func (s authServiceImpl) Login(identifier, password string) (int64, error) {
-	userID, hashedPassword, err := s.db.GetUserCredentials(identifier)
-	if err != nil {
-		slog.Info("login credential lookup failed", "identifier", identifier, "error", err)
-		return 0, err
-	}
-
-	// Compare the provided password with the stored hash
-	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-	if err != nil {
-		slog.Info("invalid password attempt", "user_id", userID)
-		return 0, realtimeforum.ErrInvalidCredentials
+	userID := uuid.NewString()
+	if err := s.db.InsertUser(userID, nickName, firstName, lastName, email, string(hashedPassword), yearOfBirth, gender); err != nil {
+		return "", err
 	}
 
 	return userID, nil
+}
+
+func (s authServiceImpl) Login(identifier, password string) (string, string, error) {
+	userID, hashedPassword, err := s.db.GetUserCredentials(identifier)
+	if err != nil {
+		slog.Info("login credential lookup failed", "identifier", identifier, "error", err)
+		return "", "", err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	if err != nil {
+		slog.Info("invalid password attempt", "user_id", userID)
+		return "", "", realtimeforum.ErrInvalidCredentials
+	}
+
+	token := uuid.NewString()
+	s.sessionManager.CreateSession(userID, token)
+
+	return userID, token, nil
+}
+
+func (s authServiceImpl) Logout(token string) error {
+	s.sessionManager.DeleteSession(token)
+	return nil
+}
+
+func (s authServiceImpl) GetMe(userID string) (models.UserProfile, error) {
+	return s.db.GetUserProfile(userID)
 }
