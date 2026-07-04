@@ -1,4 +1,3 @@
--- Disable foreign key checks temporarily to safely drop tables if they exist
 PRAGMA foreign_keys = OFF;
 
 DROP TABLE IF EXISTS messages;
@@ -11,7 +10,6 @@ DROP TABLE IF EXISTS users;
 
 PRAGMA foreign_keys = ON;
 
--- 1. USERS TABLE
 CREATE TABLE users (
     userId          TEXT PRIMARY KEY,
     nickName        TEXT NOT NULL UNIQUE,
@@ -19,14 +17,13 @@ CREATE TABLE users (
     lastName        TEXT NOT NULL,
     email           TEXT NOT NULL UNIQUE,
     hashedPassword  TEXT NOT NULL,
-    yearOfBirth     INTEGER NOT NULL, -- Stored directly (Age is derived dynamically)
+    yearOfBirth     INTEGER NOT NULL,
     gender          TEXT CHECK(gender IN ('male', 'female')),
     isOnline        INTEGER DEFAULT 0 CHECK(isOnline IN (0, 1)),
     createdAt       TEXT DEFAULT (CURRENT_TIMESTAMP),
     updatedAt       TEXT DEFAULT (CURRENT_TIMESTAMP)
 );
 
--- 2. CATEGORIES TABLE
 CREATE TABLE categories (
     categoryId      INTEGER PRIMARY KEY AUTOINCREMENT,
     categoryName    TEXT NOT NULL UNIQUE,
@@ -34,50 +31,45 @@ CREATE TABLE categories (
     updatedAt       TEXT DEFAULT (CURRENT_TIMESTAMP)
 );
 
--- 3. POSTS TABLE
 CREATE TABLE posts (
     postId           INTEGER PRIMARY KEY AUTOINCREMENT,
     userId           TEXT NOT NULL,
     title            TEXT NOT NULL,
     content          TEXT NOT NULL,
     categoryId       INTEGER NOT NULL,
-    score            INTEGER DEFAULT 0,            -- Cached total score (upvotes - downvotes)
-    commentsCounter  INTEGER DEFAULT 0,            -- Cached total number of comments
+    score            INTEGER DEFAULT 0,
+    commentsCounter  INTEGER DEFAULT 0,
     createdAt        TEXT DEFAULT (CURRENT_TIMESTAMP),
     updatedAt        TEXT DEFAULT (CURRENT_TIMESTAMP),
     FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE,
     FOREIGN KEY (categoryId) REFERENCES categories(categoryId) ON DELETE RESTRICT
 );
 
--- 4. COMMENTS TABLE
 CREATE TABLE comments (
     commentId   INTEGER PRIMARY KEY AUTOINCREMENT,
     postId      INTEGER NOT NULL,
     userId      TEXT NOT NULL,
     commentText TEXT NOT NULL,
-    score       INTEGER DEFAULT 0,                 -- Cached score for the comment
+    score       INTEGER DEFAULT 0,                
     createdAt   TEXT DEFAULT (CURRENT_TIMESTAMP),
     FOREIGN KEY (postId) REFERENCES posts(postId) ON DELETE CASCADE,
     FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE
 );
 
--- 5. POLYMORPHIC REACTIONS TABLE (Abstracted for Posts & Comments)
 CREATE TABLE reactions (
     reactionId  INTEGER PRIMARY KEY AUTOINCREMENT,
     userId      TEXT NOT NULL,
     entityType  TEXT NOT NULL CHECK(entityType IN ('post', 'comment')),
     entityId    INTEGER NOT NULL,
-    score       INTEGER NOT NULL CHECK(score IN (1, -1)), -- 1 = Like, -1 = Dislike
+    score       INTEGER NOT NULL CHECK(score IN (1, -1)),
     createdAt   TEXT DEFAULT (CURRENT_TIMESTAMP),
     FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE,
     
-    -- Crucial Constraint: Ensures a user can only vote on a specific item once
     UNIQUE(userId, entityType, entityId)
 );
 
--- 6. SESSIONS TABLE
 CREATE TABLE sessions (
-    sessionToken TEXT PRIMARY KEY, -- Clean lookup token as the unique identifier
+    sessionToken TEXT PRIMARY KEY,
     userId       TEXT NOT NULL UNIQUE,
     timeStamp    TEXT DEFAULT (CURRENT_TIMESTAMP),
     createdAt    TEXT DEFAULT (CURRENT_TIMESTAMP),
@@ -85,7 +77,6 @@ CREATE TABLE sessions (
     FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE
 );
 
--- 7. MESSAGES TABLE (Direct Messaging Architecture)
 CREATE TABLE messages (
     messageId   INTEGER PRIMARY KEY AUTOINCREMENT,
     senderId    INTEGER NOT NULL,
@@ -97,16 +88,12 @@ CREATE TABLE messages (
     FOREIGN KEY (recipientId) REFERENCES users(userId) ON DELETE CASCADE
 );
 
--- PERFORMANCE & LOOKUP INDEXES
 
--- Index for real-time direct messaging chat timelines
 CREATE INDEX idx_messages_chat_flow 
 ON messages (senderId, recipientId, timeStamp DESC);
 
--- Indexes for polymorphic reaction calculations
 CREATE INDEX idx_reactions_lookup 
 ON reactions (entityType, entityId);
 
--- Index for retrieving target feed posts quickly
 CREATE INDEX idx_posts_category 
 ON posts (categoryId);
