@@ -18,7 +18,7 @@ type AuthRepository interface {
 
 func (db *DB) DoesEmailExists(email string) error {
 	var existingEmail string
-	err := db.Conn.QueryRow("SELECT email FROM users WHERE email = ?", email).Scan(&existingEmail)
+	err := db.Conn.QueryRow("SELECT email FROM user WHERE email = ?", email).Scan(&existingEmail)
 	if err == nil {
 		return realtimeforum.ErrEmailExists
 	}
@@ -30,7 +30,7 @@ func (db *DB) DoesEmailExists(email string) error {
 
 func (db *DB) DoesNicknameExists(nickname string) error {
 	var existingNick string
-	err := db.Conn.QueryRow("SELECT nickName FROM users WHERE nickName = ?", nickname).Scan(&existingNick)
+	err := db.Conn.QueryRow("SELECT nickName FROM user WHERE nickName = ?", nickname).Scan(&existingNick)
 	if err == nil {
 		return realtimeforum.ErrNickName
 	}
@@ -42,7 +42,7 @@ func (db *DB) DoesNicknameExists(nickname string) error {
 
 func (db *DB) InsertUser(userID, nickName, firstName, lastName, email, hashedPassword string, yearOfBirth int, gender string) error {
 	_, err := db.Conn.Exec(
-		`INSERT INTO users (userId, nickName, firstName, lastName, email, hashedPassword, yearOfBirth, gender)
+		`INSERT INTO user (userId, nickName, firstName, lastName, email, hashedPassword, yearOfBirth, gender)
 		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 		userID, nickName, firstName, lastName, email, hashedPassword, yearOfBirth, gender,
 	)
@@ -63,7 +63,7 @@ func (db *DB) GetUserCredentials(identifier string) (string, string, error) {
 	var hashedPassword string
 
 	err := db.Conn.QueryRow(
-		"SELECT userId, hashedPassword FROM users WHERE email = ? OR nickName = ?",
+		"SELECT userId, hashedPassword FROM user WHERE email = ? OR nickName = ?",
 		identifier, identifier,
 	).Scan(&userID, &hashedPassword)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -80,7 +80,7 @@ func (db *DB) GetUserProfile(userID string) (models.UserProfile, error) {
 	var profile models.UserProfile
 
 	err := db.Conn.QueryRow(
-		"SELECT userId, nickName, firstName, lastName, email FROM users WHERE userId = ?",
+		"SELECT userId, nickName, firstName, lastName, email FROM user WHERE userId = ?",
 		userID,
 	).Scan(&profile.UserID, &profile.Nickname, &profile.FirstName, &profile.LastName, &profile.Email)
 	if errors.Is(err, sql.ErrNoRows) {
