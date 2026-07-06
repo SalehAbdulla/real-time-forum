@@ -11,14 +11,18 @@ import (
 var Repo *Repository
 
 type Repository struct {
-	App         *config.AppConfig
-	AuthService service.AuthService
+	App             *config.AppConfig
+	AuthService     service.AuthService
+	CategoryService service.CategoryService
 }
 
-func NewRepo(a *config.AppConfig, as service.AuthService) *Repository {
+func NewRepo(a *config.AppConfig, 
+	as service.AuthService,
+	cs service.CategoryService) *Repository {
 	return &Repository{
 		App:         a,
 		AuthService: as,
+		CategoryService: cs,
 	}
 }
 
