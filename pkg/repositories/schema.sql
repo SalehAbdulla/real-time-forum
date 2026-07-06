@@ -28,7 +28,7 @@ CREATE TABLE user (
     hashedPassword  TEXT NOT NULL,
     yearOfBirth     INTEGER NOT NULL,
     gender          TEXT CHECK(gender IN ('male', 'female')),
-    isOnline        INTEGER DEFAULT 0 CHECK(isOnline IN (0, 1)),
+    -- isOnline        INTEGER DEFAULT 0 CHECK(isOnline IN (0, 1)),
     createdAt       TEXT DEFAULT (CURRENT_TIMESTAMP),
     updatedAt       TEXT DEFAULT (CURRENT_TIMESTAMP)
 );
@@ -88,8 +88,8 @@ CREATE TABLE session (
 
 CREATE TABLE message (
     messageId   INTEGER PRIMARY KEY AUTOINCREMENT,
-    senderId    INTEGER NOT NULL,
-    recipientId INTEGER NOT NULL,
+    senderId    TEXT NOT NULL,
+    recipientId TEXT NOT NULL,
     textMessage TEXT NOT NULL,
     timeStamp   TEXT DEFAULT (CURRENT_TIMESTAMP),
     isRead      INTEGER DEFAULT 0 CHECK(isRead IN (0, 1)),
@@ -106,3 +106,7 @@ ON reaction (entityType, entityId);
 
 CREATE INDEX idx_posts_category 
 ON post (categoryId);
+
+CREATE INDEX idx_post_userId ON post (userId);
+CREATE INDEX idx_comment_postId ON comment (postId);
+CREATE INDEX idx_comment_userId ON comment (userId);
