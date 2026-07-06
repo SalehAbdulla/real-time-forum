@@ -58,8 +58,9 @@ func main() {
 
 	// Initialize services
 	authService := service.NewAuthService(dbConn)
+	categoryService := service.NewCategoryService(dbConn)
 
-	repo := handlers.NewRepo(&app, authService)
+	repo := handlers.NewRepo(&app, authService, categoryService)
 	handlers.NewHandlers(repo)
 
 	app.Logger.Info("starting application", "port", portNumber)
