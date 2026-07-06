@@ -23,13 +23,13 @@ type AuthService interface {
 	GetMe(userID string) (models.UserProfile, error)
 }
 
-type authServiceImpl struct {
+type AuthServiceImpl struct {
 	db             db.AuthRepository
 	sessionManager *SessionManager
 }
 
 func NewAuthService(database db.AuthRepository) AuthService {
-	return authServiceImpl{
+	return AuthServiceImpl{
 		db:             database,
 		sessionManager: NewSessionManager(),
 	}
@@ -50,7 +50,7 @@ func passwordStrength(password string) bool {
 	return hasLetter && hasNumber && hasSymbol
 }
 
-func (s authServiceImpl) Register(registerRequest models.RegisterRequest) (string, string, error) {
+func (s AuthServiceImpl) Register(registerRequest models.RegisterRequest) (string, string, error) {
 
 	nickName := registerRequest.Nickname
 	email := registerRequest.Email
@@ -124,7 +124,7 @@ func (s authServiceImpl) Register(registerRequest models.RegisterRequest) (strin
 	return userID, token, nil
 }
 
-func (s authServiceImpl) Login(identifier, password string) (string, string, error) {
+func (s AuthServiceImpl) Login(identifier, password string) (string, string, error) {
 	userID, hashedPassword, err := s.db.GetUserCredentials(identifier)
 	if err != nil {
 		slog.Info("login credential lookup failed", "identifier", identifier, "error", err)
@@ -143,11 +143,11 @@ func (s authServiceImpl) Login(identifier, password string) (string, string, err
 	return userID, token, nil
 }
 
-func (s authServiceImpl) Logout(token string) error {
+func (s AuthServiceImpl) Logout(token string) error {
 	s.sessionManager.DeleteSession(token)
 	return nil
 }
 
-func (s authServiceImpl) GetMe(userID string) (models.UserProfile, error) {
+func (s AuthServiceImpl) GetMe(userID string) (models.UserProfile, error) {
 	return s.db.GetUserProfile(userID)
 }

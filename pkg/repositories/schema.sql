@@ -35,10 +35,17 @@ CREATE TABLE user (
 
 CREATE TABLE category (
     categoryId      INTEGER PRIMARY KEY AUTOINCREMENT,
-    categoryName    TEXT NOT NULL UNIQUE,
-    createdAt       TEXT DEFAULT (CURRENT_TIMESTAMP),
-    updatedAt       TEXT DEFAULT (CURRENT_TIMESTAMP)
+    categoryName    TEXT NOT NULL UNIQUE
 );
+
+insert into category (categoryName) values ("General");
+insert into category (categoryName) values ("Tech");
+insert into category (categoryName) values ("Dev");
+insert into category (categoryName) values ("Gaming");
+insert into category (categoryName) values ("Help");
+insert into category (categoryName) values ("Life");
+insert into category (categoryName) values ("Sport");
+insert into category (categoryName) values ("Misc");
 
 CREATE TABLE post (
     postId           INTEGER PRIMARY KEY AUTOINCREMENT,
