@@ -18,16 +18,12 @@ type loginResponse struct {
 	UserID  string `json:"userId"`
 }
 
-type dataResponse[T any] struct {
-	Data T `json:"data"`
-}
-
 type logoutResponse struct {
 	Message string `json:"message"`
 }
 
 func (re *Repository) Register(w http.ResponseWriter, r *http.Request) {
-	registerRequest := models.RegisterRequest{};
+	registerRequest := models.RegisterRequest{}
 
 	registerRequest.Nickname = strings.TrimSpace(strings.ToLower(r.FormValue("nickName")))
 	registerRequest.Email = strings.TrimSpace(strings.ToLower(r.FormValue("email")))
@@ -38,10 +34,10 @@ func (re *Repository) Register(w http.ResponseWriter, r *http.Request) {
 	registerRequest.Age = strings.TrimSpace(strings.ToLower(r.FormValue("age")))
 	registerRequest.Gender = strings.TrimSpace(strings.ToLower(r.FormValue("gender")))
 
-	if registerRequest.Nickname == "" || registerRequest.Email == "" || 
-	registerRequest.FirstName == "" || registerRequest.LastName == "" ||
-	registerRequest.Password == "" || registerRequest.ConfirmPassword == "" ||
-	registerRequest.Age == "" || registerRequest.Gender == "" {
+	if registerRequest.Nickname == "" || registerRequest.Email == "" ||
+		registerRequest.FirstName == "" || registerRequest.LastName == "" ||
+		registerRequest.Password == "" || registerRequest.ConfirmPassword == "" ||
+		registerRequest.Age == "" || registerRequest.Gender == "" {
 		re.HandleError(w, r, realtimeforum.ErrBadRequest)
 		return
 	}
@@ -134,7 +130,7 @@ func (re *Repository) Logout(w http.ResponseWriter, r *http.Request) {
 	})
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(dataResponse[logoutResponse]{
+	json.NewEncoder(w).Encode(models.DataResponse[logoutResponse]{
 		Data: logoutResponse{Message: "Logged out"},
 	})
 }
@@ -153,7 +149,7 @@ func (re *Repository) Me(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(dataResponse[models.UserProfile]{
+	json.NewEncoder(w).Encode(models.DataResponse[models.UserProfile]{
 		Data: profile,
 	})
 }
