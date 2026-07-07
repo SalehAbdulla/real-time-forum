@@ -34,8 +34,8 @@ func AuthMiddleware(next http.Handler) http.Handler {
 }
 
 // UserIDFromContext extracts the authenticated user ID from the request context.
-func UserIDFromContext(ctx context.Context) (int, bool) {
-	userID, ok := ctx.Value(userIDKey).(int)
+func UserIDFromContext(ctx context.Context) (string, bool) {
+	userID, ok := ctx.Value(userIDKey).(string)
 	return userID, ok
 }
 

@@ -31,7 +31,7 @@ type AuthServiceImpl struct {
 func NewAuthService(database db.AuthRepository) AuthService {
 	return AuthServiceImpl{
 		db:             database,
-		sessionManager: NewSessionManager(),
+		sessionManager: DefaultSessionManager,
 	}
 }
 
