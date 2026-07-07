@@ -1,12 +1,12 @@
 package service
 
 import (
-	"real-time-forum/pkg/models"
+	"real-time-forum/pkg/payload/category"
 	db "real-time-forum/pkg/repositories"
 )
 
 type CategoryService interface {
-	GetCategories() ([]models.Category, error)
+	GetCategories() ([]category.CategoryDTO, error)
 }
 
 type CategoryServiceImpl struct {
@@ -19,6 +19,19 @@ func NewCategoryService(database db.CategoryRepository) CategoryService {
 	}
 }
 
-func (c CategoryServiceImpl) GetCategories() ([]models.Category, error) {
-	return c.db.GetCategories()
+func (c CategoryServiceImpl) GetCategories() ([]category.CategoryDTO, error) {
+	categories, err := c.db.GetCategories()
+	if err != nil {
+		return nil, err
+	}
+
+	dtos := make([]category.CategoryDTO, len(categories))
+	for i, cat := range categories {
+		dtos[i] = category.CategoryDTO{
+			CategoryId:   cat.CategoryId,
+			CategoryName: cat.CategoryName,
+		}
+	}
+
+	return dtos, nil
 }
