@@ -5,7 +5,6 @@ import (
 	"time"
 )
 
-// SessionManager provides a thread-safe in-memory cache for session tokens,
 type SessionManager struct {
 	mu sync.RWMutex
 
