@@ -19,6 +19,7 @@ import (
 )
 
 const portNumber = ":3000"
+
 var app config.AppConfig
 var session *scs.SessionManager
 
@@ -59,8 +60,9 @@ func main() {
 	// Initialize services
 	authService := service.NewAuthService(dbConn)
 	categoryService := service.NewCategoryService(dbConn)
+	postService := service.NewPostService(dbConn)
 
-	repo := handlers.NewRepo(&app, authService, categoryService)
+	repo := handlers.NewRepo(&app, authService, categoryService, postService)
 	handlers.NewHandlers(repo)
 
 	app.Logger.Info("starting application", "port", portNumber)
