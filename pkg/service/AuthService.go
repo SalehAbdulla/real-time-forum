@@ -10,17 +10,17 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"real-time-forum/pkg/models"
+	"real-time-forum/pkg/payload/user"
 	db "real-time-forum/pkg/repositories"
 
 	"github.com/google/uuid"
 )
 
 type AuthService interface {
-	Register(inputs models.RegisterRequest) (string, string, error)
+	Register(inputs user.RegisterRequestDTO) (string, string, error)
 	Login(identifier, password string) (string, string, error)
 	Logout(token string) error
-	GetMe(userID string) (models.UserProfile, error)
+	GetMe(userID string) (user.UserDTO, error)
 }
 
 type AuthServiceImpl struct {
@@ -50,7 +50,7 @@ func passwordStrength(password string) bool {
 	return hasLetter && hasNumber && hasSymbol
 }
 
-func (s AuthServiceImpl) Register(registerRequest models.RegisterRequest) (string, string, error) {
+func (s AuthServiceImpl) Register(registerRequest user.RegisterRequestDTO) (string, string, error) {
 
 	nickName := registerRequest.Nickname
 	email := registerRequest.Email
@@ -148,6 +148,17 @@ func (s AuthServiceImpl) Logout(token string) error {
 	return nil
 }
 
-func (s AuthServiceImpl) GetMe(userID string) (models.UserProfile, error) {
-	return s.db.GetUserProfile(userID)
+func (s AuthServiceImpl) GetMe(userID string) (user.UserDTO, error) {
+	profile, err := s.db.GetUserProfile(userID)
+	if err != nil {
+		return user.UserDTO{}, err
+	}
+
+	return user.UserDTO{
+		UserID:    profile.UserID,
+		Nickname:  profile.Nickname,
+		FirstName: profile.FirstName,
+		LastName:  profile.LastName,
+		Email:     profile.Email,
+	}, nil
 }
