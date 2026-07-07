@@ -96,7 +96,7 @@ func (re *Repository) CreatePost(w http.ResponseWriter, r *http.Request) {
 		re.HandleError(w, r, realtimeforum.ErrBadRequest)
 		return
 	}
-
+	// Will create a clear msg error later
 	if content == "" || len(content) > 100  {
 		re.HandleError(w, r, realtimeforum.ErrBadRequest)
 		return
