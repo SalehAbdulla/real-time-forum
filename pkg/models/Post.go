@@ -9,12 +9,15 @@ const (
 )
 
 type Post struct {
-	postId int
-	userId string
-	title string
-	content string 
-	categoryId int
-	createdAt string
-	updatedAt string
-	score Score
+	PostId          int    `json:"postId"`
+	UserId          string `json:"userId"`
+	Nickname        string `json:"nickname"`
+	Title           string `json:"title"`
+	Content         string `json:"content"`
+	CategoryId      int    `json:"categoryId"`
+	CategoryName    string `json:"categoryName"`
+	Score           int    `json:"score"`
+	CommentsCounter int    `json:"commentsCounter"`
+	CreatedAt       string `json:"createdAt"`
+	UpdatedAt       string `json:"updatedAt"`
 }
