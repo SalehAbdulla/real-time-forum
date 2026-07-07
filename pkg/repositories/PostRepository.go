@@ -6,6 +6,7 @@ import (
 
 type PostRepository interface {
 	GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder string) ([]models.Post, int, error)
+	CreatePost(post models.Post) (models.Post, error)
 }
 
 func (db *DB) GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder string) ([]models.Post, int, error) {
@@ -87,4 +88,48 @@ func (db *DB) GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder st
 	}
 
 	return posts, totalElements, nil
+}
+
+func (db *DB) CreatePost(post models.Post) (models.Post, error) {
+	now := "datetime('now')"
+	result, err := db.Conn.Exec(
+		`INSERT INTO post (userId, title, content, categoryId, score, commentsCounter, createdAt, updatedAt)
+		 VALUES (?, ?, ?, ?, 0, 0, `+now+`, `+now+`)`,
+		post.UserId, post.Title, post.Content, post.CategoryId,
+	)
+	if err != nil {
+		return models.Post{}, err
+	}
+
+	postID, err := result.LastInsertId()
+	if err != nil {
+		return models.Post{}, err
+	}
+
+	err = db.Conn.QueryRow(
+		`SELECT p.postId, p.userId, u.nickName, p.title, p.content,
+				p.categoryId, c.categoryName, p.score, p.commentsCounter,
+				p.createdAt, p.updatedAt
+		FROM post p
+		JOIN user u ON p.userId = u.userId
+		JOIN category c ON p.categoryId = c.categoryId
+		WHERE p.postId = ?`, postID,
+	).Scan(
+		&post.PostId,
+		&post.UserId,
+		&post.Nickname,
+		&post.Title,
+		&post.Content,
+		&post.CategoryId,
+		&post.CategoryName,
+		&post.Score,
+		&post.CommentsCounter,
+		&post.CreatedAt,
+		&post.UpdatedAt,
+	)
+	if err != nil {
+		return models.Post{}, err
+	}
+
+	return post, nil
 }
