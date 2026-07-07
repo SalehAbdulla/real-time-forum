@@ -9,6 +9,7 @@ import (
 
 type PostService interface {
 	GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder string) (posts.PostResponse, error)
+	CreatePost(userID string, title string, content string, categoryId int) (posts.PostDTO, error)
 }
 
 type PostServiceImpl struct {
@@ -59,4 +60,20 @@ func (p PostServiceImpl) GetPosts(pageNumber int, pageSize int, sortBy string, s
 		TotalPages:    totalPages,
 		LastPage:      lastPage,
 	}, nil
+}
+
+func (p PostServiceImpl) CreatePost(userID string, title string, content string, categoryId int) (posts.PostDTO, error) {
+	post := models.Post{
+		UserId:     userID,
+		Title:      title,
+		Content:    content,
+		CategoryId: categoryId,
+	}
+
+	createdPost, err := p.db.CreatePost(post)
+	if err != nil {
+		return posts.PostDTO{}, err
+	}
+
+	return mapPostToDTO(createdPost), nil
 }
