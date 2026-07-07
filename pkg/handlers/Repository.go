@@ -14,15 +14,18 @@ type Repository struct {
 	App             *config.AppConfig
 	AuthService     service.AuthService
 	CategoryService service.CategoryService
+	PostService     service.PostService
 }
 
-func NewRepo(a *config.AppConfig, 
+func NewRepo(a *config.AppConfig,
 	as service.AuthService,
-	cs service.CategoryService) *Repository {
+	cs service.CategoryService,
+	ps service.PostService) *Repository {
 	return &Repository{
-		App:         a,
-		AuthService: as,
+		App:             a,
+		AuthService:     as,
 		CategoryService: cs,
+		PostService: ps,
 	}
 }
 
