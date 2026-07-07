@@ -56,7 +56,10 @@ func (re *Repository) HandleError(w http.ResponseWriter, r *http.Request, err er
 			err == realtimeforum.ErrInvalidPassForm,
 			err == realtimeforum.ErrInvalidAge,
 			err == realtimeforum.ErrGender,
-			err == realtimeforum.ErrInvalidCredentials:
+			err == realtimeforum.ErrInvalidCredentials,
+			err == realtimeforum.ErrContentEmptyOrMoreThanHundard,
+			err == realtimeforum.ErrNoCategorySelected,
+			err == realtimeforum.ErrTitleEmptyOrMoreThanHundard:
 			statusCode = http.StatusBadRequest
 			level = slog.LevelWarn
 		default:

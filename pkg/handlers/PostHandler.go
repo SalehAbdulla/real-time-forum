@@ -92,24 +92,24 @@ func (re *Repository) CreatePost(w http.ResponseWriter, r *http.Request) {
 	content := strings.TrimSpace(r.FormValue("content"))
 	categoryIdStr := strings.TrimSpace(r.FormValue("categoryId"))
 
-	if title == "" || len(title) > 30 {
-		re.HandleError(w, r, realtimeforum.ErrBadRequest)
+	if title == "" || len(title) < 3 || len(title) > 30 {
+		re.HandleError(w, r, realtimeforum.ErrTitleEmptyOrMoreThanHundard)
 		return
 	}
 	// Will create a clear msg error later
-	if content == "" || len(content) > 100  {
-		re.HandleError(w, r, realtimeforum.ErrBadRequest)
+	if content == "" || len(content) < 10 || len(content) > 100  {
+		re.HandleError(w, r, realtimeforum.ErrContentEmptyOrMoreThanHundard)
 		return
 	}
 
 	if categoryIdStr == "" {
-		re.HandleError(w, r, realtimeforum.ErrBadRequest)
+		re.HandleError(w, r, realtimeforum.ErrNoCategorySelected)
 		return
 	}
 
 	categoryId, err := strconv.Atoi(categoryIdStr)
-	if err != nil || categoryId < 1 {
-		re.HandleError(w, r, realtimeforum.ErrBadRequest)
+	if err != nil || categoryId < 1 || categoryId > 8 {
+		re.HandleError(w, r, realtimeforum.ErrNoCategorySelected)
 		return
 	}
 

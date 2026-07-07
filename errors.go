@@ -19,4 +19,7 @@ var (
 	ErrNickName           = errors.New("username already taken")
 	ErrNickNameLength = errors.New("invalid username length (min 2, max 33)")
 	ErrPasswordLength = errors.New("invalid password length (min 12, max 64)")
+	ErrTitleEmptyOrMoreThanHundard = errors.New("invalid title length, (min 3, max 30) characters")
+	ErrContentEmptyOrMoreThanHundard = errors.New("invalid content length, (min 10, max 100) characters")
+	ErrNoCategorySelected = errors.New("post must have a valid category")
 )
