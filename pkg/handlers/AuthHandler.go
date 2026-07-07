@@ -5,6 +5,7 @@ import (
 	"net/http"
 	realtimeforum "real-time-forum"
 	"real-time-forum/pkg/models"
+	"real-time-forum/pkg/payload/user"
 	"strings"
 )
 
@@ -23,7 +24,7 @@ type logoutResponse struct {
 }
 
 func (re *Repository) Register(w http.ResponseWriter, r *http.Request) {
-	registerRequest := models.RegisterRequest{}
+	registerRequest := user.RegisterRequestDTO{}
 
 	registerRequest.Nickname = strings.TrimSpace(strings.ToLower(r.FormValue("nickName")))
 	registerRequest.Email = strings.TrimSpace(strings.ToLower(r.FormValue("email")))
@@ -149,7 +150,7 @@ func (re *Repository) Me(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.DataResponse[models.UserProfile]{
+	json.NewEncoder(w).Encode(models.DataResponse[user.UserDTO]{
 		Data: profile,
 	})
 }
