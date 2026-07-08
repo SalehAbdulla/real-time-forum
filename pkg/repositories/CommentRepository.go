@@ -86,6 +86,40 @@ func (db *DB) GetComments(postId int, pageNumber int, pageSize int, sortBy strin
 }
 
 func (db *DB) CreateComment(userId string, postId int, content string) (models.Comment, error) {
+	if err := db.DoesPostExists(postId); err != nil {
+		return models.Comment{}, err
+	}
 
-	return models.Comment{}, nil
+	result, err := db.Conn.Exec(
+		`INSERT INTO comment (postId, userId, commentText, score, createdAt)
+		 VALUES (?, ?, ?, 0, datetime('now'))`,
+		postId, userId, content,
+	)
+	if err != nil {
+		return models.Comment{}, realtimeforum.ErrInternal
+	}
+
+	commentID, err := result.LastInsertId()
+	if err != nil {
+		return models.Comment{}, realtimeforum.ErrInternal
+	}
+
+	var com models.Comment
+	err = db.Conn.QueryRow(
+		`SELECT commentId, postId, userId, commentText, createdAt
+		 FROM comment
+		 WHERE commentId = ?`, commentID,
+	).Scan(
+		&com.CommentId,
+		&com.PostId,
+		&com.UserId,
+		&com.CommentText,
+		&com.CreatedAt,
+	)
+	
+	if err != nil {
+		return models.Comment{}, realtimeforum.ErrInternal
+	}
+
+	return com, nil
 }
