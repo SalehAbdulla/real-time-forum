@@ -59,6 +59,7 @@ func (re *Repository) HandleError(w http.ResponseWriter, r *http.Request, err er
 			err == realtimeforum.ErrInvalidCredentials,
 			err == realtimeforum.ErrContentEmptyOrMoreThanHundard,
 			err == realtimeforum.ErrNoCategorySelected,
+			err == realtimeforum.ErrMissingPostId,
 			err == realtimeforum.ErrTitleEmptyOrMoreThanHundard:
 			statusCode = http.StatusBadRequest
 			level = slog.LevelWarn
