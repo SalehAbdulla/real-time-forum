@@ -104,6 +104,17 @@ CREATE TABLE message (
     FOREIGN KEY (recipientId) REFERENCES user(userId) ON DELETE CASCADE
 );
 
+CREATE TABLE notification (
+    notificationId  INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId          TEXT NOT NULL,
+    actorId         TEXT,
+    entityType      TEXT NOT NULL CHECK(entityType IN ('comment', 'message')),
+    entityId        INTEGER NOT NULL,
+    isRead          INTEGER DEFAULT 0 CHECK(isRead IN (0, 1)),
+    createdAt       TEXT DEFAULT (CURRENT_TIMESTAMP),
+    FOREIGN KEY (userId) REFERENCES user(userId) ON DELETE CASCADE,
+    FOREIGN KEY (actorId) REFERENCES user(userId) ON DELETE SET NULL
+);
 
 CREATE INDEX idx_messages_chat_flow 
 ON message (senderId, recipientId, timeStamp DESC);
@@ -117,3 +128,6 @@ ON post (categoryId);
 CREATE INDEX idx_post_userId ON post (userId);
 CREATE INDEX idx_comment_postId ON comment (postId);
 CREATE INDEX idx_comment_userId ON comment (userId);
+
+CREATE INDEX idx_notifications_user 
+ON notification (userId, isRead, createdAt DESC);
