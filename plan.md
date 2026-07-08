@@ -73,4 +73,23 @@ Here is your updated and fully aligned blueprint. This revision incorporates the
 | 5.2 | **Send Private Message** | `Client → Server` | `{ "type": "private_msg", "recipientId": 2, "text": "Hello" }` |
 | 5.3 | **Broadcast Status** | `Server → Client` | `{ "type": "user_status", "userId": 5, "isOnline": 1 }` *(Fires immediately when users connect/disconnect)* |
 | 5.4 | **Incoming Message** | `Server → Client` | `{ "type": "incoming_msg", "senderId": 2, "senderNickname": "Bob", "text": "Hello", "timeStamp": "..." }` |
+# 6. Notifications
 
+**Rules Applied** (matching your schema decisions):
+
+- `entityType` is polymorphic — `comment` or `message` — resolved server-side to fetch the underlying post/comment/message details.
+- Delivered two ways: WebSocket push if the recipient has a live connection (via the same hub as private messages), REST fetch on load/reconnect otherwise.
+- Sorted by `createdAt DESC`, same cursor/offset pagination style as chat history.
+
+| # | API Name | Endpoint | Method | Purpose | Request Body / Params | Response |
+|---|----------|----------|--------|---------|------------------------|----------|
+| 6.1 | List Notifications | `/api/v1/notifications` | GET | Fetch notification feed, newest first | `?offset=0&limit=10&unread=true` | `200 OK { "data": [ { "notificationId": 1, "actorId": "u2", "actorNickname": "Bob", "entityType": "comment", "entityId": 5, "isRead": 0, "createdAt": "..." } ] }` |
+| 6.2 | Unread Count | `/api/v1/notifications/unread-count` | GET | Badge count for nav icon, polled or refreshed on WS event | — | `200 OK { "data": { "count": 4 } }` |
+| 6.3 | Mark One Read | `/api/v1/notifications/{notificationId}/read` | PATCH | Mark a single notification as read (on click) | — | `200 OK { "data": { "notificationId": 1, "isRead": 1 } }` |
+| 6.4 | Mark All Read | `/api/v1/notifications/read-all` | PATCH | Clear the badge in one action | — | `200 OK { "data": { "updated": 4 } }` |
+
+# 5. WebSockets — add one event
+
+| # | API Event Type | Direction | Purpose / Payload Structure |
+|---|-----------------|-----------|------------------------------|
+| 5.5 | New Notification | Server → Client | `{ "type": "notification", "notificationId": 9, "actorId": 2, "actorNickname": "Bob", "entityType": "comment", "entityId": 5, "createdAt": "..." }` — Fires when a comment/message is created for an online recipient — mirrors 5.4's shape. |
