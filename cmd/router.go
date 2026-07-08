@@ -38,6 +38,8 @@ func routes() http.Handler {
 		r.Post("/api/v1/posts/comments", handlers.Repo.CreateComments)
 
 		r.Post("/api/v1/reactions", handlers.Repo.React)
+
+		r.Get("/api/v1/messages/users", handlers.Repo.GetChatUsers)
 	})
 
 	return mux
