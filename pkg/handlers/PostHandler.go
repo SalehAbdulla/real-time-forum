@@ -77,6 +77,12 @@ func (re *Repository) GetPosts(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+type CreatePostRequest struct {
+	Title      string `json:"title"`
+	Content    string `json:"content"`
+	CategoryID int    `json:"categoryId"`
+}
+
 func (re *Repository) CreatePost(w http.ResponseWriter, r *http.Request) {
 	userID, ok := middleware.UserIDFromContext(r.Context())
 	if !ok || userID == "" {
@@ -88,27 +94,28 @@ func (re *Repository) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	title := strings.TrimSpace(r.FormValue("title"))
-	content := strings.TrimSpace(r.FormValue("content"))
-	categoryIdStr := strings.TrimSpace(r.FormValue("categoryId"))
+	var req CreatePostRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		re.HandleError(w, r, realtimeforum.ErrBadRequest)
+		return
+	}
 
+	title := strings.TrimSpace(req.Title)
+	content := strings.TrimSpace(req.Content)
+	categoryId := req.CategoryID
+
+	
 	if title == "" || len(title) < 3 || len(title) > 30 {
 		re.HandleError(w, r, realtimeforum.ErrTitleEmptyOrMoreThanHundard)
 		return
 	}
-	// Will create a clear msg error later
+
 	if content == "" || len(content) < 10 || len(content) > 100  {
 		re.HandleError(w, r, realtimeforum.ErrContentEmptyOrMoreThanHundard)
 		return
 	}
 
-	if categoryIdStr == "" {
-		re.HandleError(w, r, realtimeforum.ErrNoCategorySelected)
-		return
-	}
-
-	categoryId, err := strconv.Atoi(categoryIdStr)
-	if err != nil || categoryId < 1 || categoryId > 8 {
+	if categoryId < 1 || categoryId > 8 {
 		re.HandleError(w, r, realtimeforum.ErrNoCategorySelected)
 		return
 	}
