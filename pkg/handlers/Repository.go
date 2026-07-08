@@ -17,6 +17,7 @@ type Repository struct {
 	PostService     service.PostService
 	CommentService  service.CommentService
 	ReactService    service.ReactionService
+	MessageService  service.MessageService
 }
 
 func NewRepo(a *config.AppConfig,
@@ -24,7 +25,8 @@ func NewRepo(a *config.AppConfig,
 	cs service.CategoryService,
 	ps service.PostService,
 	cms service.CommentService,
-	rs service.ReactionService) *Repository {
+	rs service.ReactionService,
+	ms service.MessageService) *Repository {
 	return &Repository{
 		App:             a,
 		AuthService:     as,
@@ -32,6 +34,7 @@ func NewRepo(a *config.AppConfig,
 		PostService:     ps,
 		CommentService:  cms,
 		ReactService:    rs,
+		MessageService:  ms,
 	}
 }
 
