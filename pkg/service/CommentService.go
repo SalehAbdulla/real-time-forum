@@ -52,18 +52,16 @@ func (c CommentServiceImpl) GetComments(postId int, pageNumber int, pageSize int
 }
 
 func (c CommentServiceImpl) CreateComment(userId string, postId int, content string) (comment.CommentDTO, error) {
-	comment, err := c.db.CreateComment(userId, postId, content)
+	createdComment, err := c.db.CreateComment(userId, postId, content)
 	if err != nil {
 		return comment.CommentDTO{}, err
 	}
 
-	dto := make(comment.CommentDTO, 1)
-	dto = comment.CommentDTO{
-			CommentId:   comment.CommentId,
-			PostId:      comment.PostId,
-			UserId:      comment.UserId,
-			CommentText: comment.CommentText,
-			CreatedAt:   comment.CreatedAt,
-		}
-	return dto, nil
+	return comment.CommentDTO{
+		CommentId:   createdComment.CommentId,
+		PostId:      createdComment.PostId,
+		UserId:      createdComment.UserId,
+		CommentText: createdComment.CommentText,
+		CreatedAt:   createdComment.CreatedAt,
+	}, nil
 }
