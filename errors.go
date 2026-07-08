@@ -22,4 +22,5 @@ var (
 	ErrTitleEmptyOrMoreThanHundard = errors.New("invalid title length, (min 3, max 30) characters")
 	ErrContentEmptyOrMoreThanHundard = errors.New("invalid content length, (min 10, max 100) characters")
 	ErrNoCategorySelected = errors.New("post must have a valid category")
+	ErrMissingPostId = errors.New("missing post id")
 )
