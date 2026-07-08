@@ -1,6 +1,7 @@
 package service
 
 import (
+	"math"
 	"real-time-forum/pkg/payload/comment"
 	db "real-time-forum/pkg/repositories"
 )
@@ -20,7 +21,7 @@ func NewCommentService(database db.CommentRepository) CommentService {
 }
 
 func (c CommentServiceImpl) GetComments(postId int, pageNumber int, pageSize int, sortBy string, sortOrder string) (comment.CommentResponse, error) {
-	comments, err := c.db.GetComments(postId, pageNumber, pageSize, sortBy, sortOrder)
+	comments, totalElements, err := c.db.GetComments(postId, pageNumber, pageSize, sortBy, sortOrder)
 	if err != nil {
 		return comment.CommentResponse{}, err
 	}
@@ -36,7 +37,15 @@ func (c CommentServiceImpl) GetComments(postId int, pageNumber int, pageSize int
 		}
 	}
 
+	totalPages := int(math.Ceil(float64(totalElements) / float64(pageSize)))
+	lastPage := pageNumber >= totalPages
+
 	return comment.CommentResponse{
-		CommentDTO: dtos,
+		Comments:      dtos,
+		PageNumber:    pageNumber,
+		PageSize:      pageSize,
+		TotalElements: totalElements,
+		TotalPages:    totalPages,
+		LastPage:      lastPage,
 	}, nil
 }
