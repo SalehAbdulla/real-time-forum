@@ -75,7 +75,7 @@ func (re *Repository) CreateComments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postIdStr := strings.TrimSpace(r.URL.Query().Get("postId"))
+	postIdStr := strings.TrimSpace(r.FormValue("postId"))
 	if postIdStr == "" {
 		re.HandleError(w, r, realtimeforum.ErrMissingPostId)
 		return
@@ -99,7 +99,8 @@ func (re *Repository) CreateComments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	re.App.Logger.Info("post created successfully",
+	re.App.Logger.Info("comment created successfully",
+		"comment_id", response.CommentId,
 		"post_id", response.PostId,
 		"user_id", userID,
 	)
