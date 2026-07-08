@@ -36,6 +36,8 @@ func routes() http.Handler {
 
 		r.Get("/api/v1/posts/comments", handlers.Repo.GetComments)
 		r.Post("/api/v1/posts/comments", handlers.Repo.CreateComments)
+
+		r.Post("/api/v1/reactions", handlers.Repo.React)
 	})
 
 	return mux
