@@ -60,6 +60,7 @@ func (re *Repository) HandleError(w http.ResponseWriter, r *http.Request, err er
 			err == realtimeforum.ErrContentEmptyOrMoreThanHundard,
 			err == realtimeforum.ErrNoCategorySelected,
 			err == realtimeforum.ErrMissingPostId,
+			err == realtimeforum.ErrContentLessThanThreeOrMoreThanHundard,
 			err == realtimeforum.ErrBadRequest,
 			err == realtimeforum.ErrTitleEmptyOrMoreThanHundard:
 			statusCode = http.StatusBadRequest
