@@ -1,12 +1,14 @@
 package repositories
 
 import (
+	realtimeforum "real-time-forum"
 	"real-time-forum/pkg/models"
 )
 
 type PostRepository interface {
 	GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder string) ([]models.Post, int, error)
 	CreatePost(post models.Post) (models.Post, error)
+	DoesPostExists(postId int) error
 }
 
 func (db *DB) GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder string) ([]models.Post, int, error) {
@@ -88,6 +90,18 @@ func (db *DB) GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder st
 	}
 
 	return posts, totalElements, nil
+}
+
+func (db *DB) DoesPostExists(postId int) error {
+	var count int
+	err := db.Conn.QueryRow("SELECT COUNT(*) FROM post WHERE postId = ?", postId).Scan(&count)
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		return realtimeforum.ErrNotFound
+	}
+	return nil
 }
 
 func (db *DB) CreatePost(post models.Post) (models.Post, error) {
