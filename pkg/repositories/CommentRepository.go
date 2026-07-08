@@ -7,15 +7,15 @@ import (
 
 type CommentRepository interface {
 	GetComments(postId int, pageNumber int, pageSize int, sortBy string, sortOrder string) ([]models.Comment, int, error)
+	CreateComment(userId string, postId int, content string) (models.Comment, error)
 }
 
 func (db *DB) GetComments(postId int, pageNumber int, pageSize int, sortBy string, sortOrder string) ([]models.Comment, int, error) {
-	
+
 	if err := db.DoesPostExists(postId); err != nil {
 		return nil, 0, err
 	}
-	
-	
+
 	validSortColumns := map[string]string{
 		"createdat": "c.createdAt",
 	}
@@ -83,4 +83,9 @@ func (db *DB) GetComments(postId int, pageNumber int, pageSize int, sortBy strin
 	}
 
 	return comments, totalElements, nil
+}
+
+func (db *DB) CreateComment(userId string, postId int, content string) (models.Comment, error) {
+
+	return models.Comment{}, nil
 }
