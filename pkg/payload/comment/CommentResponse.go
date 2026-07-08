@@ -1,7 +1,7 @@
 package comment
 
 type CommentResponse struct {
-	CommentDTO    []CommentDTO `json:"posts"`
+	Comments      []CommentDTO `json:"comments"`
 	PageNumber    int          `json:"pageNumber"`
 	PageSize      int          `json:"pageSize"`
 	TotalElements int          `json:"totalElements"`
