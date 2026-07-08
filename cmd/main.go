@@ -63,8 +63,9 @@ func main() {
 	postService := service.NewPostService(dbConn)
 	commentService := service.NewCommentService(dbConn)
 	reactService := service.NewReactionService(dbConn)
+	messageService := service.NewMessageService(dbConn)
 
-	repo := handlers.NewRepo(&app, authService, categoryService, postService, commentService, reactService)
+	repo := handlers.NewRepo(&app, authService, categoryService, postService, commentService, reactService, messageService)
 	handlers.NewHandlers(repo)
 
 	app.Logger.Info("starting application", "port", portNumber)
