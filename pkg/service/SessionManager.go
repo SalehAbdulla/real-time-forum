@@ -62,6 +62,7 @@ func (m *SessionManager) DeleteSession(token string) {
 	delete(m.Presence, userID)
 }
 
+// UpdatePresence(userID) on every authenticated HTTP request
 func (m *SessionManager) UpdatePresence(userID string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -69,6 +70,7 @@ func (m *SessionManager) UpdatePresence(userID string) {
 	m.Presence[userID] = time.Now().UTC()
 }
 
+// IsUserOnline() checks if the user made any request within the last 60 seconds
 func (m *SessionManager) IsUserOnline(userID string) bool {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
