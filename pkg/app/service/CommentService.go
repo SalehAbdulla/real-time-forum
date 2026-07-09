@@ -3,7 +3,7 @@ package service
 import (
 	"math"
 	"real-time-forum/pkg/payload/comment"
-	db "real-time-forum/pkg/repositories"
+	db "real-time-forum/pkg/app/repositories"
 )
 
 type CommentService interface {

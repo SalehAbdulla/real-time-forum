@@ -11,7 +11,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"real-time-forum/pkg/payload/user"
-	db "real-time-forum/pkg/repositories"
+	db "real-time-forum/pkg/app/repositories"
 
 	"github.com/google/uuid"
 )

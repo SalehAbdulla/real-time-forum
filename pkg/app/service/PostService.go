@@ -4,7 +4,7 @@ import (
 	"math"
 	"real-time-forum/pkg/models"
 	"real-time-forum/pkg/payload/posts"
-	db "real-time-forum/pkg/repositories"
+	db "real-time-forum/pkg/app/repositories"
 )
 
 type PostService interface {

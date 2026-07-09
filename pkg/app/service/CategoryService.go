@@ -2,7 +2,7 @@ package service
 
 import (
 	"real-time-forum/pkg/payload/category"
-	db "real-time-forum/pkg/repositories"
+	db "real-time-forum/pkg/app/repositories"
 )
 
 type CategoryService interface {

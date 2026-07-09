@@ -3,7 +3,7 @@ package service
 import (
 	realtimeforum "real-time-forum"
 	"real-time-forum/pkg/payload/message"
-	db "real-time-forum/pkg/repositories"
+	db "real-time-forum/pkg/app/repositories"
 )
 
 type MessageService interface {

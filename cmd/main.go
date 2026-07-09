@@ -9,11 +9,11 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 
 	"real-time-forum/pkg/config"
-	"real-time-forum/pkg/handlers"
+	"real-time-forum/pkg/app/handlers"
 	"real-time-forum/pkg/logger"
 	"real-time-forum/pkg/render"
-	db "real-time-forum/pkg/repositories"
-	"real-time-forum/pkg/service"
+	db "real-time-forum/pkg/app/repositories"
+	"real-time-forum/pkg/app/service"
 
 	"github.com/alexedwards/scs/v2"
 )

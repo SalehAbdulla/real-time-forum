@@ -5,7 +5,7 @@ import (
 	"real-time-forum/pkg/config"
 	"real-time-forum/pkg/models"
 	"real-time-forum/pkg/render"
-	"real-time-forum/pkg/service"
+	"real-time-forum/pkg/app/service"
 )
 
 var Repo *Repository

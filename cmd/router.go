@@ -2,7 +2,7 @@ package main
 
 import (
 	"net/http"
-	"real-time-forum/pkg/handlers"
+	"real-time-forum/pkg/app/handlers"
 	pkgmiddleware "real-time-forum/pkg/middleware"
 
 	"github.com/go-chi/chi"
