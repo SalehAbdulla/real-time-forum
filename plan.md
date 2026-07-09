@@ -93,3 +93,174 @@ Here is your updated and fully aligned blueprint. This revision incorporates the
 | # | API Event Type | Direction | Purpose / Payload Structure |
 |---|-----------------|-----------|------------------------------|
 | 5.5 | New Notification | Server → Client | `{ "type": "notification", "notificationId": 9, "actorId": 2, "actorNickname": "Bob", "entityType": "comment", "entityId": 5, "createdAt": "..." }` — Fires when a comment/message is created for an online recipient — mirrors 5.4's shape. |
+
+
+
+
+
+-----------------
+Objectives
+On this project you will have to focus on a few points:
+
+Registration and Login
+
+Creation of posts
+
+Commenting posts
+
+Private Messages
+
+As you already did the first forum you can use part of the code, but not all of it. Your new forum will have five different parts:
+
+SQLite, in which you will store data, just like in the previous forum
+
+Golang, in which you will handle data and Websockets (Backend)
+
+Javascript, in which you will handle all the Frontend events and clients Websockets
+
+HTML, in which you will organize the elements of the page
+
+CSS, in which you will stylize the elements of the page
+
+You will have only one HTML file, so every change of page you want to do, should be handled in the Javascript. This can be called having a single page application.
+
+Registration and Login
+To be able to use the new and upgraded forum users will have to register and login, otherwise they will only see the registration or login page. This is premium stuff. The registration and login process should take in consideration the following features:
+
+Users must be able to fill a register form to register into the forum. They will have to provide at least:
+
+Nickname
+
+Age
+
+Gender
+
+First Name
+
+Last Name
+
+E-mail
+
+Password
+
+The user must be able to connect using either the nickname or the e-mail combined with the password.
+
+The user must be able to log out from any page on the forum.
+
+Posts and Comments
+This part is pretty similar to the first forum. Users must be able to:
+
+Create posts
+
+Posts will have categories as in the first forum
+
+Create comments on the posts
+
+See posts in a feed display
+
+See comments only if they click on a post
+
+Private Messages
+Users will be able to send private messages to each other, so you will need to create a chat, where it will exist :
+
+A section to show who is online/offline and able to talk to:
+
+This section must be organized by the last message sent (just like discord). If the user is new and does not present messages you must organize it in alphabetic order.
+
+The user must be able to send private messages to the users who are online.
+
+This section must be visible at all times.
+
+A section that when clicked on the user that you want to send a message, reloads the past messages. Chats between users must:
+
+Be visible, for this you will have to be able to see the previous messages that you had with the user
+
+Reload the last 10 messages and when scrolled up to see more messages you must provide the user with 10 more, without spamming the scroll event. Do not forget what you learned!! (Throttle, Debounce)
+
+Messages must have a specific format:
+
+A date that shows when the message was sent
+
+The user name, that identifies the user that sent the message
+
+As it is expected, the messages should work in real time, in other words, if a user sends a message, the other user should receive the notification of the new message without refreshing the page. Again this is possible through the usage of WebSockets in backend and frontend.
+
+Allowed Packages
+All standard go packages are allowed.
+
+Gorilla websocket
+
+sqlite3
+
+bcrypt
+
+gofrs/uuid or google/uuid
+
+
+# Current Status & Next Steps
+
+## ✅ Completed (REST API Backend):
+1. **Authentication** — Register, Login, Logout, Session check
+2. **Categories & Posts** — List categories, List/Create posts
+3. **Comments & Reactions** — List/Create comments, React (polymorphic)
+4. **Private Messages (REST)** — List chat users, Get chat messages (both implemented)
+
+## ❌ Not Yet Implemented:
+5. **WebSockets (Section 5)** — The entire real-time layer is missing:
+   - No WebSocket upgrade endpoint
+   - No `gorilla/websocket` dependency in `go.mod`
+   - No handler for sending/receiving private messages in real-time
+   - No online status broadcasting
+   - No notification push via WebSocket
+
+6. **Notifications (Section 6)** — REST endpoints not implemented
+7. **Frontend (SPA)** — JavaScript single-page application not built yet
+
+---
+
+The **next logical implementation** is **Section 5: WebSockets (Real-Time Communication)**. Here's why:
+
+1. WebSockets are the **core real-time feature** that makes this a "real-time forum"
+2. They are a **prerequisite** for the frontend — the SPA needs WebSocket connections to show live messages and online status
+3. Notifications (Section 6) depend on WebSockets for push delivery
+
+## Proposed Implementation Plan for WebSockets:
+
+### Step 1: Add `gorilla/websocket` dependency
+```bash
+go get github.com/gorilla/websocket
+```
+
+### Step 2: Create `pkg/websocket/` package with:
+- **Hub** — Central manager that tracks all connected clients and routes messages
+- **Client** — Represents a single WebSocket connection (read/write goroutines)
+- **WebSocket handler** — Upgrade HTTP → WS, register client with Hub
+
+### Step 3: Create message types for WebSocket communication:
+- `private_msg` (Client → Server) — Send a private message
+- `incoming_msg` (Server → Client) — Deliver received message to recipient
+- `user_status` (Server → Client) — Broadcast online/offline changes
+- `notification` (Server → Client) — Push new notifications
+- `typing` (optional) — Typing indicators
+
+### Step 4: Wire into existing architecture:
+- Initialize Hub in `main.go`
+- Add WebSocket route in `router.go` (e.g., `GET /ws`)
+- Hook into `MessageService` to persist messages sent via WebSocket
+- Hook into `SessionManager` to broadcast online status on connect/disconnect
+
+### Step 5: Add `SaveMessage` method to `MessageRepository` (needed by WebSocket handler)
+
+Would you like me to proceed with implementing the WebSocket layer? If so, please **toggle to ACT MODE** and I'll start building it step by step.
+
+Here's a more detailed breakdown of the implementation tasks:
+
+- [ ] Add `gorilla/websocket` dependency
+- [ ] Create `pkg/websocket/hub.go` — Client connection registry & broadcast
+- [ ] Create `pkg/websocket/client.go` — Read/Write goroutines per connection
+- [ ] Create `pkg/websocket/types.go` — Message envelope types
+- [ ] Add `SaveMessage` to `MessageRepository` interface & implementation
+- [ ] Create WebSocket handler in `handlers` package
+- [ ] Wire Hub into `main.go` and `Repository.go`
+- [ ] Add WebSocket route to `router.go`
+- [ ] Test with a simple WebSocket client (e.g., browser console)

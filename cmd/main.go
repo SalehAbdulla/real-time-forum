@@ -14,6 +14,7 @@ import (
 	"real-time-forum/pkg/render"
 	db "real-time-forum/pkg/app/repositories"
 	"real-time-forum/pkg/app/service"
+	pkgwebsocket "real-time-forum/pkg/websocket"
 
 	"github.com/alexedwards/scs/v2"
 )
@@ -48,7 +49,7 @@ func main() {
 	render.NewTemplates(&app)
 
 	// Initialize database
-	database, err := sql.Open("sqlite3", "./pkg/repositories/realTimeForum.db")
+	database, err := sql.Open("sqlite3", "./pkg/app/repositories/realTimeForum.db")
 	if err != nil {
 		app.Logger.Error("failed to open database", "error", err)
 		os.Exit(1)
@@ -67,6 +68,11 @@ func main() {
 
 	repo := handlers.NewRepo(&app, authService, categoryService, postService, commentService, reactService, messageService)
 	handlers.NewHandlers(repo)
+
+	// Initialize WebSocket hub
+	wsHub := pkgwebsocket.NewHub()
+	repo.SetHub(wsHub)
+	go wsHub.Run()
 
 	app.Logger.Info("starting application", "port", portNumber)
 
