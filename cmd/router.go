@@ -18,7 +18,6 @@ func routes() http.Handler {
 	mux.Group(func(r chi.Router) {
 		r.Post("/api/v1/auth/register", handlers.Repo.Register)
 		r.Post("/api/v1/auth/login", handlers.Repo.Login)
-
 	})
 
 	mux.Group(func(r chi.Router) {
@@ -41,6 +40,8 @@ func routes() http.Handler {
 
 		r.Get("/api/v1/messages/users", handlers.Repo.GetChatUsers)
 		r.Get("/api/v1/messages", handlers.Repo.GetChatMessages)
+
+		r.Get("/ws", handlers.Repo.ServeWs)
 	})
 
 	return mux
