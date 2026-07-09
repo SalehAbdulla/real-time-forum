@@ -11,7 +11,7 @@ type errorResponse struct {
 	Error string `json:"error"`
 }
 
-func (re *Repository) parseForm(w http.ResponseWriter, r *http.Request) bool {
+func (re *HandlerContext) parseForm(w http.ResponseWriter, r *http.Request) bool {
 	if err := r.ParseForm(); err != nil {
 		re.HandleError(w, r, realtimeforum.ErrBadRequest)
 		return false
@@ -20,7 +20,7 @@ func (re *Repository) parseForm(w http.ResponseWriter, r *http.Request) bool {
 }
 
 // HandleError logs the error with request context and sends an appropriate HTTP response.
-func (re *Repository) HandleError(w http.ResponseWriter, r *http.Request, err error) {
+func (re *HandlerContext) HandleError(w http.ResponseWriter, r *http.Request, err error) {
 	// Determine HTTP status code and log level from the error type
 	var statusCode int
 	var level slog.Level

@@ -17,7 +17,7 @@ type ReactRequest struct {
 	Score      int    `json:"score"`
 }
 
-func (re *Repository) React(w http.ResponseWriter, r *http.Request) {
+func (re *HandlerContext) React(w http.ResponseWriter, r *http.Request) {
 	userID, ok := middleware.UserIDFromContext(r.Context())
 	if !ok || userID == "" {
 		re.HandleError(w, r, realtimeforum.ErrUnauthorized)

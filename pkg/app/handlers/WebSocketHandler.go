@@ -20,7 +20,7 @@ var upgrader = websocket.Upgrader{
 }
 
 
-func (re *Repository) ServeWs(w http.ResponseWriter, r *http.Request) {
+func (re *HandlerContext) ServeWs(w http.ResponseWriter, r *http.Request) {
 
 	token, err := r.Cookie("session_token")
 	if err != nil || token.Value == "" {
@@ -56,7 +56,7 @@ func (re *Repository) ServeWs(w http.ResponseWriter, r *http.Request) {
 }
 
 
-func (re *Repository) handleWebSocketMessage(client *pkgwebsocket.Client, messageType int, data []byte) {
+func (re *HandlerContext) handleWebSocketMessage(client *pkgwebsocket.Client, messageType int, data []byte) {
 	if messageType != websocket.TextMessage {
 		return
 	}
@@ -75,7 +75,7 @@ func (re *Repository) handleWebSocketMessage(client *pkgwebsocket.Client, messag
 	}
 }
 
-func (re *Repository) handlePrivateMessage(sender *pkgwebsocket.Client, msg pkgwebsocket.WSMessage) {
+func (re *HandlerContext) handlePrivateMessage(sender *pkgwebsocket.Client, msg pkgwebsocket.WSMessage) {
 
 	var payload pkgwebsocket.PrivateMsgPayload
 	if err := json.Unmarshal(msg.Payload, &payload); err != nil {
@@ -126,6 +126,6 @@ func (re *Repository) handlePrivateMessage(sender *pkgwebsocket.Client, msg pkgw
 	re.Hub.SendToUser(sender.UserID, incomingData)
 }
 
-func (re *Repository) SetHub(hub *pkgwebsocket.Hub) {
+func (re *HandlerContext) SetHub(hub *pkgwebsocket.Hub) {
 	re.Hub = hub
 }

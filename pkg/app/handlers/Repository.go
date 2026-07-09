@@ -9,9 +9,9 @@ import (
 	pkgwebsocket "real-time-forum/pkg/websocket"
 )
 
-var Repo *Repository
+var HandlerCtx *HandlerContext
 
-type Repository struct {
+type HandlerContext struct {
 	App             *config.AppConfig
 	AuthService     service.AuthService
 	CategoryService service.CategoryService
@@ -22,14 +22,14 @@ type Repository struct {
 	Hub             *pkgwebsocket.Hub
 }
 
-func NewRepo(a *config.AppConfig,
+func NewHandlerContext(a *config.AppConfig,
 	as service.AuthService,
 	cs service.CategoryService,
 	ps service.PostService,
 	cms service.CommentService,
 	rs service.ReactionService,
-	ms service.MessageService) *Repository {
-	return &Repository{
+	ms service.MessageService) *HandlerContext {
+	return &HandlerContext{
 		App:             a,
 		AuthService:     as,
 		CategoryService: cs,
@@ -40,11 +40,11 @@ func NewRepo(a *config.AppConfig,
 	}
 }
 
-func NewHandlers(r *Repository) {
-	Repo = r
+func SetHandlerContext(hc *HandlerContext) {
+	HandlerCtx = hc
 }
 
-func (m *Repository) Home(w http.ResponseWriter, r *http.Request) {
+func (m *HandlerContext) Home(w http.ResponseWriter, r *http.Request) {
 	remoteIP := r.RemoteAddr
 	m.App.Session.Put(r.Context(), "remote_ip", remoteIP)
 

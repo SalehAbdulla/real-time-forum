@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func (re *Repository) GetPosts(w http.ResponseWriter, r *http.Request) {
+func (re *HandlerContext) GetPosts(w http.ResponseWriter, r *http.Request) {
 	pageNumberStr := r.URL.Query().Get("page")
 	if pageNumberStr == "" {
 		pageNumberStr = "1"
@@ -83,7 +83,7 @@ type CreatePostRequest struct {
 	CategoryID int    `json:"categoryId"`
 }
 
-func (re *Repository) CreatePost(w http.ResponseWriter, r *http.Request) {
+func (re *HandlerContext) CreatePost(w http.ResponseWriter, r *http.Request) {
 	userID, ok := middleware.UserIDFromContext(r.Context())
 	if !ok || userID == "" {
 		re.HandleError(w, r, realtimeforum.ErrUnauthorized)

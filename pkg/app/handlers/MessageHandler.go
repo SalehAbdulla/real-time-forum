@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-func (re *Repository) GetChatMessages(w http.ResponseWriter, r *http.Request) {
+func (re *HandlerContext) GetChatMessages(w http.ResponseWriter, r *http.Request) {
 	userID, ok := middleware.UserIDFromContext(r.Context())
 	if !ok || userID == "" {
 		re.HandleError(w, r, realtimeforum.ErrUnauthorized)
@@ -48,7 +48,7 @@ func (re *Repository) GetChatMessages(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (re *Repository) GetChatUsers(w http.ResponseWriter, r *http.Request) {
+func (re *HandlerContext) GetChatUsers(w http.ResponseWriter, r *http.Request) {
 	userID, ok := middleware.UserIDFromContext(r.Context())
 	if !ok || userID == "" {
 		re.HandleError(w, r, realtimeforum.ErrUnauthorized)

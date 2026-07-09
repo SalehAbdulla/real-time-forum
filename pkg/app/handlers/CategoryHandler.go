@@ -7,7 +7,7 @@ import (
 	"real-time-forum/pkg/payload/category"
 )
 
-func (re *Repository) GetCategories(w http.ResponseWriter, r *http.Request) {
+func (re *HandlerContext) GetCategories(w http.ResponseWriter, r *http.Request) {
 	response, err := re.CategoryService.GetCategories()
 
 	if err != nil {

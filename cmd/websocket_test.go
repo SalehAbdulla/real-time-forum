@@ -210,22 +210,22 @@ func TestWebSocketPrivateMessage(t *testing.T) {
 	authService := service.NewAuthService(dbConn)
 	messageService := service.NewMessageService(dbConn, dbConn)
 
-	repo := handlers.NewRepo(&app, authService, nil, nil, nil, nil, messageService)
-	handlers.NewHandlers(repo)
+	hc := handlers.NewHandlerContext(&app, authService, nil, nil, nil, nil, messageService)
+	handlers.SetHandlerContext(hc)
 
 	wsHub := pkgwebsocket.NewHub()
-	repo.SetHub(wsHub)
+	hc.SetHub(wsHub)
 	go wsHub.Run()
 
 	// Build a handler that routes auth endpoints directly and protected endpoints through AuthMiddleware.
-	wsHandler := pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.Repo.ServeWs))
-	messagesHandler := pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.Repo.GetChatMessages))
+	wsHandler := pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.ServeWs))
+	messagesHandler := pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.GetChatMessages))
 	mainMux := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/api/v1/auth/register":
-			handlers.Repo.Register(w, r)
+			handlers.HandlerCtx.Register(w, r)
 		case "/api/v1/auth/login":
-			handlers.Repo.Login(w, r)
+			handlers.HandlerCtx.Login(w, r)
 		case "/api/v1/messages":
 			messagesHandler.ServeHTTP(w, r)
 		case "/ws":

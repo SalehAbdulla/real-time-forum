@@ -66,12 +66,12 @@ func main() {
 	reactService := service.NewReactionService(dbConn)
 	messageService := service.NewMessageService(dbConn, dbConn) // unreal
 
-	repo := handlers.NewRepo(&app, authService, categoryService, postService, commentService, reactService, messageService)
-	handlers.NewHandlers(repo)
+	hc := handlers.NewHandlerContext(&app, authService, categoryService, postService, commentService, reactService, messageService)
+	handlers.SetHandlerContext(hc)
 
 	// Initialize WebSocket hub
 	wsHub := pkgwebsocket.NewHub()
-	repo.SetHub(wsHub)
+	hc.SetHub(wsHub)
 	go wsHub.Run()
 
 	app.Logger.Info("starting application", "port", portNumber)

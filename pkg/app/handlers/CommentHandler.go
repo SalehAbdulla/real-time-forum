@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func (re *Repository) GetComments(w http.ResponseWriter, r *http.Request) {
+func (re *HandlerContext) GetComments(w http.ResponseWriter, r *http.Request) {
 	userID, ok := middleware.UserIDFromContext(r.Context())
 	if !ok || userID == "" {
 		re.HandleError(w, r, realtimeforum.ErrUnauthorized)
@@ -64,7 +64,7 @@ func (re *Repository) GetComments(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (re *Repository) CreateComments(w http.ResponseWriter, r *http.Request) {
+func (re *HandlerContext) CreateComments(w http.ResponseWriter, r *http.Request) {
 	userID, ok := middleware.UserIDFromContext(r.Context())
 	if !ok || userID == "" {
 		re.HandleError(w, r, realtimeforum.ErrUnauthorized)

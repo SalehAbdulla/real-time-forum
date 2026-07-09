@@ -24,7 +24,7 @@ type logoutResponse struct {
 	Message string `json:"message"`
 }
 
-func (re *Repository) Register(w http.ResponseWriter, r *http.Request) {
+func (re *HandlerContext) Register(w http.ResponseWriter, r *http.Request) {
 	registerRequest := user.RegisterRequestDTO{}
 
 	registerRequest.Nickname = strings.TrimSpace(strings.ToLower(r.FormValue("nickName")))
@@ -73,7 +73,7 @@ func (re *Repository) Register(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (re *Repository) Login(w http.ResponseWriter, r *http.Request) {
+func (re *HandlerContext) Login(w http.ResponseWriter, r *http.Request) {
 	identifier := strings.TrimSpace(strings.ToLower(r.FormValue("identifier")))
 	password := strings.TrimSpace(r.FormValue("password"))
 
@@ -109,7 +109,7 @@ func (re *Repository) Login(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (re *Repository) Logout(w http.ResponseWriter, r *http.Request) {
+func (re *HandlerContext) Logout(w http.ResponseWriter, r *http.Request) {
 	tokenCookie, err := r.Cookie("session_token")
 	if err != nil || tokenCookie.Value == "" {
 		re.HandleError(w, r, realtimeforum.ErrUnauthorized)
@@ -137,7 +137,7 @@ func (re *Repository) Logout(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (re *Repository) Me(w http.ResponseWriter, r *http.Request) {
+func (re *HandlerContext) Me(w http.ResponseWriter, r *http.Request) {
 	userID, ok := middleware.UserIDFromContext(r.Context())
 	if !ok || userID == "" {
 		re.HandleError(w, r, realtimeforum.ErrUnauthorized)
