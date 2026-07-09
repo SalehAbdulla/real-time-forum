@@ -8,7 +8,7 @@ import (
 type MessageRepository interface {
 	GetChatUsers(currentUserID string) ([]models.ChatUser, error)
 	GetMessages(conversationPartnerID string, currentUserID string, offset int, limit int) ([]models.Message, int, error)
-	
+	SaveMessage(senderID string, recipientID string, textMessage string) (models.Message, error)
 }
 
 func (db *DB) GetMessages(conversationPartnerID string, currentUserID string, offset int, limit int) ([]models.Message, int, error) {
@@ -57,8 +57,33 @@ func (db *DB) GetMessages(conversationPartnerID string, currentUserID string, of
 	return messages, totalElements, nil
 }
 
+func (db *DB) SaveMessage(senderID string, recipientID string, textMessage string) (models.Message, error) {
+	result, err := db.Conn.Exec(
+		`INSERT INTO message (senderId, recipientId, textMessage, isRead)
+		 VALUES (?, ?, ?, 0)`,
+		senderID, recipientID, textMessage,
+	)
+	if err != nil {
+		return models.Message{}, realtimeforum.ErrInternal
+	}
 
+	messageID, err := result.LastInsertId()
+	if err != nil {
+		return models.Message{}, realtimeforum.ErrInternal
+	}
 
+	var msg models.Message
+	err = db.Conn.QueryRow(
+		`SELECT messageId, senderId, recipientId, textMessage, timeStamp, isRead
+		 FROM message WHERE messageId = ?`,
+		messageID,
+	).Scan(&msg.MessageId, &msg.SenderId, &msg.RecipientId, &msg.TextMessage, &msg.TimeStamp, &msg.IsRead)
+	if err != nil {
+		return models.Message{}, realtimeforum.ErrInternal
+	}
+
+	return msg, nil
+}
 
 func (db *DB) GetChatUsers(currentUserID string) ([]models.ChatUser, error) {
 	query := `

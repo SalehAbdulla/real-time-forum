@@ -9,6 +9,8 @@ import (
 type MessageService interface {
 	GetChatUsers(currentUserID string) ([]message.ChatUserDTO, error)
 	GetMessages(conversationPartnerID string, currentUserID string, offset int, limit int) (message.MessagesResponse, error)
+	SendMessage(senderID string, recipientID string, textMessage string) (message.MessageDTO, error)
+	GetUserNickname(userID string) (string, error)
 }
 
 type MessageServiceImpl struct {
@@ -57,6 +59,34 @@ func (m MessageServiceImpl) GetMessages(conversationPartnerID string, currentUse
 		Limit:         limit,
 		TotalElements: totalElements,
 	}, nil
+}
+
+func (m MessageServiceImpl) SendMessage(senderID string, recipientID string, textMessage string) (message.MessageDTO, error) {
+	if senderID == recipientID {
+		return message.MessageDTO{}, realtimeforum.ErrBadRequest
+	}
+
+	if err := m.authRepository.DoesUserExists(recipientID); err != nil {
+		return message.MessageDTO{}, err
+	}
+
+	msg, err := m.messageRepo.SaveMessage(senderID, recipientID, textMessage)
+	if err != nil {
+		return message.MessageDTO{}, err
+	}
+
+	return message.MessageDTO{
+		MessageId:   msg.MessageId,
+		SenderId:    msg.SenderId,
+		RecipientId: msg.RecipientId,
+		TextMessage: msg.TextMessage,
+		TimeStamp:   msg.TimeStamp,
+		IsRead:      msg.IsRead,
+	}, nil
+}
+
+func (m MessageServiceImpl) GetUserNickname(userID string) (string, error) {
+	return m.authRepository.GetUserNickname(userID)
 }
 
 func (m MessageServiceImpl) GetChatUsers(currentUserID string) ([]message.ChatUserDTO, error) {

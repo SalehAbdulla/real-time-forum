@@ -15,6 +15,7 @@ type AuthRepository interface {
 	GetUserCredentials(identifier string) (string, string, error)
 	GetUserProfile(userID string) (models.UserProfile, error)
 	DoesUserExists(userID string) error
+	GetUserNickname(userID string) (string, error)
 }
 
 func (db *DB) DoesEmailExists(email string) error {
@@ -104,4 +105,16 @@ func (db *DB) DoesUserExists(userID string) error {
 		return realtimeforum.ErrNotFound
 	}
 	return nil
+}
+
+func (db *DB) GetUserNickname(userID string) (string, error) {
+	var nickname string
+	err := db.Conn.QueryRow("SELECT nickName FROM user WHERE userId = ?", userID).Scan(&nickname)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", realtimeforum.ErrNotFound
+		}
+		return "", realtimeforum.ErrInternal
+	}
+	return nickname, nil
 }
