@@ -14,6 +14,7 @@ type AuthRepository interface {
 	InsertUser(userID, nickName, firstName, lastName, email, hashedPassword string, yearOfBirth int, gender string) error
 	GetUserCredentials(identifier string) (string, string, error)
 	GetUserProfile(userID string) (models.UserProfile, error)
+	DoesUserExists(userID string) error
 }
 
 func (db *DB) DoesEmailExists(email string) error {
@@ -91,4 +92,16 @@ func (db *DB) GetUserProfile(userID string) (models.UserProfile, error) {
 	}
 
 	return profile, nil
+}
+
+func (db *DB) DoesUserExists(userID string) error {
+	var count int
+	err := db.Conn.QueryRow("SELECT COUNT(*) FROM user WHERE userId = ?", userID).Scan(&count)
+	if err != nil {
+		return realtimeforum.ErrInternal
+	}
+	if count == 0 {
+		return realtimeforum.ErrNotFound
+	}
+	return nil
 }
