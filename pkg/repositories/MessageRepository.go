@@ -7,7 +7,58 @@ import (
 
 type MessageRepository interface {
 	GetChatUsers(currentUserID string) ([]models.ChatUser, error)
+	GetMessages(conversationPartnerID string, currentUserID string, offset int, limit int) ([]models.Message, int, error)
+	
 }
+
+func (db *DB) GetMessages(conversationPartnerID string, currentUserID string, offset int, limit int) ([]models.Message, int, error) {
+
+	var totalElements int
+	err := db.Conn.QueryRow(
+		`SELECT COUNT(*) FROM message
+		 WHERE (senderId = ? AND recipientId = ?) OR (senderId = ? AND recipientId = ?)`,
+		currentUserID, conversationPartnerID, conversationPartnerID, currentUserID,
+	).Scan(&totalElements)
+	if err != nil {
+		return nil, 0, realtimeforum.ErrInternal
+	}
+
+	query := `
+		SELECT messageId, senderId, recipientId, textMessage, timeStamp, isRead
+		FROM message
+		WHERE (senderId = ? AND recipientId = ?) OR (senderId = ? AND recipientId = ?)
+		ORDER BY timeStamp DESC
+		LIMIT ? OFFSET ?
+	`
+
+	rows, err := db.Conn.Query(query, currentUserID, conversationPartnerID, conversationPartnerID, currentUserID, limit, offset)
+	if err != nil {
+		return nil, 0, realtimeforum.ErrInternal
+	}
+	defer rows.Close()
+
+	var messages []models.Message
+	for rows.Next() {
+		var msg models.Message
+		if err := rows.Scan(&msg.MessageId, &msg.SenderId, &msg.RecipientId, &msg.TextMessage, &msg.TimeStamp, &msg.IsRead); err != nil {
+			return nil, 0, realtimeforum.ErrInternal
+		}
+		messages = append(messages, msg)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, realtimeforum.ErrInternal
+	}
+
+	if messages == nil {
+		messages = []models.Message{}
+	}
+
+	return messages, totalElements, nil
+}
+
+
+
 
 func (db *DB) GetChatUsers(currentUserID string) ([]models.ChatUser, error) {
 	query := `
