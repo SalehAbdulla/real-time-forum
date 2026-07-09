@@ -63,7 +63,7 @@ func main() {
 	postService := service.NewPostService(dbConn)
 	commentService := service.NewCommentService(dbConn)
 	reactService := service.NewReactionService(dbConn)
-	messageService := service.NewMessageService(dbConn)
+	messageService := service.NewMessageService(dbConn, dbConn) // unreal
 
 	repo := handlers.NewRepo(&app, authService, categoryService, postService, commentService, reactService, messageService)
 	handlers.NewHandlers(repo)
