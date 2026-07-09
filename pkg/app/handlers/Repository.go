@@ -6,6 +6,7 @@ import (
 	"real-time-forum/pkg/models"
 	"real-time-forum/pkg/render"
 	"real-time-forum/pkg/app/service"
+	pkgwebsocket "real-time-forum/pkg/websocket"
 )
 
 var Repo *Repository
@@ -18,6 +19,7 @@ type Repository struct {
 	CommentService  service.CommentService
 	ReactService    service.ReactionService
 	MessageService  service.MessageService
+	Hub             *pkgwebsocket.Hub
 }
 
 func NewRepo(a *config.AppConfig,
