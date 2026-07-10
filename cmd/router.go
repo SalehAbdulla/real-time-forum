@@ -4,45 +4,30 @@ import (
 	"net/http"
 	"real-time-forum/pkg/app/handlers"
 	pkgmiddleware "real-time-forum/pkg/middleware"
-
-	"github.com/go-chi/chi"
-	chiMiddleware "github.com/go-chi/chi/middleware"
 )
 
 func routes() http.Handler {
-	mux := chi.NewRouter()
-	mux.Use(chiMiddleware.Recoverer)
-	mux.Use(RequestLogger)
-	mux.Use(SessionLoad)
+	mux := http.NewServeMux()
 
-	mux.Group(func(r chi.Router) {
-		r.Post("/api/v1/auth/register", handlers.HandlerCtx.Register)
-		r.Post("/api/v1/auth/login", handlers.HandlerCtx.Login)
-	})
+	// Public routes (no auth required)
+	mux.HandleFunc("POST /api/v1/auth/register", handlers.HandlerCtx.Register)
+	mux.HandleFunc("POST /api/v1/auth/login", handlers.HandlerCtx.Login)
 
-	mux.Group(func(r chi.Router) {
-		r.Use(pkgmiddleware.AuthMiddleware)
+	// Protected routes (auth required)
+	mux.Handle("GET /", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.Home)))
 
-		r.Get("/", handlers.HandlerCtx.Home)
+	mux.Handle("POST /api/v1/auth/logout", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.Logout)))
+	mux.Handle("GET /api/v1/auth/me", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.Me)))
+	mux.Handle("GET /api/v1/categories", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.GetCategories)))
+	mux.Handle("GET /api/v1/posts", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.GetPosts)))
+	mux.Handle("POST /api/v1/posts", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.CreatePost)))
+	mux.Handle("GET /api/v1/posts/comments", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.GetComments)))
+	mux.Handle("POST /api/v1/posts/comments", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.CreateComments)))
+	mux.Handle("POST /api/v1/reactions", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.React)))
+	mux.Handle("GET /api/v1/messages/users", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.GetChatUsers)))
+	mux.Handle("GET /api/v1/messages", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.GetChatMessages)))
+	mux.Handle("GET /ws", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.ServeWs)))
 
-		r.Post("/api/v1/auth/logout", handlers.HandlerCtx.Logout)
-		r.Get("/api/v1/auth/me", handlers.HandlerCtx.Me)
-
-		r.Get("/api/v1/categories", handlers.HandlerCtx.GetCategories)
-
-		r.Get("/api/v1/posts", handlers.HandlerCtx.GetPosts)
-		r.Post("/api/v1/posts", handlers.HandlerCtx.CreatePost)
-
-		r.Get("/api/v1/posts/comments", handlers.HandlerCtx.GetComments)
-		r.Post("/api/v1/posts/comments", handlers.HandlerCtx.CreateComments)
-
-		r.Post("/api/v1/reactions", handlers.HandlerCtx.React)
-
-		r.Get("/api/v1/messages/users", handlers.HandlerCtx.GetChatUsers)
-		r.Get("/api/v1/messages", handlers.HandlerCtx.GetChatMessages)
-
-		r.Get("/ws", handlers.HandlerCtx.ServeWs)
-	})
-
-	return mux
+	// Wrap with request logger
+	return RequestLogger(mux)
 }

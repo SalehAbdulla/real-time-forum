@@ -45,9 +45,6 @@ func SetHandlerContext(hc *HandlerContext) {
 }
 
 func (m *HandlerContext) Home(w http.ResponseWriter, r *http.Request) {
-	remoteIP := r.RemoteAddr
-	m.App.Session.Put(r.Context(), "remote_ip", remoteIP)
-
 	if err := render.RenderTemplate(w, &models.TemplateData{}); err != nil {
 		m.App.Logger.Error("failed to render home template", "error", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)

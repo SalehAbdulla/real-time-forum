@@ -3,8 +3,6 @@ package config
 import (
 	"log/slog"
 	"text/template"
-
-	"github.com/alexedwards/scs/v2"
 )
 
 type AppConfig struct {
@@ -12,6 +10,5 @@ type AppConfig struct {
 	TemplateCache map[string]*template.Template
 	Logger        *slog.Logger
 	InProduction  bool
-	Session       *scs.SessionManager
 	LogLevel      string
 }

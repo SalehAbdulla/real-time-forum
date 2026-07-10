@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"net/http"
 	"os"
-	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 
@@ -15,14 +14,11 @@ import (
 	db "real-time-forum/pkg/app/repositories"
 	"real-time-forum/pkg/app/service"
 	pkgwebsocket "real-time-forum/pkg/websocket"
-
-	"github.com/alexedwards/scs/v2"
 )
 
 const portNumber = ":3000"
 
 var app config.AppConfig
-var session *scs.SessionManager
 
 func main() {
 	app.InProduction = false
@@ -31,13 +27,6 @@ func main() {
 
 	// Initialize structured logger
 	logger.InitLogger(&app)
-
-	session = scs.New()
-	session.Lifetime = 24 * time.Hour
-	session.Cookie.Persist = true
-	session.Cookie.SameSite = http.SameSiteLaxMode
-	session.Cookie.Secure = app.InProduction
-	app.Session = session
 
 	templateCache, err := render.CreateTemplateCache()
 	if err != nil {
@@ -64,7 +53,7 @@ func main() {
 	postService := service.NewPostService(dbConn)
 	commentService := service.NewCommentService(dbConn)
 	reactService := service.NewReactionService(dbConn)
-	messageService := service.NewMessageService(dbConn, dbConn) // unreal
+	messageService := service.NewMessageService(dbConn, dbConn)
 
 	hc := handlers.NewHandlerContext(&app, authService, categoryService, postService, commentService, reactService, messageService)
 	handlers.SetHandlerContext(hc)

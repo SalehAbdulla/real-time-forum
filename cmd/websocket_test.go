@@ -20,7 +20,6 @@ import (
 	"real-time-forum/pkg/render"
 	pkgwebsocket "real-time-forum/pkg/websocket"
 
-	"github.com/alexedwards/scs/v2"
 	"github.com/gorilla/websocket"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -172,17 +171,9 @@ func TestWebSocketPrivateMessage(t *testing.T) {
 	os.Chdir("..")
 	defer os.Chdir(origDir)
 
-	// Initialize package-level globals used by middlewares
-	session = scs.New()
-	session.Lifetime = 24 * time.Hour
-	session.Cookie.Persist = true
-	session.Cookie.SameSite = http.SameSiteLaxMode
-	session.Cookie.Secure = false
-
 	app = config.AppConfig{}
 	app.InProduction = false
 	app.UseCache = false
-	app.Session = session
 
 	logger.InitLogger(&app)
 
@@ -255,9 +246,6 @@ func TestWebSocketPrivateMessage(t *testing.T) {
 	t.Logf("user2: id=%s, token=%s", user2ID, token2)
 
 	// ---------- Open WebSocket connections ----------
-	// NOTE: We do NOT read from these connections in the test goroutine.
-	// The ReadPump goroutine (started by ServeWs) handles incoming messages.
-	// We verify the message was saved by querying the REST API.
 	ws1 := dialWebSocket(t, wsURL, token1)
 	defer ws1.Close()
 
@@ -285,7 +273,6 @@ func TestWebSocketPrivateMessage(t *testing.T) {
 	time.Sleep(200 * time.Millisecond)
 
 	// ---------- Verify the message was saved via REST API ----------
-	// Fetch messages from user1's perspective (sent to user2)
 	messagesResp := getMessages(t, baseURL, token1, user2ID, 0, 10)
 	msgs := messagesResp.Data.Messages
 	if len(msgs) != 1 {
@@ -335,7 +322,7 @@ type messageDTO struct {
 // getMessages fetches messages from the REST API.
 func getMessages(t *testing.T, baseURL, token, partnerID string, offset, limit int) messagesResponse {
 	t.Helper()
-	url := fmt.Sprintf("%s/api/v1/messages?partnetId=%s&offset=%d&limit=%d", baseURL, partnerID, offset, limit)
+	url := fmt.Sprintf("%s/api/v1/messages?partnerId=%s&offset=%d&limit=%d", baseURL, partnerID, offset, limit)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		t.Fatalf("failed to create request: %v", err)
