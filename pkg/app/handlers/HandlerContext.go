@@ -12,14 +12,15 @@ import (
 var HandlerCtx *HandlerContext
 
 type HandlerContext struct {
-	App             *config.AppConfig
-	AuthService     service.AuthService
-	CategoryService service.CategoryService
-	PostService     service.PostService
-	CommentService  service.CommentService
-	ReactService    service.ReactionService
-	MessageService  service.MessageService
-	Hub             *pkgwebsocket.Hub
+	App                *config.AppConfig
+	AuthService        service.AuthService
+	CategoryService    service.CategoryService
+	PostService        service.PostService
+	CommentService     service.CommentService
+	ReactService       service.ReactionService
+	MessageService     service.MessageService
+	NotificationService service.NotificationService
+	Hub                *pkgwebsocket.Hub
 }
 
 func NewHandlerContext(a *config.AppConfig,
@@ -28,15 +29,17 @@ func NewHandlerContext(a *config.AppConfig,
 	ps service.PostService,
 	cms service.CommentService,
 	rs service.ReactionService,
-	ms service.MessageService) *HandlerContext {
+	ms service.MessageService,
+	ns service.NotificationService) *HandlerContext {
 	return &HandlerContext{
-		App:             a,
-		AuthService:     as,
-		CategoryService: cs,
-		PostService:     ps,
-		CommentService:  cms,
-		ReactService:    rs,
-		MessageService:  ms,
+		App:                 a,
+		AuthService:         as,
+		CategoryService:     cs,
+		PostService:         ps,
+		CommentService:      cms,
+		ReactService:        rs,
+		MessageService:      ms,
+		NotificationService: ns,
 	}
 }
 

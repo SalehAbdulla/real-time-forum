@@ -19,7 +19,6 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-
 func (re *HandlerContext) ServeWs(w http.ResponseWriter, r *http.Request) {
 
 	token, err := r.Cookie("session_token")
@@ -40,7 +39,6 @@ func (re *HandlerContext) ServeWs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	client := &pkgwebsocket.Client{
 		Hub:    re.Hub,
 		Conn:   conn,
@@ -50,11 +48,9 @@ func (re *HandlerContext) ServeWs(w http.ResponseWriter, r *http.Request) {
 
 	re.Hub.Register <- client
 
-
 	go client.WritePump()
 	go client.ReadPump(re.handleWebSocketMessage)
 }
-
 
 func (re *HandlerContext) handleWebSocketMessage(client *pkgwebsocket.Client, messageType int, data []byte) {
 	if messageType != websocket.TextMessage {
@@ -88,19 +84,16 @@ func (re *HandlerContext) handlePrivateMessage(sender *pkgwebsocket.Client, msg 
 		return
 	}
 
-
 	savedMsg, err := re.MessageService.SendMessage(sender.UserID, payload.RecipientId, payload.Text)
 	if err != nil {
 		log.Printf("failed to save message: %v", err)
 		return
 	}
 
-
 	senderNickname, err := re.MessageService.GetUserNickname(sender.UserID)
 	if err != nil {
 		senderNickname = sender.UserID
 	}
-
 
 	incomingPayload := pkgwebsocket.IncomingMsgPayload{
 		MessageId:      savedMsg.MessageId,
@@ -119,11 +112,35 @@ func (re *HandlerContext) handlePrivateMessage(sender *pkgwebsocket.Client, msg 
 		return
 	}
 
-
 	re.Hub.SendToUser(payload.RecipientId, incomingData)
 
-
 	re.Hub.SendToUser(sender.UserID, incomingData)
+
+	notif, err := re.NotificationService.CreateNotification(payload.RecipientId, sender.UserID, "message", savedMsg.MessageId)
+	if err != nil {
+		log.Printf("failed to create notification for private message: %v", err)
+		return
+	}
+
+	notifPayload := pkgwebsocket.NotificationPayload{
+		NotificationId: notif.NotificationId,
+		ActorId:        notif.ActorId,
+		ActorNickname:  notif.ActorNickname,
+		EntityType:     notif.EntityType,
+		EntityId:       notif.EntityId,
+		CreatedAt:      notif.CreatedAt,
+	}
+
+	notifData, err := json.Marshal(map[string]interface{}{
+		"type":    pkgwebsocket.MsgTypeNotification,
+		"payload": notifPayload,
+	})
+	if err != nil {
+		log.Printf("failed to marshal notification: %v", err)
+		return
+	}
+
+	re.Hub.SendToUser(payload.RecipientId, notifData)
 }
 
 func (re *HandlerContext) SetHub(hub *pkgwebsocket.Hub) {

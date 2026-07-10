@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	realtimeforum "real-time-forum"
 	"real-time-forum/pkg/middleware"
 	"real-time-forum/pkg/payload"
 	"real-time-forum/pkg/payload/comment"
+	pkgwebsocket "real-time-forum/pkg/websocket"
 	"strconv"
 	"strings"
 )
@@ -106,6 +108,33 @@ func (re *HandlerContext) CreateComments(w http.ResponseWriter, r *http.Request)
 		"post_id", response.PostId,
 		"user_id", userID,
 	)
+
+	post, err := re.PostService.GetPostByID(postId)
+	if err == nil && post.UserId != userID {
+		notif, err := re.NotificationService.CreateNotification(post.UserId, userID, "comment", response.CommentId)
+		if err != nil {
+			log.Printf("failed to create notification for comment: %v", err)
+		} else {
+			notifPayload := pkgwebsocket.NotificationPayload{
+				NotificationId: notif.NotificationId,
+				ActorId:        notif.ActorId,
+				ActorNickname:  notif.ActorNickname,
+				EntityType:     notif.EntityType,
+				EntityId:       notif.EntityId,
+				CreatedAt:      notif.CreatedAt,
+			}
+
+			notifData, err := json.Marshal(map[string]interface{}{
+				"type":    pkgwebsocket.MsgTypeNotification,
+				"payload": notifPayload,
+			})
+			if err != nil {
+				log.Printf("failed to marshal notification: %v", err)
+			} else {
+				re.Hub.SendToUser(post.UserId, notifData)
+			}
+		}
+	}
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(payload.SuccessResponse[comment.CommentDTO]{

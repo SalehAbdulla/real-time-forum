@@ -54,8 +54,9 @@ func main() {
 	commentService := service.NewCommentService(dbConn)
 	reactService := service.NewReactionService(dbConn)
 	messageService := service.NewMessageService(dbConn, dbConn)
+	notificationService := service.NewNotificationService(dbConn)
 
-	hc := handlers.NewHandlerContext(&app, authService, categoryService, postService, commentService, reactService, messageService)
+	hc := handlers.NewHandlerContext(&app, authService, categoryService, postService, commentService, reactService, messageService, notificationService)
 	handlers.SetHandlerContext(hc)
 
 	// Initialize WebSocket hub

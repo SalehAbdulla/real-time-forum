@@ -17,7 +17,7 @@ func (re *HandlerContext) GetChatMessages(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	conversationPartnerID := r.URL.Query().Get("partnetId")
+	conversationPartnerID := r.URL.Query().Get("partnerId")
 	if conversationPartnerID == "" {
 		re.HandleError(w, r, realtimeforum.ErrBadRequest)
 		return
