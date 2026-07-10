@@ -5,7 +5,7 @@ import (
 	"net/http"
 	realtimeforum "real-time-forum"
 	"real-time-forum/pkg/middleware"
-	"real-time-forum/pkg/models"
+	"real-time-forum/pkg/payload"
 	"real-time-forum/pkg/payload/comment"
 	"strconv"
 	"strings"
@@ -59,8 +59,10 @@ func (re *HandlerContext) GetComments(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.DataResponse[comment.CommentResponse]{
-		Data: response,
+	json.NewEncoder(w).Encode(payload.SuccessResponse[comment.CommentResponse]{
+		Success: true,
+		Data:    response,
+		Message: "Comments retrieved successfully",
 	})
 }
 
@@ -106,7 +108,9 @@ func (re *HandlerContext) CreateComments(w http.ResponseWriter, r *http.Request)
 	)
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(models.DataResponse[comment.CommentDTO]{
-		Data: response,
+	json.NewEncoder(w).Encode(payload.SuccessResponse[comment.CommentDTO]{
+		Success: true,
+		Data:    response,
+		Message: "Comment created successfully",
 	})
 }

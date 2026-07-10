@@ -5,11 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 	realtimeforum "real-time-forum"
+	"real-time-forum/pkg/payload"
 )
-
-type errorResponse struct {
-	Error string `json:"error"`
-}
 
 func (re *HandlerContext) parseForm(w http.ResponseWriter, r *http.Request) bool {
 	if err := r.ParseForm(); err != nil {
@@ -81,5 +78,9 @@ func (re *HandlerContext) HandleError(w http.ResponseWriter, r *http.Request, er
 	)
 
 	w.WriteHeader(statusCode)
-	json.NewEncoder(w).Encode(errorResponse{Error: err.Error()})
+	json.NewEncoder(w).Encode(payload.ErrorResponse{
+		Success: false,
+		Error:   err.Error(),
+		Code:    statusCode,
+	})
 }

@@ -3,7 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"real-time-forum/pkg/models"
+	"real-time-forum/pkg/payload"
 	"real-time-forum/pkg/payload/category"
 )
 
@@ -16,7 +16,9 @@ func (re *HandlerContext) GetCategories(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.DataResponse[[]category.CategoryDTO]{
-		Data: response,
+	json.NewEncoder(w).Encode(payload.SuccessResponse[[]category.CategoryDTO]{
+		Success: true,
+		Data:    response,
+		Message: "Categories retrieved successfully",
 	})
 }

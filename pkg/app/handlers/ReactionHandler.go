@@ -5,7 +5,7 @@ import (
 	"net/http"
 	realtimeforum "real-time-forum"
 	"real-time-forum/pkg/middleware"
-	"real-time-forum/pkg/models"
+	"real-time-forum/pkg/payload"
 	"real-time-forum/pkg/payload/reaction"
 	"strconv"
 	"strings"
@@ -52,7 +52,9 @@ func (re *HandlerContext) React(w http.ResponseWriter, r *http.Request) {
 	)
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.DataResponse[reaction.ReactionResponse]{
-		Data: response,
+	json.NewEncoder(w).Encode(payload.SuccessResponse[reaction.ReactionResponse]{
+		Success: true,
+		Data:    response,
+		Message: "Reaction updated successfully",
 	})
 }

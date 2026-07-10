@@ -5,7 +5,7 @@ import (
 	"net/http"
 	realtimeforum "real-time-forum"
 	"real-time-forum/pkg/middleware"
-	"real-time-forum/pkg/models"
+	"real-time-forum/pkg/payload"
 	"real-time-forum/pkg/payload/message"
 	"strconv"
 )
@@ -43,8 +43,10 @@ func (re *HandlerContext) GetChatMessages(w http.ResponseWriter, r *http.Request
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.DataResponse[message.MessagesResponse]{
-		Data: response,
+	json.NewEncoder(w).Encode(payload.SuccessResponse[message.MessagesResponse]{
+		Success: true,
+		Data:    response,
+		Message: "Messages retrieved successfully",
 	})
 }
 
@@ -62,7 +64,9 @@ func (re *HandlerContext) GetChatUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.DataResponse[[]message.ChatUserDTO]{
-		Data: users,
+	json.NewEncoder(w).Encode(payload.SuccessResponse[[]message.ChatUserDTO]{
+		Success: true,
+		Data:    users,
+		Message: "Chat users retrieved successfully",
 	})
 }

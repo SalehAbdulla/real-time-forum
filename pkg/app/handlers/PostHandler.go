@@ -5,7 +5,7 @@ import (
 	"net/http"
 	realtimeforum "real-time-forum"
 	"real-time-forum/pkg/middleware"
-	"real-time-forum/pkg/models"
+	"real-time-forum/pkg/payload"
 	"real-time-forum/pkg/payload/posts"
 	"strconv"
 	"strings"
@@ -72,8 +72,10 @@ func (re *HandlerContext) GetPosts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.DataResponse[posts.PostResponse]{
-		Data: response,
+	json.NewEncoder(w).Encode(payload.SuccessResponse[posts.PostResponse]{
+		Success: true,
+		Data:    response,
+		Message: "Posts retrieved successfully",
 	})
 }
 
@@ -132,7 +134,9 @@ func (re *HandlerContext) CreatePost(w http.ResponseWriter, r *http.Request) {
 	)
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(models.DataResponse[posts.PostDTO]{
-		Data: response,
+	json.NewEncoder(w).Encode(payload.SuccessResponse[posts.PostDTO]{
+		Success: true,
+		Data:    response,
+		Message: "Post created successfully",
 	})
 }

@@ -5,19 +5,19 @@ import (
 	"net/http"
 	realtimeforum "real-time-forum"
 	"real-time-forum/pkg/middleware"
-	"real-time-forum/pkg/models"
+	"real-time-forum/pkg/payload"
 	"real-time-forum/pkg/payload/user"
 	"strings"
 )
 
 type registerResponse struct {
-	Message string `json:"message"`
-	UserID  string `json:"userId"`
+	UserID   string `json:"userId"`
+	Nickname string `json:"nickname"`
 }
 
 type loginResponse struct {
-	Message string `json:"message"`
-	UserID  string `json:"userId"`
+	UserID   string `json:"userId"`
+	Nickname string `json:"nickname"`
 }
 
 type logoutResponse struct {
@@ -66,9 +66,13 @@ func (re *HandlerContext) Register(w http.ResponseWriter, r *http.Request) {
 	)
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(registerResponse{
+	json.NewEncoder(w).Encode(payload.SuccessResponse[registerResponse]{
+		Success: true,
+		Data: registerResponse{
+			UserID:   userID,
+			Nickname: registerRequest.Nickname,
+		},
 		Message: "user registered successfully",
-		UserID:  userID,
 	})
 
 }
@@ -103,9 +107,12 @@ func (re *HandlerContext) Login(w http.ResponseWriter, r *http.Request) {
 	)
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(loginResponse{
+	json.NewEncoder(w).Encode(payload.SuccessResponse[loginResponse]{
+		Success: true,
+		Data: loginResponse{
+			UserID: userID,
+		},
 		Message: "login successful",
-		UserID:  userID,
 	})
 }
 
@@ -132,8 +139,12 @@ func (re *HandlerContext) Logout(w http.ResponseWriter, r *http.Request) {
 	})
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.DataResponse[logoutResponse]{
-		Data: logoutResponse{Message: "Logged out"},
+	json.NewEncoder(w).Encode(payload.SuccessResponse[logoutResponse]{
+		Success: true,
+		Data: logoutResponse{
+			Message: "Logged out",
+		},
+		Message: "Logged out successfully",
 	})
 }
 
@@ -151,7 +162,9 @@ func (re *HandlerContext) Me(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.DataResponse[user.UserDTO]{
-		Data: profile,
+	json.NewEncoder(w).Encode(payload.SuccessResponse[user.UserDTO]{
+		Success: true,
+		Data:    profile,
+		Message: "User profile retrieved successfully",
 	})
 }
