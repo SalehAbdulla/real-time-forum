@@ -9,6 +9,7 @@ type PostRepository interface {
 	GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder string) ([]models.Post, int, error)
 	CreatePost(post models.Post) (models.Post, error)
 	DoesPostExists(postId int) error
+	GetPostByID(postId int) (models.Post, error)
 }
 
 func (db *DB) GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder string) ([]models.Post, int, error) {
@@ -102,6 +103,35 @@ func (db *DB) DoesPostExists(postId int) error {
 		return realtimeforum.ErrNotFound
 	}
 	return nil
+}
+
+func (db *DB) GetPostByID(postId int) (models.Post, error) {
+	var post models.Post
+	err := db.Conn.QueryRow(
+		`SELECT p.postId, p.userId, u.nickName, p.title, p.content,
+				p.categoryId, c.categoryName, p.score, p.commentsCounter,
+				p.createdAt, p.updatedAt
+		FROM post p
+		JOIN user u ON p.userId = u.userId
+		JOIN category c ON p.categoryId = c.categoryId
+		WHERE p.postId = ?`, postId,
+	).Scan(
+		&post.PostId,
+		&post.UserId,
+		&post.Nickname,
+		&post.Title,
+		&post.Content,
+		&post.CategoryId,
+		&post.CategoryName,
+		&post.Score,
+		&post.CommentsCounter,
+		&post.CreatedAt,
+		&post.UpdatedAt,
+	)
+	if err != nil {
+		return models.Post{}, realtimeforum.ErrNotFound
+	}
+	return post, nil
 }
 
 func (db *DB) CreatePost(post models.Post) (models.Post, error) {
