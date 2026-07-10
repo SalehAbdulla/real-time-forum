@@ -31,7 +31,6 @@ export function renderLoginPage(app) {
         </div>
     `;
 
-    // Tab switching
     document.querySelectorAll('.auth-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             currentTab = tab.dataset.tab;
@@ -39,14 +38,12 @@ export function renderLoginPage(app) {
         });
     });
 
-    // Switch link
     document.getElementById('auth-switch').addEventListener('click', (e) => {
         e.preventDefault();
         currentTab = currentTab === 'login' ? 'register' : 'login';
         renderLoginPage(app);
     });
 
-    // Form submission
     document.getElementById('auth-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const errorEl = document.getElementById('auth-error');
