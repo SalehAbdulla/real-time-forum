@@ -1,0 +1,266 @@
+import { api } from './api.js';
+import { router } from './router.js';
+
+let currentPage = 1;
+let currentSort = 'createdAt';
+let currentSortOrder = 'desc';
+let currentCategory = 'all';
+let loading = false;
+let hasMore = true;
+
+export async function renderFeed(app) {
+    app.innerHTML = `
+        <div class="feed-container">
+            <div class="feed-header">
+                <div class="feed-header-left">
+                    <div class="feed-logo">
+                        <span>forum</span><span class="dot"></span>
+                    </div>
+                </div>
+                <div class="feed-header-right">
+                    <div class="header-avatar" id="header-avatar">
+                        ${window.__user ? getInitials(window.__user.nickname || window.__user.firstName) : '?'}
+                    </div>
+                </div>
+            </div>
+
+            <div class="users-wrapper">
+                <div class="users-scroll" id="users-scroll">
+                    <div class="loading-spinner">Loading users...</div>
+                </div>
+            </div>
+
+            <div class="categories-wrapper">
+                <div class="categories-scroll" id="categories-scroll">
+                    <button class="category-pill active" data-category="all">All</button>
+                    <button class="category-pill" data-category="1">Tech</button>
+                    <button class="category-pill" data-category="2">General</button>
+                    <button class="category-pill" data-category="3">Dev</button>
+                    <button class="category-pill" data-category="4">Gaming</button>
+                    <button class="category-pill" data-category="5">Q&A</button>
+                    <button class="category-pill" data-category="6">Random</button>
+                    <button class="category-pill" data-category="7">Life</button>
+                    <button class="category-pill" data-category="8">Sport</button>
+                </div>
+            </div>
+
+            <div class="posts-feed" id="posts-feed">
+                <div class="loading-spinner">Loading posts...</div>
+            </div>
+
+            <div class="bottom-nav">
+                <button class="nav-item active" data-route="/feed">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M2 10L10 2L18 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M4 8V16H16V8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button class="nav-item" data-route="/chat">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M2 4C2 3.44772 2.44772 3 3 3H17C17.5523 3 18 3.44772 18 4V14C18 14.5523 17.5523 15 17 15H6L3 18V4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button class="nav-item" data-route="/notifications">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M10 2C7.79086 2 6 3.79086 6 6V9C6 9.55228 5.55228 10 5 10H4V12H16V10H15C14.4477 10 14 9.55228 14 9V6C14 3.79086 12.2091 2 10 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 14V15C8 16.1046 8.89543 17 10 17C11.1046 17 12 16.1046 12 15V14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    `;
+
+    loadUsers();
+
+    document.querySelectorAll('.category-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+            document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            currentCategory = pill.dataset.category;
+            currentPage = 1;
+            hasMore = true;
+            loadPosts(true);
+        });
+    });
+
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const route = item.dataset.route;
+            if (route) {
+                router.navigate(route);
+            }
+        });
+    });
+
+    currentPage = 1;
+    hasMore = true;
+    await loadPosts(true);
+
+    const postsFeed = document.getElementById('posts-feed');
+    postsFeed.addEventListener('scroll', () => {
+        if (postsFeed.scrollTop + postsFeed.clientHeight >= postsFeed.scrollHeight - 200) {
+            loadPosts(false);
+        }
+    });
+}
+
+async function loadUsers() {
+    const scroll = document.getElementById('users-scroll');
+    try {
+        const res = await api.getChatUsers();
+        const users = res.data || [];
+
+        if (users.length === 0) {
+            scroll.innerHTML = '';
+            return;
+        }
+
+        scroll.innerHTML = users.map(user => `
+            <div class="user-card" data-user-id="${user.userId}">
+                <div class="user-avatar-wrapper">
+                    <div class="user-avatar-sm">${getInitials(user.nickname)}</div>
+                    <div class="online-dot ${user.isOnline === 1 ? 'online' : 'offline'}"></div>
+                </div>
+                <div class="user-nickname">${escapeHtml(user.nickname)}</div>
+            </div>
+        `).join('');
+
+        document.querySelectorAll('.user-card').forEach(card => {
+            card.addEventListener('click', () => {
+                router.navigate(`/chat/${card.dataset.userId}`);
+            });
+        });
+    } catch (err) {
+        scroll.innerHTML = '';
+    }
+}
+
+async function loadPosts(reset = false) {
+    if (loading || !hasMore) return;
+    loading = true;
+
+    const postsFeed = document.getElementById('posts-feed');
+    if (reset) {
+        postsFeed.innerHTML = '<div class="loading-spinner">Loading posts...</div>';
+    }
+
+    try {
+        const res = await api.getPosts(currentPage, 10, currentSort, currentSortOrder);
+        const data = res.data;
+
+        if (reset) {
+            postsFeed.innerHTML = '';
+        }
+
+        if (data.posts.length === 0 && reset) {
+            postsFeed.innerHTML = '<div class="empty-state">No posts yet. Be the first to post!</div>';
+            hasMore = false;
+            return;
+        }
+
+        data.posts.forEach(post => {
+            postsFeed.appendChild(createPostElement(post));
+        });
+
+        currentPage++;
+        hasMore = !data.lastPage;
+    } catch (err) {
+        if (reset) {
+            postsFeed.innerHTML = '<div class="empty-state">Failed to load posts. Try again later.</div>';
+        }
+    } finally {
+        loading = false;
+        const spinner = postsFeed.querySelector('.loading-spinner');
+        if (spinner) spinner.remove();
+    }
+}
+
+function createPostElement(post) {
+    const div = document.createElement('div');
+    div.className = 'post-card';
+    div.innerHTML = `
+        <div class="post-header">
+            <div class="post-user">
+                <div class="post-avatar">${getInitials(post.nickname)}</div>
+                <div class="post-user-info">
+                    <span class="post-username">${escapeHtml(post.nickname.toUpperCase())}</span>
+                    <span class="post-time">${timeAgo(post.createdAt)}</span>
+                </div>
+            </div>
+            <button class="post-menu">...</button>
+        </div>
+        <div class="post-content">${escapeHtml(post.content)}</div>
+        <div class="post-actions">
+            <button class="action-btn like-btn" data-post-id="${post.postId}" data-score="1">
+                <svg width="20" height="18" viewBox="0 0 20 18" fill="none">
+                    <path d="M10 17C10 17 2 11.5 2 6C2 3.5 4 2 6 2C8 2 10 4 10 4C10 4 12 2 14 2C16 2 18 3.5 18 6C18 11.5 10 17 10 17Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>${post.score || 0}</span>
+            </button>
+            <button class="action-btn comment-btn" data-post-id="${post.postId}">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M2 4C2 3.44772 2.44772 3 3 3H17C17.5523 3 18 3.44772 18 4V14C18 14.5523 17.5523 15 17 15H6L3 18V4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>${post.commentsCounter || 0}</span>
+            </button>
+        </div>
+    `;
+
+    // Click to view post detail
+    div.addEventListener('click', (e) => {
+        if (!e.target.closest('.action-btn') && !e.target.closest('.post-menu')) {
+            router.navigate(`/post/${post.postId}`);
+        }
+    });
+
+    // Like button
+    const likeBtn = div.querySelector('.like-btn');
+    likeBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        try {
+            const res = await api.react('post', post.postId, 1);
+            likeBtn.querySelector('span').textContent = res.data.totalScore;
+        } catch (err) {
+            console.error('Failed to react:', err);
+        }
+    });
+
+    // Comment button
+    const commentBtn = div.querySelector('.comment-btn');
+    commentBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        router.navigate(`/post/${post.postId}`);
+    });
+
+    return div;
+}
+
+function getInitials(name) {
+    if (!name) return '?';
+    return name.substring(0, 2).toUpperCase();
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function timeAgo(timestamp) {
+    if (!timestamp) return '';
+    const now = new Date();
+    const date = new Date(timestamp.replace(' ', 'T') + 'Z');
+    const diffMs = now - date;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    
+    if (diffHours < 1) {
+        const diffMins = Math.floor(diffMs / (1000 * 60));
+        return diffMins <= 1 ? '1 minute ago' : `${diffMins} minutes ago`;
+    }
+    if (diffHours < 24) {
+        return `${diffHours} hours ago`;
+    }
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays} days ago`;
+}
