@@ -12,9 +12,9 @@ func routes() http.Handler {
 	// Public routes (no auth required)
 	mux.HandleFunc("POST /api/v1/auth/register", handlers.HandlerCtx.Register)
 	mux.HandleFunc("POST /api/v1/auth/login", handlers.HandlerCtx.Login)
+	mux.HandleFunc("GET /", handlers.HandlerCtx.Home)
 
 	// Protected routes (auth required)
-	mux.Handle("GET /", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.Home)))
 
 	mux.Handle("POST /api/v1/auth/logout", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.Logout)))
 	mux.Handle("GET /api/v1/auth/me", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.Me)))
@@ -33,6 +33,8 @@ func routes() http.Handler {
 	mux.Handle("GET /api/v1/notifications/unread-count", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.GetUnreadCount)))
 	mux.Handle("PATCH /api/v1/notifications/{notificationId}/read", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.MarkAsRead)))
 	mux.Handle("PATCH /api/v1/notifications/read-all", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.MarkAllAsRead)))
+
+	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	// Wrap with request logger
 	return RequestLogger(mux)
