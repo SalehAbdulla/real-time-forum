@@ -200,8 +200,9 @@ func TestWebSocketPrivateMessage(t *testing.T) {
 	dbConn := &repositories.DB{Conn: database}
 	authService := service.NewAuthService(dbConn)
 	messageService := service.NewMessageService(dbConn, dbConn)
+	notificationService := service.NewNotificationService(dbConn)
 
-	hc := handlers.NewHandlerContext(&app, authService, nil, nil, nil, nil, messageService)
+	hc := handlers.NewHandlerContext(&app, authService, nil, nil, nil, nil, messageService, notificationService)
 	handlers.SetHandlerContext(hc)
 
 	wsHub := pkgwebsocket.NewHub()
@@ -378,14 +379,15 @@ func registerTestUser(t *testing.T, baseURL, nickname, email, password string) (
 		t.Fatal("no session_token cookie in register response")
 	}
 
-	var result struct {
-		UserID  string `json:"userId"`
-		Message string `json:"message"`
+	var registerResp struct {
+		Data struct {
+			UserID string `json:"userId"`
+		} `json:"data"`
 	}
-	json.NewDecoder(resp.Body).Decode(&result)
+	json.NewDecoder(resp.Body).Decode(&registerResp)
 	resp.Body.Close()
 
-	return result.UserID, token
+	return registerResp.Data.UserID, token
 }
 
 // dialWebSocket opens a WebSocket connection with the session token as a cookie.
