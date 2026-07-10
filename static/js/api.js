@@ -24,7 +24,6 @@ async function apiRequest(method, path, body) {
     return data;
 }
 
-// Form-encoded POST helper
 function formEncode(obj) {
     const formData = new FormData();
     for (const key in obj) {
@@ -33,8 +32,8 @@ function formEncode(obj) {
     return formData;
 }
 
-// Auth
 export const api = {
+    // Auth
     login: (identifier, password) =>
         apiRequest('POST', '/api/v1/auth/login', formEncode({ identifier, password })),
 

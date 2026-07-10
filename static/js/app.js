@@ -1,6 +1,7 @@
 import { api } from './api.js';
 import { router } from './router.js';
 import { renderLoginPage } from './auth.js';
+import { renderFeed } from './feed.js';
 
 function authGuard() {
     return window.__isAuthenticated === true;
@@ -24,7 +25,7 @@ async function init() {
     });
 
     router.addRoute('/feed', (app) => {
-        app.innerHTML = '<div style="color:white;text-align:center;padding:40px;"><h1>Feed - Coming Soon</h1></div>';
+        renderFeed(app);
     }, authGuard);
 
     router.addRoute('/post/:id', (app, params) => {
