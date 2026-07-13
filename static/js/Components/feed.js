@@ -1,5 +1,5 @@
-import { api } from './api.js';
-import { router } from './router.js';
+import { api } from '../api.js';
+import { router } from '../router.js';
 
 let currentPage = 1;
 let currentSort = 'createdAt';

@@ -1,7 +1,7 @@
 import { api } from './api.js';
 import { router } from './router.js';
 import { renderLoginPage } from './auth.js';
-import { renderFeed } from './feed.js';
+import { renderFeed } from './Components/feed.js';
 
 function authGuard() {
     return window.__isAuthenticated === true;
