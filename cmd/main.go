@@ -7,16 +7,14 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"real-time-forum/pkg/config"
 	"real-time-forum/pkg/app/handlers"
-	"real-time-forum/pkg/logger"
-	"real-time-forum/pkg/render"
 	db "real-time-forum/pkg/app/repositories"
 	"real-time-forum/pkg/app/service"
+	"real-time-forum/pkg/config"
+	"real-time-forum/pkg/logger"
+	"real-time-forum/pkg/render"
 	pkgwebsocket "real-time-forum/pkg/websocket"
 )
-
-const portNumber = ":3000"
 
 var app config.AppConfig
 
@@ -64,10 +62,10 @@ func main() {
 	hc.SetHub(wsHub)
 	go wsHub.Run()
 
-	app.Logger.Info("starting application", "port", portNumber)
+	app.Logger.Info("starting application", "port", config.PORT_NUMBER)
 
 	serve := &http.Server{
-		Addr:    portNumber,
+		Addr:    config.PORT_NUMBER,
 		Handler: routes(),
 	}
 
