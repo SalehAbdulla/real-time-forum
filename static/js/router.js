@@ -31,7 +31,7 @@ class Router {
                 // Check guard
                 const guard = this.guards[pattern];
                 if (guard && !guard()) {
-                    this.navigate('/login');
+                    this.navigate('');
                     return;
                 }
 
@@ -44,7 +44,7 @@ class Router {
         }
 
         // Fallback to login
-        this.navigate('/login');
+        this.navigate('login');
     }
 
     matchRoute(pattern, path) {

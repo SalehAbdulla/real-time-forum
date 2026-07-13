@@ -115,7 +115,7 @@ async function handleLogin() {
     const password = form.querySelector('[name="password"]').value;
 
     await api.login(identifier, password);
-    router.navigate('/feed');
+    router.navigate('feed');
 }
 
 async function handleRegister() {
@@ -132,5 +132,5 @@ async function handleRegister() {
     };
 
     await api.register(fields);
-    router.navigate('/feed');
+    router.navigate('feed');
 }

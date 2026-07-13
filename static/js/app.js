@@ -16,39 +16,39 @@ async function init() {
         window.__isAuthenticated = false;
     }
 
-    router.addRoute('/login', (app) => {
+    router.addRoute('login', (app) => {
         renderLoginPage(app);
     });
 
-    router.addRoute('/register', (app) => {
+    router.addRoute('register', (app) => {
         renderLoginPage(app);
     });
 
-    router.addRoute('/feed', (app) => {
+    router.addRoute('feed', (app) => {
         renderFeed(app);
     }, authGuard);
 
-    router.addRoute('/post/:id', (app, params) => {
+    router.addRoute('post/:id', (app, params) => {
         app.innerHTML = `<div style="color:white;text-align:center;padding:40px;"><h1>Post #${params.id} - Coming Soon</h1></div>`;
     }, authGuard);
 
-    router.addRoute('/create', (app) => {
+    router.addRoute('create', (app) => {
         app.innerHTML = '<div style="color:white;text-align:center;padding:40px;"><h1>Create Post - Coming Soon</h1></div>';
     }, authGuard);
 
-    router.addRoute('/chat', (app) => {
+    router.addRoute('chat', (app) => {
         app.innerHTML = '<div style="color:white;text-align:center;padding:40px;"><h1>Chat - Coming Soon</h1></div>';
     }, authGuard);
 
-    router.addRoute('/chat/:userId', (app, params) => {
+    router.addRoute('chat/:userId', (app, params) => {
         app.innerHTML = `<div style="color:white;text-align:center;padding:40px;"><h1>Chat with ${params.userId} - Coming Soon</h1></div>`;
     }, authGuard);
 
-    router.addRoute('/notifications', (app) => {
+    router.addRoute('notifications', (app) => {
         app.innerHTML = '<div style="color:white;text-align:center;padding:40px;"><h1>Notifications - Coming Soon</h1></div>';
     }, authGuard);
 
-    router.addRoute('/profile', (app) => {
+    router.addRoute('profile', (app) => {
         app.innerHTML = '<div style="color:white;text-align:center;padding:40px;"><h1>Profile - Coming Soon</h1></div>';
     }, authGuard);
 

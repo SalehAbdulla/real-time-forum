@@ -128,7 +128,7 @@ async function loadUsers() {
 
         document.querySelectorAll('.user-card').forEach(card => {
             card.addEventListener('click', () => {
-                router.navigate(`/chat/${card.dataset.userId}`);
+                router.navigate(`chat/${card.dataset.userId}`);
             });
         });
     } catch (err) {
@@ -210,7 +210,7 @@ function createPostElement(post) {
     // Click to view post detail
     div.addEventListener('click', (e) => {
         if (!e.target.closest('.action-btn') && !e.target.closest('.post-menu')) {
-            router.navigate(`/post/${post.postId}`);
+            router.navigate(`post/${post.postId}`);
         }
     });
 
@@ -230,7 +230,7 @@ function createPostElement(post) {
     const commentBtn = div.querySelector('.comment-btn');
     commentBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        router.navigate(`/post/${post.postId}`);
+        router.navigate(`post/${post.postId}`);
     });
 
     return div;
