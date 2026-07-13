@@ -11,6 +11,29 @@ import (
 	"strings"
 )
 
+func (re *HandlerContext) GetPost(w http.ResponseWriter, r *http.Request) {
+	postIdStr := r.URL.Query().Get("id")
+
+	postId, err := strconv.Atoi(postIdStr)
+	if err != nil || postId < 1 {
+		re.HandleError(w, r, realtimeforum.ErrBadRequest)
+		return
+	}
+
+	response, err := re.PostService.GetPostByID(postId)
+	if err != nil {
+		re.HandleError(w, r, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(payload.SuccessResponse[posts.PostDTO]{
+		Success: true,
+		Data:    response,
+		Message: "Posts retrieved successfully",
+	})
+}
+
 func (re *HandlerContext) GetPosts(w http.ResponseWriter, r *http.Request) {
 	pageNumberStr := r.URL.Query().Get("page")
 	if pageNumberStr == "" {
@@ -106,13 +129,12 @@ func (re *HandlerContext) CreatePost(w http.ResponseWriter, r *http.Request) {
 	content := strings.TrimSpace(req.Content)
 	categoryId := req.CategoryID
 
-	
 	if title == "" || len(title) < 3 || len(title) > 30 {
 		re.HandleError(w, r, realtimeforum.ErrTitleEmptyOrMoreThanHundard)
 		return
 	}
 
-	if content == "" || len(content) < 10 || len(content) > 100  {
+	if content == "" || len(content) < 10 || len(content) > 100 {
 		re.HandleError(w, r, realtimeforum.ErrContentEmptyOrMoreThanHundard)
 		return
 	}

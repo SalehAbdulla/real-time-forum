@@ -50,6 +50,9 @@ export const api = {
     getPosts: (page = 1, size = 10, sortBy = 'createdAt', sortOrder = 'desc') =>
         apiRequest('GET', `/api/v1/posts?page=${page}&size=${size}&sortBy=${sortBy}&sortOrder=${sortOrder}`),
 
+    getPost: (postId) =>
+        apiRequest('GET', `/api/v1/post?id=${postId}`),
+
     createPost: (title, content, categoryId) =>
         apiRequest('POST', '/api/v1/posts', { title, content, categoryId }),
 
