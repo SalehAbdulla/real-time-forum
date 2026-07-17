@@ -497,8 +497,7 @@ body {
     background: var(--accent);
     border-radius: 1px;
     box-shadow: 0 0 10px rgba(32, 178, 166, 0.5);
-    vertical-align: bottom;
-    margin-bottom: 3px;
+    margin-top: 10px;
 }
 
 .sidebar-nav {
@@ -1048,10 +1047,9 @@ body {
     width: 6px; height: 6px;
     background: var(--accent);
     margin-left: 2px;
-    vertical-align: bottom;
+    vertical-align: baseline;
     border-radius: 1px;
     box-shadow: 0 0 10px rgba(32, 178, 166, 0.5);
-    margin-bottom: 3px;
 }
 
 .header-avatar {
