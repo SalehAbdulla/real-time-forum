@@ -490,12 +490,15 @@ body {
     letter-spacing: -0.7px;
 }
 
-.sidebar-logo .logo-dot {
+.sidebar-logo .logo-dot,
+.logo-dot {
     display: inline-block;
     width: 6px; height: 6px;
     background: var(--accent);
     border-radius: 1px;
     box-shadow: 0 0 10px rgba(32, 178, 166, 0.5);
+    vertical-align: bottom;
+    margin-bottom: 3px;
 }
 
 .sidebar-nav {
@@ -741,9 +744,10 @@ body {
     width: 7px; height: 7px;
     background: var(--accent);
     margin-left: 2px;
-    vertical-align: baseline;
+    vertical-align: bottom;
     border-radius: 1px;
     box-shadow: 0 0 12px rgba(32, 178, 166, 0.6);
+    margin-bottom: 3px;
 }
 
 .auth-tabs {
@@ -975,9 +979,43 @@ body {
     background: transparent;
     position: relative;
     flex: 1;
-    overflow: hidden;
+    overflow: visible;
     margin: 0 auto;
     padding: 0;
+}
+
+/* FAB positioned between main panel and right sidebar */
+.fab-create {
+    position: absolute;
+    bottom: 24px;
+    right: 224px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #20B2A6, #0d7377);
+    border: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(32, 178, 166, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all var(--duration-normal) var(--ease-out-quart);
+    z-index: 50;
+}
+
+.fab-create:hover {
+    transform: scale(1.1) translateY(-2px);
+    box-shadow: 0 8px 32px rgba(32, 178, 166, 0.45), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.fab-create:active {
+    transform: scale(0.95);
+}
+
+.fab-create svg {
+    width: 24px;
+    height: 24px;
 }
 
 .feed-header {
@@ -1010,9 +1048,10 @@ body {
     width: 6px; height: 6px;
     background: var(--accent);
     margin-left: 2px;
-    vertical-align: baseline;
+    vertical-align: bottom;
     border-radius: 1px;
     box-shadow: 0 0 10px rgba(32, 178, 166, 0.5);
+    margin-bottom: 3px;
 }
 
 .header-avatar {
