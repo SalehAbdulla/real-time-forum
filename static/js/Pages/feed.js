@@ -8,7 +8,15 @@ let currentCategory = 'all';
 let loading = false;
 let hasMore = true;
 
-export async function renderFeed(app) {
+export async function renderFeed(app, params, queryString) {
+    // Parse category from query string if provided
+    if (queryString) {
+        const qs = new URLSearchParams(queryString);
+        const catFromQs = qs.get('category');
+        if (catFromQs) {
+            currentCategory = catFromQs;
+        }
+    }
     app.innerHTML = `
         <div class="feed-container">
             <div class="feed-header">
@@ -32,15 +40,15 @@ export async function renderFeed(app) {
 
             <div class="categories-wrapper">
                 <div class="categories-scroll" id="categories-scroll">
-                    <button class="category-pill active" data-category="all">All</button>
-                    <button class="category-pill" data-category="1">Tech</button>
-                    <button class="category-pill" data-category="2">General</button>
-                    <button class="category-pill" data-category="3">Dev</button>
-                    <button class="category-pill" data-category="4">Gaming</button>
-                    <button class="category-pill" data-category="5">Q&A</button>
-                    <button class="category-pill" data-category="6">Random</button>
-                    <button class="category-pill" data-category="7">Life</button>
-                    <button class="category-pill" data-category="8">Sport</button>
+                    <button class="category-pill${currentCategory === 'all' ? ' active' : ''}" data-category="all">All</button>
+                    <button class="category-pill${currentCategory === '1' ? ' active' : ''}" data-category="1">Tech</button>
+                    <button class="category-pill${currentCategory === '2' ? ' active' : ''}" data-category="2">General</button>
+                    <button class="category-pill${currentCategory === '3' ? ' active' : ''}" data-category="3">Dev</button>
+                    <button class="category-pill${currentCategory === '4' ? ' active' : ''}" data-category="4">Gaming</button>
+                    <button class="category-pill${currentCategory === '5' ? ' active' : ''}" data-category="5">Q&A</button>
+                    <button class="category-pill${currentCategory === '6' ? ' active' : ''}" data-category="6">Random</button>
+                    <button class="category-pill${currentCategory === '7' ? ' active' : ''}" data-category="7">Life</button>
+                    <button class="category-pill${currentCategory === '8' ? ' active' : ''}" data-category="8">Sport</button>
                 </div>
             </div>
 
@@ -63,14 +71,6 @@ export async function renderFeed(app) {
             hasMore = true;
             loadPosts(true);
         });
-    });
-
-    // Listen for sidebar category changes (desktop)
-    window.addEventListener('category-change', (e) => {
-        currentCategory = e.detail.category;
-        currentPage = 1;
-        hasMore = true;
-        loadPosts(true);
     });
 
     // Show FAB on feed page
