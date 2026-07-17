@@ -37,8 +37,8 @@ async function init() {
         renderLoginPage(app);
     }, guestGuard);
 
-    router.addRoute('feed', (app) => {
-        renderFeed(app);
+    router.addRoute('feed', (app, params, queryString) => {
+        renderFeed(app, params, queryString);
     }, authGuard);
 
     router.addRoute('post/:id', (app, params) => {
