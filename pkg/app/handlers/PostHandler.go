@@ -55,6 +55,9 @@ func (re *HandlerContext) GetPosts(w http.ResponseWriter, r *http.Request) {
 		sortOrder = "desc"
 	}
 
+	categoryIdStr := r.URL.Query().Get("categoryId")
+	categoryId, _ := strconv.Atoi(categoryIdStr)
+
 	pageNumber, err := strconv.Atoi(pageNumberStr)
 	if err != nil || pageNumber < 1 {
 		re.HandleError(w, r, realtimeforum.ErrBadRequest)
@@ -88,7 +91,7 @@ func (re *HandlerContext) GetPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := re.PostService.GetPosts(pageNumber, pageSize, sortBy, sortOrder)
+	response, err := re.PostService.GetPosts(pageNumber, pageSize, sortBy, sortOrder, categoryId)
 	if err != nil {
 		re.HandleError(w, r, err)
 		return
@@ -106,6 +109,39 @@ type CreatePostRequest struct {
 	Title      string `json:"title"`
 	Content    string `json:"content"`
 	CategoryID int    `json:"categoryId"`
+}
+
+func (re *HandlerContext) DeletePost(w http.ResponseWriter, r *http.Request) {
+	userID, ok := middleware.UserIDFromContext(r.Context())
+	if !ok || userID == "" {
+		re.HandleError(w, r, realtimeforum.ErrUnauthorized)
+		return
+	}
+
+	postIdStr := r.URL.Query().Get("id")
+	postId, err := strconv.Atoi(postIdStr)
+	if err != nil || postId < 1 {
+		re.HandleError(w, r, realtimeforum.ErrBadRequest)
+		return
+	}
+
+	err = re.PostService.DeletePost(postId, userID)
+	if err != nil {
+		re.HandleError(w, r, err)
+		return
+	}
+
+	re.App.Logger.Info("post deleted successfully",
+		"post_id", postId,
+		"user_id", userID,
+	)
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(payload.SuccessResponse[interface{}]{
+		Success: true,
+		Data:    nil,
+		Message: "Post deleted successfully",
+	})
 }
 
 func (re *HandlerContext) CreatePost(w http.ResponseWriter, r *http.Request) {
