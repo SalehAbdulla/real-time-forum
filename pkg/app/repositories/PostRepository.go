@@ -36,7 +36,7 @@ func (db *DB) GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder st
 	}
 
 	var totalElements int
-	countQuery := "SELECT COUNT(*) FROM post"
+	countQuery := "SELECT COUNT(*) FROM post p"
 	var countArgs []interface{}
 	var whereClause string
 	if categoryId > 0 {
