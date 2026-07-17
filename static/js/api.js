@@ -47,8 +47,11 @@ export const api = {
         apiRequest('GET', '/api/v1/auth/me'),
 
     // Posts
-    getPosts: (page = 1, size = 10, sortBy = 'createdAt', sortOrder = 'desc') =>
-        apiRequest('GET', `/api/v1/posts?page=${page}&size=${size}&sortBy=${sortBy}&sortOrder=${sortOrder}`),
+    getPosts: (page = 1, size = 10, sortBy = 'createdAt', sortOrder = 'desc', categoryId = 0) => {
+        let url = `/api/v1/posts?page=${page}&size=${size}&sortBy=${sortBy}&sortOrder=${sortOrder}`;
+        if (categoryId > 0) url += `&categoryId=${categoryId}`;
+        return apiRequest('GET', url);
+    },
 
     getPost: (postId) =>
         apiRequest('GET', `/api/v1/post?id=${postId}`),
