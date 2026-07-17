@@ -9,6 +9,14 @@ function authGuard() {
     return window.__isAuthenticated === true;
 }
 
+function guestGuard() {
+    if (window.__isAuthenticated === true) {
+        router.navigate('feed');
+        return false;
+    }
+    return true;
+}
+
 async function init() {
     // Initialize ambient particles
     createParticles();
@@ -23,11 +31,11 @@ async function init() {
 
     router.addRoute('login', (app) => {
         renderLoginPage(app);
-    });
+    }, guestGuard);
 
     router.addRoute('register', (app) => {
         renderLoginPage(app);
-    });
+    }, guestGuard);
 
     router.addRoute('feed', (app) => {
         renderFeed(app);
