@@ -113,8 +113,15 @@ async function handleLogin() {
     const form = document.getElementById('auth-form');
     const identifier = form.querySelector('[name="identifier"]').value;
     const password = form.querySelector('[name="password"]').value;
+    const rememberMe = document.getElementById('remember-me')?.checked || false;
 
-    await api.login(identifier, password);
+    const res = await api.login(identifier, password, rememberMe);
+    window.__isAuthenticated = true;
+    // Fetch user profile
+    try {
+        const me = await api.me();
+        window.__user = me.data;
+    } catch {}
     router.navigate('feed');
 }
 
@@ -131,6 +138,12 @@ async function handleRegister() {
         gender: form.querySelector('[name="gender"]').value,
     };
 
-    await api.register(fields);
+    const res = await api.register(fields);
+    window.__isAuthenticated = true;
+    // Fetch user profile
+    try {
+        const me = await api.me();
+        window.__user = me.data;
+    } catch {}
     router.navigate('feed');
 }
