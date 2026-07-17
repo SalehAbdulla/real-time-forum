@@ -48,30 +48,12 @@ export async function renderFeed(app) {
                 <div class="loading-spinner">Loading posts...</div>
             </div>
 
-            <div class="bottom-nav">
-                <button class="nav-item active" data-route="/feed">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <path d="M2 10L10 2L18 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M4 8V16H16V8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-                <button class="nav-item" data-route="/chat">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <path d="M2 4C2 3.44772 2.44772 3 3 3H17C17.5523 3 18 3.44772 18 4V14C18 14.5523 17.5523 15 17 15H6L3 18V4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-                <button class="nav-item" data-route="/notifications">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <path d="M10 2C7.79086 2 6 3.79086 6 6V9C6 9.55228 5.55228 10 5 10H4V12H16V10H15C14.4477 10 14 9.55228 14 9V6C14 3.79086 12.2091 2 10 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M8 14V15C8 16.1046 8.89543 17 10 17C11.1046 17 12 16.1046 12 15V14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-            </div>
         </div>
     `;
 
     loadUsers();
 
+    // Mobile category pills
     document.querySelectorAll('.category-pill').forEach(pill => {
         pill.addEventListener('click', () => {
             document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
@@ -83,14 +65,12 @@ export async function renderFeed(app) {
         });
     });
 
-
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', () => {
-            const route = item.dataset.route;
-            if (route) {
-                router.navigate(route);
-            }
-        });
+    // Listen for sidebar category changes (desktop)
+    window.addEventListener('category-change', (e) => {
+        currentCategory = e.detail.category;
+        currentPage = 1;
+        hasMore = true;
+        loadPosts(true);
     });
 
     currentPage = 1;
@@ -146,7 +126,8 @@ async function loadPosts(reset = false) {
     }
 
     try {
-        const res = await api.getPosts(currentPage, 10, currentSort, currentSortOrder);
+        const catId = currentCategory === 'all' ? 0 : parseInt(currentCategory, 10);
+        const res = await api.getPosts(currentPage, 10, currentSort, currentSortOrder, catId);
         const data = res.data;
 
         if (reset) {
@@ -176,7 +157,15 @@ async function loadPosts(reset = false) {
     }
 }
 
+const categoryNames = {
+    '1': 'Tech', '2': 'General', '3': 'Dev', '4': 'Gaming',
+    '5': 'Q&A', '6': 'Random', '7': 'Life', '8': 'Sport'
+};
+
 function createPostElement(post) {
+    const catName = categoryNames[post.categoryId] || 'General';
+    const title = post.title || post.content.substring(0, 80) + (post.content.length > 80 ? '...' : '');
+    
     const div = document.createElement('div');
     div.className = 'post-card';
     div.innerHTML = `
@@ -185,11 +174,15 @@ function createPostElement(post) {
                 <div class="post-avatar">${getInitials(post.nickname)}</div>
                 <div class="post-user-info">
                     <span class="post-username">${escapeHtml(post.nickname.toUpperCase())}</span>
-                    <span class="post-time">${timeAgo(post.createdAt)}</span>
+                    <span class="post-meta-row">
+                        <span class="post-time">${timeAgo(post.createdAt)}</span>
+                        <span class="post-category-tag">${catName}</span>
+                    </span>
                 </div>
             </div>
             <button class="post-menu">...</button>
         </div>
+        <div class="post-title">${escapeHtml(title)}</div>
         <div class="post-content">${escapeHtml(post.content)}</div>
         <div class="post-actions">
             <button class="action-btn like-btn" data-post-id="${post.postId}" data-score="1">
