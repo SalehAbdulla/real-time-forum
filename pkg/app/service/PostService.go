@@ -8,9 +8,10 @@ import (
 )
 
 type PostService interface {
-	GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder string) (posts.PostResponse, error)
+	GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder string, categoryId int) (posts.PostResponse, error)
 	CreatePost(userID string, title string, content string, categoryId int) (posts.PostDTO, error)
 	GetPostByID(postId int) (posts.PostDTO, error)
+	DeletePost(postId int, userID string) error
 }
 
 type PostServiceImpl struct {
@@ -39,8 +40,8 @@ func mapPostToDTO(post models.Post) posts.PostDTO {
 	}
 }
 
-func (p PostServiceImpl) GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder string) (posts.PostResponse, error) {
-	postsModel, totalElements, err := p.db.GetPosts(pageNumber, pageSize, sortBy, sortOrder)
+func (p PostServiceImpl) GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder string, categoryId int) (posts.PostResponse, error) {
+	postsModel, totalElements, err := p.db.GetPosts(pageNumber, pageSize, sortBy, sortOrder, categoryId)
 	if err != nil {
 		return posts.PostResponse{}, err
 	}
@@ -69,6 +70,10 @@ func (p PostServiceImpl) GetPostByID(postId int) (posts.PostDTO, error) {
 		return posts.PostDTO{}, err
 	}
 	return mapPostToDTO(post), nil
+}
+
+func (p PostServiceImpl) DeletePost(postId int, userID string) error {
+	return p.db.DeletePost(postId, userID)
 }
 
 func (p PostServiceImpl) CreatePost(userID string, title string, content string, categoryId int) (posts.PostDTO, error) {
