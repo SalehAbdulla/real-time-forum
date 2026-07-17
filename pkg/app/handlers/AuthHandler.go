@@ -25,26 +25,14 @@ type logoutResponse struct {
 }
 
 func (re *HandlerContext) Register(w http.ResponseWriter, r *http.Request) {
-	registerRequest := user.RegisterRequestDTO{}
+	var req user.RegisterRequestDTO
 
-	registerRequest.Nickname = strings.TrimSpace(strings.ToLower(r.FormValue("nickName")))
-	registerRequest.Email = strings.TrimSpace(strings.ToLower(r.FormValue("email")))
-	registerRequest.FirstName = strings.TrimSpace(strings.ToLower(r.FormValue("firstName")))
-	registerRequest.LastName = strings.TrimSpace(strings.ToLower(r.FormValue("lastName")))
-	registerRequest.Password = strings.TrimSpace(r.FormValue("password"))
-	registerRequest.ConfirmPassword = strings.TrimSpace(r.FormValue("confirmPassword"))
-	registerRequest.Age = strings.TrimSpace(strings.ToLower(r.FormValue("age")))
-	registerRequest.Gender = strings.TrimSpace(strings.ToLower(r.FormValue("gender")))
-
-	if registerRequest.Nickname == "" || registerRequest.Email == "" ||
-		registerRequest.FirstName == "" || registerRequest.LastName == "" ||
-		registerRequest.Password == "" || registerRequest.ConfirmPassword == "" ||
-		registerRequest.Age == "" || registerRequest.Gender == "" {
-		re.HandleError(w, r, realtimeforum.ErrBadRequest)
+	if err := req.ParseAndValidate(r); err != nil {
+		re.HandleError(w, r, err)
 		return
 	}
 
-	userID, token, err := re.AuthService.Register(registerRequest)
+	userID, token, err := re.AuthService.Register(req)
 	if err != nil {
 		re.HandleError(w, r, err)
 		return
@@ -61,8 +49,8 @@ func (re *HandlerContext) Register(w http.ResponseWriter, r *http.Request) {
 
 	re.App.Logger.Info("user registered and logged in successfully",
 		"user_id", userID,
-		"email", registerRequest.Email,
-		"nickname", registerRequest.Nickname,
+		"email", req.Email,
+		"nickname", req.Nickname,
 	)
 
 	w.WriteHeader(http.StatusCreated)
@@ -70,11 +58,10 @@ func (re *HandlerContext) Register(w http.ResponseWriter, r *http.Request) {
 		Success: true,
 		Data: registerResponse{
 			UserID:   userID,
-			Nickname: registerRequest.Nickname,
+			Nickname: req.Nickname,
 		},
 		Message: "user registered successfully",
 	})
-
 }
 
 func (re *HandlerContext) Login(w http.ResponseWriter, r *http.Request) {
