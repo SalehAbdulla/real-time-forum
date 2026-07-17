@@ -73,6 +73,12 @@ export async function renderFeed(app) {
         loadPosts(true);
     });
 
+    // Show FAB on feed page
+    const fab = document.getElementById('fab-create');
+    if (fab) {
+        fab.style.display = 'flex';
+    }
+
     currentPage = 1;
     hasMore = true;
     await loadPosts(true);

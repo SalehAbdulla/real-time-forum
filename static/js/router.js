@@ -77,12 +77,6 @@ class Router {
                                         </svg>
                                         Notifications
                                     </button>
-                                    <button class="sidebar-nav-item ${path === 'create' ? 'active' : ''}" data-route="create">
-                                        <svg viewBox="0 0 20 20" fill="none">
-                                            <path d="M10 4V16M4 10H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                        Create Post
-                                    </button>
                                 </nav>
 
                                 <!-- Categories in sidebar (desktop) -->
@@ -113,6 +107,13 @@ class Router {
                             <!-- Main Panel -->
                             <div class="app-panel" id="app-panel"></div>
 
+                            <!-- FAB (hidden by default, shown on feed page) -->
+                            <button class="fab-create" id="fab-create" aria-label="Create Post" style="display:none;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                                    <path d="M12 4V20M4 12H20"/>
+                                </svg>
+                            </button>
+
                             <!-- Right Sidebar (Users) -->
                             <div class="app-rightbar">
                                 <div class="rightbar-header">
@@ -122,6 +123,7 @@ class Router {
                                     <div class="loading-spinner" style="padding:20px 0;">Loading...</div>
                                 </div>
                             </div>
+
                         </div>
                     </div>
                 `;
@@ -151,6 +153,12 @@ class Router {
                     });
                 });
 
+                // FAB click
+                const fab = document.getElementById('fab-create');
+                if (fab) {
+                    fab.addEventListener('click', () => this.navigate('create'));
+                }
+
                 // Load users into right sidebar
                 this.loadRightbarUsers();
 
@@ -160,7 +168,17 @@ class Router {
             }
         }
 
-        this.navigate('login');
+        // No route matched — show 404
+        const app = document.getElementById('app');
+        const isAuth = window.__isAuthenticated === true;
+        app.innerHTML = `
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px;text-align:center;">
+                <div style="font-size:72px;font-weight:600;color:rgba(255,255,255,0.08);letter-spacing:-3px;line-height:1;margin-bottom:8px;">404</div>
+                <h1 style="font-size:20px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;font-family:Inter,sans-serif;">Page not found</h1>
+                <p style="font-size:14px;color:var(--text-muted);margin-bottom:24px;font-family:Inter,sans-serif;">The page you're looking for doesn't exist.</p>
+                <button onclick="window.location.hash='${isAuth ? 'feed' : 'login'}'" style="padding:12px 24px;background:linear-gradient(135deg,rgba(32,178,166,0.2),rgba(32,178,166,0.08));border:1px solid rgba(32,178,166,0.18);border-radius:14px;color:rgba(255,255,255,0.9);font-size:14px;font-family:Inter,sans-serif;font-weight:500;cursor:pointer;transition:all 0.3s ease;">${isAuth ? 'Go to Feed' : 'Go to Login'}</button>
+            </div>
+        `;
     }
 
     async loadRightbarUsers() {
