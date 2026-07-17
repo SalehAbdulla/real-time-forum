@@ -142,14 +142,22 @@ class Router {
                     profile.addEventListener('click', () => this.navigate('profile'));
                 }
 
-                // Sidebar category clicks
+                // Sync sidebar category active state from query string
+                if (path === 'feed' && queryString) {
+                    const qs = new URLSearchParams(queryString);
+                    const catFromQs = qs.get('category');
+                    if (catFromQs) {
+                        document.querySelectorAll('.sidebar-cat-pill').forEach(p => {
+                            p.classList.toggle('active', p.dataset.category === catFromQs);
+                        });
+                    }
+                }
+
+                // Sidebar category clicks — navigate to feed with category query param
                 document.querySelectorAll('.sidebar-cat-pill').forEach(pill => {
                     pill.addEventListener('click', () => {
-                        document.querySelectorAll('.sidebar-cat-pill').forEach(p => p.classList.remove('active'));
-                        pill.classList.add('active');
-                        window.dispatchEvent(new CustomEvent('category-change', {
-                            detail: { category: pill.dataset.category }
-                        }));
+                        const cat = pill.dataset.category;
+                        this.navigate(`feed?category=${cat}`);
                     });
                 });
 
