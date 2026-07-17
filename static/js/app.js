@@ -1,14 +1,18 @@
 import { api } from './api.js';
 import { router } from './router.js';
 import { renderLoginPage } from './auth.js';
-import { renderFeed } from './Pages/feed.js';
-import { renderPost } from './Pages/post.js';
+import { renderFeed } from './pages/feed.js';
+import { renderPost } from './pages/post.js';
+import { createParticles } from './utils.js';
 
 function authGuard() {
     return window.__isAuthenticated === true;
 }
 
 async function init() {
+    // Initialize ambient particles
+    createParticles();
+
     try {
         const res = await api.me();
         window.__user = res.data;
@@ -34,23 +38,23 @@ async function init() {
     }, authGuard);
 
     router.addRoute('create', (app) => {
-        app.innerHTML = '<div style="color:white;text-align:center;padding:40px;"><h1>Create Post - Coming Soon</h1></div>';
+        app.innerHTML = '<div class="empty-state" style="margin-top:40vh;"><h1 style="font-size:20px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">Create Post</h1><p style="color:var(--text-muted);">Coming soon</p></div>';
     }, authGuard);
 
     router.addRoute('chat', (app) => {
-        app.innerHTML = '<div style="color:white;text-align:center;padding:40px;"><h1>Chat - Coming Soon</h1></div>';
+        app.innerHTML = '<div class="empty-state" style="margin-top:40vh;"><h1 style="font-size:20px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">Chat</h1><p style="color:var(--text-muted);">Coming soon</p></div>';
     }, authGuard);
 
     router.addRoute('chat/:userId', (app, params) => {
-        app.innerHTML = `<div style="color:white;text-align:center;padding:40px;"><h1>Chat with ${params.userId} - Coming Soon</h1></div>`;
+        app.innerHTML = `<div class="empty-state" style="margin-top:40vh;"><h1 style="font-size:20px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">Chat</h1><p style="color:var(--text-muted);">Coming soon</p></div>`;
     }, authGuard);
 
     router.addRoute('notifications', (app) => {
-        app.innerHTML = '<div style="color:white;text-align:center;padding:40px;"><h1>Notifications - Coming Soon</h1></div>';
+        app.innerHTML = '<div class="empty-state" style="margin-top:40vh;"><h1 style="font-size:20px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">Notifications</h1><p style="color:var(--text-muted);">Coming soon</p></div>';
     }, authGuard);
 
     router.addRoute('profile', (app) => {
-        app.innerHTML = '<div style="color:white;text-align:center;padding:40px;"><h1>Profile - Coming Soon</h1></div>';
+        app.innerHTML = '<div class="empty-state" style="margin-top:40vh;"><h1 style="font-size:20px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">Profile</h1><p style="color:var(--text-muted);">Coming soon</p></div>';
     }, authGuard);
 
     router.start();
