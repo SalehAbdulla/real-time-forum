@@ -2,11 +2,9 @@ package service
 
 import (
 	"log/slog"
-	"net/mail"
 	realtimeforum "real-time-forum"
 	"strconv"
 	"time"
-	"unicode"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -35,86 +33,26 @@ func NewAuthService(database db.AuthRepository) AuthService {
 	}
 }
 
-func passwordStrength(password string) bool {
-	var hasLetter, hasNumber, hasSymbol bool
-	for _, ch := range password {
-		switch {
-		case unicode.IsLetter(ch):
-			hasLetter = true
-		case unicode.IsNumber(ch):
-			hasNumber = true
-		case unicode.IsSymbol(ch) || unicode.IsPunct(ch):
-			hasSymbol = true
-		}
-	}
-	return hasLetter && hasNumber && hasSymbol
-}
-
-func (s AuthServiceImpl) Register(registerRequest user.RegisterRequestDTO) (string, string, error) {
-
-	nickName := registerRequest.Nickname
-	email := registerRequest.Email
-	firstName := registerRequest.FirstName
-	lastName := registerRequest.LastName
-	password := registerRequest.Password
-	confirmPassword := registerRequest.ConfirmPassword
-	ageStr := registerRequest.Age
-	gender := registerRequest.Gender
-
-	if len(nickName) < 2 || len(nickName) > 33 {
-		slog.Debug("invalid nickname length", "nickname", nickName, "length", len(nickName))
-		return "", "", realtimeforum.ErrNickNameLength
-	}
-
-	_, err := mail.ParseAddress(email)
-	if err != nil {
-		slog.Debug("invalid email format", "email", email)
-		return "", "", realtimeforum.ErrInvalidEmail
-	}
-
-	if err := s.db.DoesEmailExists(email); err != nil {
+func (s AuthServiceImpl) Register(req user.RegisterRequestDTO) (string, string, error) {
+	if err := s.db.DoesEmailExists(req.Email); err != nil {
 		return "", "", err
 	}
 
-	if err := s.db.DoesNicknameExists(nickName); err != nil {
+	if err := s.db.DoesNicknameExists(req.Nickname); err != nil {
 		return "", "", err
 	}
 
-	age, err := strconv.Atoi(ageStr)
-	if err != nil || age <= 0 || age > 150 {
-		slog.Debug("invalid age", "age", ageStr)
-		return "", "", realtimeforum.ErrInvalidAge
-	}
-	yearOfBirth := time.Now().Year() - age
-
-	if password != confirmPassword {
-		slog.Debug("passwords do not match")
-		return "", "", realtimeforum.ErrPasswordsDontMatch
-	}
-
-	if len(password) < 12 || len(password) > 64 {
-		slog.Debug("invalid password length", "length", len(password))
-		return "", "", realtimeforum.ErrPasswordLength
-	}
-
-	if !passwordStrength(password) {
-		slog.Debug("weak password")
-		return "", "", realtimeforum.ErrInvalidPassForm
-	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		slog.Error("failed to hash password", "error", err)
 		return "", "", realtimeforum.ErrInternal
 	}
 
-	if gender != "male" && gender != "female" {
-		slog.Debug("invalid gender", "gender", gender)
-		return "", "", realtimeforum.ErrGender
-	}
+	age, _ := strconv.Atoi(req.Age)
+	yearOfBirth := time.Now().Year() - age
 
 	userID := uuid.NewString()
-	if err := s.db.InsertUser(userID, nickName, firstName, lastName, email, string(hashedPassword), yearOfBirth, gender); err != nil {
+	if err := s.db.InsertUser(userID, req.Nickname, req.FirstName, req.LastName, req.Email, string(hashedPassword), yearOfBirth, req.Gender); err != nil {
 		return "", "", err
 	}
 
