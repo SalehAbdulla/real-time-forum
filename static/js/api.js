@@ -34,8 +34,8 @@ function formEncode(obj) {
 
 export const api = {
     // Auth
-    login: (identifier, password) =>
-        apiRequest('POST', '/api/v1/auth/login', formEncode({ identifier, password })),
+    login: (identifier, password, rememberMe = false) =>
+        apiRequest('POST', '/api/v1/auth/login', formEncode({ identifier, password, rememberMe })),
 
     register: (fields) =>
         apiRequest('POST', '/api/v1/auth/register', formEncode(fields)),
