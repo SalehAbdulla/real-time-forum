@@ -67,6 +67,7 @@ func (re *HandlerContext) Register(w http.ResponseWriter, r *http.Request) {
 func (re *HandlerContext) Login(w http.ResponseWriter, r *http.Request) {
 	identifier := strings.TrimSpace(strings.ToLower(r.FormValue("identifier")))
 	password := strings.TrimSpace(r.FormValue("password"))
+	rememberMe := r.FormValue("rememberMe") == "true" || r.FormValue("rememberMe") == "on"
 
 	if identifier == "" || password == "" {
 		re.HandleError(w, r, realtimeforum.ErrBadRequest)
@@ -79,14 +80,20 @@ func (re *HandlerContext) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.SetCookie(w, &http.Cookie{
+	cookie := &http.Cookie{
 		Name:     "session_token",
 		Value:    token,
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   re.App.InProduction,
 		SameSite: http.SameSiteStrictMode,
-	})
+	}
+
+	if rememberMe {
+		cookie.MaxAge = 60 * 60 * 24 * 30 // 30 days
+	}
+
+	http.SetCookie(w, cookie)
 
 	re.App.Logger.Info("login successful",
 		"user_id", userID,
