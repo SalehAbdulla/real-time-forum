@@ -6,13 +6,14 @@ import (
 )
 
 type PostRepository interface {
-	GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder string) ([]models.Post, int, error)
+	GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder string, categoryId int) ([]models.Post, int, error)
 	CreatePost(post models.Post) (models.Post, error)
 	DoesPostExists(postId int) error
 	GetPostByID(postId int) (models.Post, error)
+	DeletePost(postId int, userId string) error
 }
 
-func (db *DB) GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder string) ([]models.Post, int, error) {
+func (db *DB) GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder string, categoryId int) ([]models.Post, int, error) {
 	validSortColumns := map[string]string{
 		"createdat": "p.createdAt",
 		"title":     "p.title",
@@ -36,7 +37,14 @@ func (db *DB) GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder st
 
 	var totalElements int
 	countQuery := "SELECT COUNT(*) FROM post"
-	err := db.Conn.QueryRow(countQuery).Scan(&totalElements)
+	var countArgs []interface{}
+	var whereClause string
+	if categoryId > 0 {
+		whereClause = " WHERE p.categoryId = ?"
+		countQuery += whereClause
+		countArgs = append(countArgs, categoryId)
+	}
+	err := db.Conn.QueryRow(countQuery, countArgs...).Scan(&totalElements)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -49,12 +57,17 @@ func (db *DB) GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder st
 			   p.createdAt, p.updatedAt
 		FROM post p
 		JOIN user u ON p.userId = u.userId
-		JOIN category c ON p.categoryId = c.categoryId
+		JOIN category c ON p.categoryId = c.categoryId` + whereClause + `
 		ORDER BY ` + column + ` ` + order + `
 		LIMIT ? OFFSET ?
 	`
+	var queryArgs []interface{}
+	if categoryId > 0 {
+		queryArgs = append(queryArgs, categoryId)
+	}
+	queryArgs = append(queryArgs, pageSize, offset)
 
-	rows, err := db.Conn.Query(query, pageSize, offset)
+	rows, err := db.Conn.Query(query, queryArgs...)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -132,6 +145,21 @@ func (db *DB) GetPostByID(postId int) (models.Post, error) {
 		return models.Post{}, realtimeforum.ErrNotFound
 	}
 	return post, nil
+}
+
+func (db *DB) DeletePost(postId int, userId string) error {
+	result, err := db.Conn.Exec("DELETE FROM post WHERE postId = ? AND userId = ?", postId, userId)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return realtimeforum.ErrNotFound
+	}
+	return nil
 }
 
 func (db *DB) CreatePost(post models.Post) (models.Post, error) {
