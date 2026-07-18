@@ -45,8 +45,9 @@ func (db *DB) GetComments(postId int, pageNumber int, pageSize int, sortBy strin
 	offset := (pageNumber - 1) * pageSize
 
 	query := `
-		SELECT c.commentId, c.postId, c.userId, c.commentText, c.createdAt
+		SELECT c.commentId, c.postId, c.userId, u.nickName, c.commentText, c.score, c.createdAt
 		FROM comment c
+		JOIN user u ON c.userId = u.userId
 		WHERE c.postId = ?
 		ORDER BY ` + column + ` ` + order + `
 		LIMIT ? OFFSET ?
@@ -65,7 +66,9 @@ func (db *DB) GetComments(postId int, pageNumber int, pageSize int, sortBy strin
 			&com.CommentId,
 			&com.PostId,
 			&com.UserId,
+			&com.Nickname,
 			&com.CommentText,
+			&com.Score,
 			&com.CreatedAt,
 		)
 		if err != nil {
@@ -100,6 +103,15 @@ func (db *DB) CreateComment(userId string, postId int, content string) (models.C
 	}
 
 	commentID, err := result.LastInsertId()
+	if err != nil {
+		return models.Comment{}, realtimeforum.ErrInternal
+	}
+
+	// Update the comment count on the post
+	_, err = db.Conn.Exec(
+		`UPDATE post SET commentsCounter = commentsCounter + 1 WHERE postId = ?`,
+		postId,
+	)
 	if err != nil {
 		return models.Comment{}, realtimeforum.ErrInternal
 	}
