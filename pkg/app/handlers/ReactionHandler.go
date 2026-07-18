@@ -7,7 +7,6 @@ import (
 	"real-time-forum/pkg/middleware"
 	"real-time-forum/pkg/payload"
 	"real-time-forum/pkg/payload/reaction"
-	"strconv"
 	"strings"
 )
 
@@ -23,20 +22,13 @@ func (re *HandlerContext) React(w http.ResponseWriter, r *http.Request) {
 		re.HandleError(w, r, realtimeforum.ErrUnauthorized)
 		return
 	}
-	req := ReactRequest{}
-	req.EntityType = strings.TrimSpace(strings.ToLower(r.FormValue("entityType")))
-	entityId, err := strconv.Atoi(r.FormValue("entityId"))
-	if err != nil {
+
+	var req ReactRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		re.HandleError(w, r, realtimeforum.ErrBadRequest)
 		return
 	}
-	req.EntityId = entityId
-	score, err := strconv.Atoi(r.FormValue("score"))
-	if err != nil {
-		re.HandleError(w, r, realtimeforum.ErrBadRequest)
-		return
-	}
-	req.Score = score
+	req.EntityType = strings.TrimSpace(strings.ToLower(req.EntityType))
 
 	response, err := re.ReactService.UpsertReaction(userID, req.EntityType, req.EntityId, req.Score)
 	if err != nil {
