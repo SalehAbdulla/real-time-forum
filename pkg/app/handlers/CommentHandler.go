@@ -109,7 +109,7 @@ func (re *HandlerContext) CreateComments(w http.ResponseWriter, r *http.Request)
 		"user_id", userID,
 	)
 
-	post, err := re.PostService.GetPostByID(postId)
+	post, err := re.PostService.GetPostByID(postId, userID)
 	if err == nil && post.UserId != userID {
 		notif, err := re.NotificationService.CreateNotification(post.UserId, userID, "comment", response.CommentId)
 		if err != nil {
