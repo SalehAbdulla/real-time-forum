@@ -48,9 +48,9 @@ func main() {
 	// Initialize services
 	authService := service.NewAuthService(dbConn)
 	categoryService := service.NewCategoryService(dbConn)
-	postService := service.NewPostService(dbConn)
-	commentService := service.NewCommentService(dbConn)
 	reactService := service.NewReactionService(dbConn)
+	postService := service.NewPostService(dbConn, reactService)
+	commentService := service.NewCommentService(dbConn)
 	messageService := service.NewMessageService(dbConn, dbConn)
 	notificationService := service.NewNotificationService(dbConn)
 
