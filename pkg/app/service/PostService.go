@@ -8,23 +8,25 @@ import (
 )
 
 type PostService interface {
-	GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder string, categoryId int) (posts.PostResponse, error)
+	GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder string, categoryId int, userId string) (posts.PostResponse, error)
 	CreatePost(userID string, title string, content string, categoryId int) (posts.PostDTO, error)
-	GetPostByID(postId int) (posts.PostDTO, error)
+	GetPostByID(postId int, userId string) (posts.PostDTO, error)
 	DeletePost(postId int, userID string) error
 }
 
 type PostServiceImpl struct {
-	db db.PostRepository
+	db             db.PostRepository
+	reactionService ReactionService
 }
 
-func NewPostService(database db.PostRepository) PostService {
+func NewPostService(database db.PostRepository, rs ReactionService) PostService {
 	return PostServiceImpl{
-		db: database,
+		db:             database,
+		reactionService: rs,
 	}
 }
 
-func mapPostToDTO(post models.Post) posts.PostDTO {
+func mapPostToDTO(post models.Post, userScore int) posts.PostDTO {
 	return posts.PostDTO{
 		PostId:          post.PostId,
 		UserId:          post.UserId,
@@ -35,12 +37,13 @@ func mapPostToDTO(post models.Post) posts.PostDTO {
 		CategoryName:    post.CategoryName,
 		Score:           post.Score,
 		CommentsCounter: post.CommentsCounter,
+		UserScore:       userScore,
 		CreatedAt:       post.CreatedAt,
 		UpdatedAt:       post.UpdatedAt,
 	}
 }
 
-func (p PostServiceImpl) GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder string, categoryId int) (posts.PostResponse, error) {
+func (p PostServiceImpl) GetPosts(pageNumber int, pageSize int, sortBy string, sortOrder string, categoryId int, userId string) (posts.PostResponse, error) {
 	postsModel, totalElements, err := p.db.GetPosts(pageNumber, pageSize, sortBy, sortOrder, categoryId)
 	if err != nil {
 		return posts.PostResponse{}, err
@@ -48,7 +51,8 @@ func (p PostServiceImpl) GetPosts(pageNumber int, pageSize int, sortBy string, s
 
 	postDTOs := make([]posts.PostDTO, len(postsModel))
 	for i, post := range postsModel {
-		postDTOs[i] = mapPostToDTO(post)
+		userScore, _ := p.reactionService.GetUserScore(userId, "post", post.PostId)
+		postDTOs[i] = mapPostToDTO(post, userScore)
 	}
 
 	totalPages := int(math.Ceil(float64(totalElements) / float64(pageSize)))
@@ -64,12 +68,13 @@ func (p PostServiceImpl) GetPosts(pageNumber int, pageSize int, sortBy string, s
 	}, nil
 }
 
-func (p PostServiceImpl) GetPostByID(postId int) (posts.PostDTO, error) {
+func (p PostServiceImpl) GetPostByID(postId int, userId string) (posts.PostDTO, error) {
 	post, err := p.db.GetPostByID(postId)
 	if err != nil {
 		return posts.PostDTO{}, err
 	}
-	return mapPostToDTO(post), nil
+	userScore, _ := p.reactionService.GetUserScore(userId, "post", postId)
+	return mapPostToDTO(post, userScore), nil
 }
 
 func (p PostServiceImpl) DeletePost(postId int, userID string) error {
@@ -89,5 +94,5 @@ func (p PostServiceImpl) CreatePost(userID string, title string, content string,
 		return posts.PostDTO{}, err
 	}
 
-	return mapPostToDTO(createdPost), nil
+	return mapPostToDTO(createdPost, 0), nil
 }
