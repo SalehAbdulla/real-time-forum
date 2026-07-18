@@ -8,6 +8,7 @@ import (
 
 type ReactionService interface {
 	UpsertReaction(userId string, entityType string, entityId int, score int) (reaction.ReactionResponse, error)
+	GetUserScore(userId string, entityType string, entityId int) (int, error)
 }
 
 type ReactionServiceImpl struct {
@@ -18,6 +19,10 @@ func NewReactionService(database db.ReactionRepository) ReactionService {
 	return ReactionServiceImpl{
 		db: database,
 	}
+}
+
+func (r ReactionServiceImpl) GetUserScore(userId string, entityType string, entityId int) (int, error) {
+	return r.db.GetUserScore(userId, entityType, entityId)
 }
 
 func (r ReactionServiceImpl) UpsertReaction(userId string, entityType string, entityId int, score int) (reaction.ReactionResponse, error) {
