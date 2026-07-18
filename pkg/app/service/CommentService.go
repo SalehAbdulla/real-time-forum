@@ -33,7 +33,9 @@ func (c CommentServiceImpl) GetComments(postId int, pageNumber int, pageSize int
 			CommentId:   com.CommentId,
 			PostId:      com.PostId,
 			UserId:      com.UserId,
+			Nickname:    com.Nickname,
 			CommentText: com.CommentText,
+			Score:       com.Score,
 			CreatedAt:   com.CreatedAt,
 		}
 	}
