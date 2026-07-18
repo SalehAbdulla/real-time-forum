@@ -213,13 +213,25 @@ function createPostElement(post) {
         }
     });
 
-    // Like button
+    // Like button - use userScore from API for initial state, then toggle
     const likeBtn = div.querySelector('.like-btn');
+    // Set initial state from server data
+    if (post.userScore === 1) {
+        likeBtn.classList.add('liked');
+    }
     likeBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
         try {
+            const oldScore = parseInt(likeBtn.querySelector('span').textContent) || 0;
             const res = await api.react('post', post.postId, 1);
-            likeBtn.querySelector('span').textContent = res.data.totalScore;
+            const newScore = res.data.totalScore;
+            likeBtn.querySelector('span').textContent = newScore;
+            // If score decreased, we removed our like; if increased, we added our like
+            if (newScore < oldScore) {
+                likeBtn.classList.remove('liked');
+            } else {
+                likeBtn.classList.add('liked');
+            }
         } catch (err) {
             console.error('Failed to react:', err);
         }
