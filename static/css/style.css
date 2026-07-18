@@ -1524,6 +1524,14 @@ body {
 
 .action-btn.like-btn:hover { color: #fb7185; }
 
+.action-btn.liked {
+    color: #fb7185;
+}
+
+.action-btn.liked svg {
+    fill: #fb7185 !important;
+}
+
 .action-btn svg {
     width: 18px; height: 18px;
     transition: transform var(--duration-fast) var(--ease-out-back);
@@ -1531,6 +1539,267 @@ body {
 
 .action-btn:hover svg { transform: scale(1.15); }
 .action-btn.like-btn:hover svg { transform: scale(1.2); }
+
+/* ============================================================
+   POST DETAIL PAGE
+   ============================================================ */
+.post-detail {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.post-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: var(--space-4) var(--feed-pad-x);
+    border-bottom: var(--border-faint);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(var(--blur-md));
+    -webkit-backdrop-filter: blur(var(--blur-md));
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    transition: all var(--duration-fast) ease;
+}
+
+.back-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.post-detail-title {
+    color: var(--text-primary);
+    font-size: 16px;
+    font-family: Inter, sans-serif;
+    font-weight: 560;
+}
+
+.post-detail-card {
+    padding: var(--space-5) var(--feed-pad-x);
+    border-bottom: var(--border-faint);
+}
+
+.post-detail-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: var(--space-4);
+}
+
+.post-detail-user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.post-detail-heading {
+    color: var(--text-primary);
+    font-size: 20px;
+    font-family: Inter, sans-serif;
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: var(--space-3);
+    letter-spacing: -0.02em;
+}
+
+.post-detail-body {
+    color: var(--text-secondary);
+    font-size: 15px;
+    font-family: Inter, sans-serif;
+    font-weight: 400;
+    line-height: 1.7;
+    margin-bottom: var(--space-4);
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.post-detail-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding-top: var(--space-3);
+    border-top: var(--border-faint);
+}
+
+.post-detail-actions .action-btn {
+    font-size: 14px;
+    padding: 6px 12px;
+}
+
+.post-detail-actions .action-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* ============================================================
+   COMMENTS SECTION
+   ============================================================ */
+.comments-section {
+    padding: var(--space-4) var(--feed-pad-x);
+    flex: 1;
+}
+
+.comments-heading {
+    color: var(--text-primary);
+    font-size: 16px;
+    font-family: Inter, sans-serif;
+    font-weight: 560;
+    margin-bottom: var(--space-4);
+}
+
+.comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+}
+
+.comment-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.04);
+    border: var(--border-default);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: Inter, sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+    resize: vertical;
+    transition: all var(--duration-fast) ease;
+    outline: none;
+}
+
+.comment-input:focus {
+    border-color: rgba(32, 178, 166, 0.3);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.comment-input::placeholder {
+    color: var(--text-muted);
+}
+
+.comment-submit-btn {
+    align-self: flex-end;
+    background: var(--accent);
+    color: #08080c;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 8px 20px;
+    font-size: 13px;
+    font-family: Inter, sans-serif;
+    font-weight: 560;
+    cursor: pointer;
+    transition: all var(--duration-fast) ease;
+}
+
+.comment-submit-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.comment-submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.comment-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: var(--border-faint);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    animation: postSlideIn var(--duration-slow) var(--ease-out-expo) both;
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: var(--space-2);
+}
+
+.comment-avatar {
+    width: 28px; height: 28px;
+    background: var(--glass-soft);
+    border: var(--border-default);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-size: 10px;
+    font-family: Inter, sans-serif;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.comment-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.comment-username {
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 12px;
+    font-family: Inter, sans-serif;
+    font-weight: 520;
+    letter-spacing: -0.01em;
+}
+
+.comment-time {
+    color: var(--text-muted);
+    font-size: 10px;
+    font-family: Inter, sans-serif;
+    font-weight: 400;
+}
+
+.comment-body {
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-family: Inter, sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    margin-bottom: var(--space-2);
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.comment-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.comment-actions .action-btn {
+    font-size: 11px;
+    padding: 2px 6px;
+}
+
+.comment-actions .action-btn svg {
+    width: 14px;
+    height: 14px;
+}
 
 /* (Bottom nav removed — sidebar handles navigation) */
 /* ============================================================
