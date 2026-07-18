@@ -20,7 +20,13 @@ func (re *HandlerContext) GetPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := re.PostService.GetPostByID(postId)
+	userID, ok := middleware.UserIDFromContext(r.Context())
+	if !ok || userID == "" {
+		re.HandleError(w, r, realtimeforum.ErrUnauthorized)
+		return
+	}
+
+	response, err := re.PostService.GetPostByID(postId, userID)
 	if err != nil {
 		re.HandleError(w, r, err)
 		return
@@ -91,7 +97,13 @@ func (re *HandlerContext) GetPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := re.PostService.GetPosts(pageNumber, pageSize, sortBy, sortOrder, categoryId)
+	userID, ok := middleware.UserIDFromContext(r.Context())
+	if !ok || userID == "" {
+		re.HandleError(w, r, realtimeforum.ErrUnauthorized)
+		return
+	}
+
+	response, err := re.PostService.GetPosts(pageNumber, pageSize, sortBy, sortOrder, categoryId, userID)
 	if err != nil {
 		re.HandleError(w, r, err)
 		return
