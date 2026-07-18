@@ -10,6 +10,7 @@ type PostDTO struct {
 	CategoryName    string `json:"categoryName"`
 	Score           int    `json:"score"`
 	CommentsCounter int    `json:"commentsCounter"`
+	UserScore       int    `json:"userScore"` // 1=liked, -1=disliked, 0=none
 	CreatedAt       string `json:"createdAt"`
 	UpdatedAt       string `json:"updatedAt"`
 }
