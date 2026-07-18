@@ -9,6 +9,7 @@ import (
 type ReactionRepository interface {
 	UpsertReaction(userId string, entityType string, entityId int, score int) (int, error)
 	DoesCommentExists(commentId int) error
+	GetUserScore(userId string, entityType string, entityId int) (int, error)
 }
 
 func (db *DB) UpsertReaction(userId string, entityType string, entityId int, score int) (int, error) {
@@ -81,7 +82,42 @@ func (db *DB) UpsertReaction(userId string, entityType string, entityId int, sco
 		return 0, realtimeforum.ErrInternal
 	}
 
+	// Sync the total score back to the parent entity (post or comment)
+	switch entityType {
+	case "post":
+		_, err = db.Conn.Exec(
+			`UPDATE post SET score = ? WHERE postId = ?`,
+			totalScore, entityId,
+		)
+	case "comment":
+		_, err = db.Conn.Exec(
+			`UPDATE comment SET score = ? WHERE commentId = ?`,
+			totalScore, entityId,
+		)
+	}
+	if err != nil {
+		return 0, realtimeforum.ErrInternal
+	}
+
 	return totalScore, nil
+}
+
+func (db *DB) GetUserScore(userId string, entityType string, entityId int) (int, error) {
+	var score sql.NullInt64
+	err := db.Conn.QueryRow(
+		`SELECT score FROM reaction WHERE userId = ? AND entityType = ? AND entityId = ?`,
+		userId, entityType, entityId,
+	).Scan(&score)
+	if err == sql.ErrNoRows {
+		return 0, nil
+	}
+	if err != nil {
+		return 0, err
+	}
+	if score.Valid {
+		return int(score.Int64), nil
+	}
+	return 0, nil
 }
 
 func (db *DB) DoesCommentExists(commentId int) error {
