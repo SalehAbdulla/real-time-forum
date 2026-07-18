@@ -68,7 +68,7 @@ export const api = {
 
     // Reactions
     react: (entityType, entityId, score) =>
-        apiRequest('POST', '/api/v1/reactions', formEncode({ entityType, entityId, score })),
+        apiRequest('POST', '/api/v1/reactions', { entityType, entityId, score }),
 
     // Categories
     getCategories: () =>
