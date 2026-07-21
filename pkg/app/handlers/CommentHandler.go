@@ -42,6 +42,16 @@ func (re *HandlerContext) GetComments(w http.ResponseWriter, r *http.Request) {
 		pageSizeStr = "10"
 	}
 
+	sortBy := strings.TrimSpace(r.URL.Query().Get("sortBy"))
+	if sortBy == "" {
+		sortBy = "createdAt"
+	}
+
+	sortOrder := strings.TrimSpace(r.URL.Query().Get("sortOrder"))
+	if sortOrder == "" {
+		sortOrder = "desc"
+	}
+
 	pageNumber, err := strconv.Atoi(pageNumberStr)
 	if err != nil || pageNumber < 1 {
 		re.HandleError(w, r, realtimeforum.ErrBadRequest)
@@ -54,7 +64,7 @@ func (re *HandlerContext) GetComments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := re.CommentService.GetComments(postIdInt, pageNumber, pageSize, "createdAt", "desc")
+	response, err := re.CommentService.GetComments(postIdInt, pageNumber, pageSize, sortBy, sortOrder, userID)
 	if err != nil {
 		re.HandleError(w, r, err)
 		return
