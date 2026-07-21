@@ -1,5 +1,5 @@
 package config
 
 const (
-	PORT_NUMBER = ":3000"
+	PORT_NUMBER = ":5173"
 )
