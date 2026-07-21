@@ -60,8 +60,8 @@ export const api = {
         apiRequest('POST', '/api/v1/posts', { title, content, categoryId }),
 
     // Comments
-    getComments: (postId, page = 1, size = 10) =>
-        apiRequest('GET', `/api/v1/posts/comments?postId=${postId}&page=${page}&size=${size}`),
+    getComments: (postId, page = 1, size = 10, sortBy = 'createdAt', sortOrder = 'desc') =>
+        apiRequest('GET', `/api/v1/posts/comments?postId=${postId}&page=${page}&size=${size}&sortBy=${sortBy}&sortOrder=${sortOrder}`),
 
     createComment: (postId, content) =>
         apiRequest('POST', '/api/v1/posts/comments', formEncode({ postId, content })),
