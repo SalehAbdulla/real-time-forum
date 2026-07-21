@@ -7,5 +7,6 @@ type Comment struct {
 	Nickname    string `json:"nickname"`
 	CommentText string `json:"commentText"`
 	Score       int    `json:"score"`
+	UserScore   int    `json:"userScore"`
 	CreatedAt   string `json:"createdAt"`
 }
