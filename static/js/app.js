@@ -3,6 +3,7 @@ import { router } from './router.js';
 import { renderLoginPage } from './auth.js';
 import { renderFeed } from './pages/feed.js';
 import { renderPost } from './pages/post.js';
+import { renderCreatePost } from './pages/createPost.js';
 import { createParticles } from './utils.js';
 
 function authGuard() {
@@ -46,7 +47,7 @@ async function init() {
     }, authGuard);
 
     router.addRoute('create', (app) => {
-        app.innerHTML = '<div class="empty-state" style="margin-top:40vh;"><h1 style="font-size:20px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">Create Post</h1><p style="color:var(--text-muted);">Coming soon</p></div>';
+        renderCreatePost(app);
     }, authGuard);
 
     router.addRoute('chat', (app) => {
