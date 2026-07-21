@@ -1955,6 +1955,186 @@ body {
 }
 
 /* ============================================================
+   CREATE POST PAGE
+   ============================================================ */
+.create-post-page {
+    padding: var(--space-5) var(--feed-pad-x);
+    max-width: var(--feed-max-width);
+    margin: 0 auto;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    animation: appFadeIn var(--duration-xl) var(--ease-out-expo) both;
+}
+
+.create-post-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+    padding-top: var(--space-3);
+}
+
+.create-post-title {
+    font-size: 18px;
+    font-weight: 550;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+}
+
+.create-post-card {
+    background: var(--glass-subtle);
+    backdrop-filter: blur(var(--blur-md));
+    -webkit-backdrop-filter: blur(var(--blur-md));
+    border: var(--border-light);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md), var(--shadow-inner-top);
+    position: relative;
+    overflow: hidden;
+    padding: var(--space-8);
+}
+
+.create-post-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(32, 178, 166, 0.05) 0%, transparent 65%);
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+.create-post-form {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+.create-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.create-label {
+    font-size: 13px;
+    font-weight: 520;
+    color: var(--text-secondary);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.create-input {
+    width: 100%;
+}
+
+.create-textarea {
+    width: 100%;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.03);
+    border: var(--border-faint);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 15px;
+    font-family: Inter, sans-serif;
+    font-weight: 400;
+    outline: none;
+    transition: all var(--duration-normal) var(--ease-out-quart);
+    letter-spacing: -0.01em;
+    resize: vertical;
+    min-height: 120px;
+    line-height: 1.5;
+}
+
+.create-textarea::placeholder {
+    color: var(--text-muted);
+}
+
+.create-textarea:focus {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(32, 178, 166, 0.25);
+    box-shadow: 0 0 0 1px rgba(32, 178, 166, 0.08), 0 0 30px rgba(32, 178, 166, 0.04);
+}
+
+.create-field-hint {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 2px;
+}
+
+.create-char-count {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: Inter, sans-serif;
+    font-weight: 400;
+}
+
+.create-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.create-cat-pill {
+    padding: 8px 18px;
+    background: rgba(255, 255, 255, 0.03);
+    border: var(--border-faint);
+    border-radius: var(--radius-full);
+    color: var(--text-tertiary);
+    font-size: 13px;
+    font-family: Inter, sans-serif;
+    font-weight: 450;
+    cursor: pointer;
+    transition: all var(--duration-normal) var(--ease-out-quart);
+    letter-spacing: -0.01em;
+}
+
+.create-cat-pill:hover {
+    background: rgba(255, 255, 255, 0.07);
+    color: var(--text-secondary);
+    border-color: var(--border-light);
+}
+
+.create-cat-pill.active {
+    background: var(--glass-active);
+    border-color: var(--border-bright);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-glow);
+}
+
+.create-error {
+    padding: 12px 16px;
+    background: rgba(239, 68, 68, 0.10);
+    border: 1px solid rgba(239, 68, 68, 0.18);
+    border-radius: var(--radius-md);
+    color: #fca5a5;
+    font-size: 14px;
+    font-family: Inter, sans-serif;
+    font-weight: 400;
+    line-height: 1.4;
+}
+
+.create-submit-btn {
+    width: 100%;
+    padding: 16px 24px;
+    font-size: 16px;
+    margin-top: var(--space-2);
+}
+
+/* Mobile responsive for create post */
+@media (max-width: 900px) {
+    .create-post-page {
+        padding: var(--space-4) var(--space-4);
+    }
+
+    .create-post-card {
+        padding: var(--space-6);
+        border-radius: var(--radius-lg);
+    }
+}
+
+/* ============================================================
    SCROLLBAR
    ============================================================ */
 ::-webkit-scrollbar { width: 4px; }
