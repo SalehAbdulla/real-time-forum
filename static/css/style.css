@@ -2135,6 +2135,169 @@ body {
 }
 
 /* ============================================================
+   PROFILE PAGE
+   ============================================================ */
+.profile-page {
+    width: 100%;
+    max-width: 520px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-8) var(--space-6);
+    margin: 0 auto;
+    overflow-y: auto;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--space-6);
+}
+
+.profile-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: Inter, sans-serif;
+    letter-spacing: -0.5px;
+}
+
+.profile-card {
+    background: var(--glass-subtle);
+    backdrop-filter: blur(var(--blur-md));
+    -webkit-backdrop-filter: blur(var(--blur-md));
+    border: var(--border-light);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md), var(--shadow-inner-top);
+    padding: var(--space-8);
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(32, 178, 166, 0.05) 0%, transparent 65%);
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+.profile-avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-4) 0;
+    position: relative;
+    z-index: 1;
+}
+
+.profile-avatar-large {
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, rgba(32, 178, 166, 0.25), rgba(32, 178, 166, 0.10));
+    border: 2px solid rgba(32, 178, 166, 0.20);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-light);
+    font-size: 24px;
+    font-family: Inter, sans-serif;
+    font-weight: 600;
+    margin-bottom: var(--space-4);
+    box-shadow: 0 0 30px rgba(32, 178, 166, 0.10);
+}
+
+.profile-name {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: Inter, sans-serif;
+    letter-spacing: -0.3px;
+}
+
+.profile-nickname {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-family: Inter, sans-serif;
+    margin-top: 2px;
+}
+
+.profile-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-4) 0;
+    position: relative;
+    z-index: 1;
+}
+
+.profile-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-2) 0;
+}
+
+.profile-detail-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-family: Inter, sans-serif;
+    font-weight: 450;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.profile-detail-value {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-family: Inter, sans-serif;
+    font-weight: 450;
+    text-align: right;
+}
+
+.profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding-top: var(--space-2);
+    position: relative;
+    z-index: 1;
+}
+
+.profile-logout-btn {
+    width: 100%;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.06)) !important;
+    border-color: rgba(239, 68, 68, 0.20) !important;
+    color: #fca5a5 !important;
+}
+
+.profile-logout-btn:hover {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(239, 68, 68, 0.12)) !important;
+    border-color: rgba(239, 68, 68, 0.35) !important;
+    box-shadow: 0 8px 32px rgba(239, 68, 68, 0.12) !important;
+}
+
+/* Mobile responsive for profile */
+@media (max-width: 900px) {
+    .profile-page {
+        padding: var(--space-4) var(--space-4);
+    }
+
+    .profile-card {
+        padding: var(--space-6);
+        border-radius: var(--radius-lg);
+    }
+
+    .profile-avatar-large {
+        width: 64px;
+        height: 64px;
+        font-size: 22px;
+    }
+}
+
+/* ============================================================
    SCROLLBAR
    ============================================================ */
 ::-webkit-scrollbar { width: 4px; }
