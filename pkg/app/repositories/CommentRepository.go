@@ -6,11 +6,11 @@ import (
 )
 
 type CommentRepository interface {
-	GetComments(postId int, pageNumber int, pageSize int, sortBy string, sortOrder string) ([]models.Comment, int, error)
+	GetComments(postId int, pageNumber int, pageSize int, sortBy string, sortOrder string, userID string) ([]models.Comment, int, error)
 	CreateComment(userId string, postId int, content string) (models.Comment, error)
 }
 
-func (db *DB) GetComments(postId int, pageNumber int, pageSize int, sortBy string, sortOrder string) ([]models.Comment, int, error) {
+func (db *DB) GetComments(postId int, pageNumber int, pageSize int, sortBy string, sortOrder string, userID string) ([]models.Comment, int, error) {
 
 	if err := db.DoesPostExists(postId); err != nil {
 		return nil, 0, err
@@ -18,6 +18,7 @@ func (db *DB) GetComments(postId int, pageNumber int, pageSize int, sortBy strin
 
 	validSortColumns := map[string]string{
 		"createdat": "c.createdAt",
+		"score":     "c.score",
 	}
 
 	column, ok := validSortColumns[sortBy]
@@ -45,15 +46,17 @@ func (db *DB) GetComments(postId int, pageNumber int, pageSize int, sortBy strin
 	offset := (pageNumber - 1) * pageSize
 
 	query := `
-		SELECT c.commentId, c.postId, c.userId, u.nickName, c.commentText, c.score, c.createdAt
+		SELECT c.commentId, c.postId, c.userId, u.nickName, c.commentText, c.score, c.createdAt,
+		       COALESCE(r.score, 0) AS userScore
 		FROM comment c
 		JOIN user u ON c.userId = u.userId
+		LEFT JOIN reaction r ON r.entityType = 'comment' AND r.entityId = c.commentId AND r.userId = ?
 		WHERE c.postId = ?
 		ORDER BY ` + column + ` ` + order + `
 		LIMIT ? OFFSET ?
 	`
 
-	rows, err := db.Conn.Query(query, postId, pageSize, offset)
+	rows, err := db.Conn.Query(query, userID, postId, pageSize, offset)
 	if err != nil {
 		return nil, 0, realtimeforum.ErrInternal
 	}
@@ -70,6 +73,7 @@ func (db *DB) GetComments(postId int, pageNumber int, pageSize int, sortBy strin
 			&com.CommentText,
 			&com.Score,
 			&com.CreatedAt,
+			&com.UserScore,
 		)
 		if err != nil {
 			return nil, 0, realtimeforum.ErrInternal
