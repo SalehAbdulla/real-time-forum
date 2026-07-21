@@ -55,7 +55,29 @@ export async function renderPost(app, params) {
                 </div>
                 
                 <div class="comments-section">
-                    <h3 class="comments-heading">Comments</h3>
+                    <div class="comments-header">
+                        <h3 class="comments-heading">Comments</h3>
+                        <div class="comments-sort">
+                            <button class="sort-btn" data-sort="createdAt" data-order="desc">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 5v14M8 9l4-4 4 4M16 15l-4 4-4-4"/>
+                                </svg>
+                                Newest
+                            </button>
+                            <button class="sort-btn" data-sort="createdAt" data-order="asc">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 5v14M8 9l4-4 4 4M16 15l-4 4-4-4"/>
+                                </svg>
+                                Oldest
+                            </button>
+                            <button class="sort-btn" data-sort="score" data-order="desc">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M6 9l6 6 6-6"/>
+                                </svg>
+                                Top
+                            </button>
+                        </div>
+                    </div>
                     <div class="comment-form">
                         <textarea class="comment-input" id="comment-input" placeholder="Write a comment..." rows="3"></textarea>
                         <button class="comment-submit-btn" id="comment-submit-btn">Post Comment</button>
@@ -63,6 +85,7 @@ export async function renderPost(app, params) {
                     <div class="comments-list" id="comments-list">
                         <div class="loading-spinner">Loading comments...</div>
                     </div>
+                    <div class="comments-pagination" id="comments-pagination"></div>
                 </div>
             </div>
         `;
@@ -74,7 +97,6 @@ export async function renderPost(app, params) {
         
         // Like button - use userScore from API for initial state, then toggle
         const likeBtn = document.getElementById('detail-like-btn');
-        // Set initial state from server data
         if (post.userScore === 1) {
             likeBtn.classList.add('liked');
         }
@@ -108,8 +130,8 @@ export async function renderPost(app, params) {
             try {
                 await api.createComment(post.postId, content);
                 commentInput.value = '';
-                // Reload comments
-                loadComments(post.postId);
+                // Reload comments with current sort
+                loadComments(post.postId, currentPage, currentSortBy, currentSortOrder);
             } catch (err) {
                 console.error('Failed to create comment:', err);
             } finally {
@@ -118,28 +140,51 @@ export async function renderPost(app, params) {
             }
         });
         
+        // Sort buttons
+        let currentPage = 1;
+        let currentSortBy = 'createdAt';
+        let currentSortOrder = 'desc';
+        
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentSortBy = btn.dataset.sort;
+                currentSortOrder = btn.dataset.order;
+                currentPage = 1;
+                loadComments(post.postId, currentPage, currentSortBy, currentSortOrder);
+            });
+        });
+        
+        // Set default active sort
+        document.querySelector('.sort-btn').classList.add('active');
+        
         // Load comments
-        loadComments(post.postId);
+        loadComments(post.postId, currentPage, currentSortBy, currentSortOrder);
         
     } catch (err) {
         app.innerHTML = `<div class="error-state">${escapeHtml(err.message || 'Failed to load post')}</div>`;
     }
 }
 
-async function loadComments(postId) {
+async function loadComments(postId, page = 1, sortBy = 'createdAt', sortOrder = 'desc') {
     const commentsList = document.getElementById('comments-list');
+    const paginationEl = document.getElementById('comments-pagination');
     if (!commentsList) return;
     
     try {
-        const res = await api.getComments(postId);
-        const comments = res.data?.comments || [];
+        const res = await api.getComments(postId, page, 10, sortBy, sortOrder);
+        const data = res.data;
+        const comments = data?.comments || [];
         
-        if (comments.length === 0) {
+        if (comments.length === 0 && page === 1) {
             commentsList.innerHTML = '<div class="empty-state">No comments yet. Be the first to comment!</div>';
+            paginationEl.innerHTML = '';
             return;
         }
         
         commentsList.innerHTML = comments.map(comment => {
+            const isLiked = comment.userScore === 1;
             return `
             <div class="comment-card">
                 <div class="comment-header">
@@ -151,7 +196,7 @@ async function loadComments(postId) {
                 </div>
                 <p class="comment-body">${escapeHtml(comment.commentText || '')}</p>
                 <div class="comment-actions">
-                    <button class="action-btn like-btn comment-like-btn" data-comment-id="${comment.commentId}">
+                    <button class="action-btn like-btn comment-like-btn ${isLiked ? 'liked' : ''}" data-comment-id="${comment.commentId}">
                         <svg width="16" height="14" viewBox="0 0 20 18" fill="none">
                             <path d="M10 17C10 17 2 11.5 2 6C2 3.5 4 2 6 2C8 2 10 4 10 4C10 4 12 2 14 2C16 2 18 3.5 18 6C18 11.5 10 17 10 17Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
@@ -161,7 +206,7 @@ async function loadComments(postId) {
             </div>
         `}).join('');
         
-        // Add like handlers for comments - derive state from score change
+        // Add like handlers for comments - use userScore from server for accurate state
         document.querySelectorAll('.comment-like-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
@@ -185,12 +230,81 @@ async function loadComments(postId) {
         // Update comment count in the header
         const commentCountSpan = document.querySelector('#detail-comment-btn span');
         if (commentCountSpan) {
-            commentCountSpan.textContent = comments.length;
+            commentCountSpan.textContent = data.totalElements || comments.length;
         }
+        
+        // Render pagination
+        renderPagination(paginationEl, data, postId, sortBy, sortOrder);
         
     } catch (err) {
         commentsList.innerHTML = '<div class="empty-state">Failed to load comments.</div>';
+        paginationEl.innerHTML = '';
     }
+}
+
+function renderPagination(paginationEl, data, postId, sortBy, sortOrder) {
+    if (!data || data.totalPages <= 1) {
+        paginationEl.innerHTML = '';
+        return;
+    }
+    
+    const currentPage = data.pageNumber;
+    const totalPages = data.totalPages;
+    
+    let html = '<div class="pagination-controls">';
+    
+    // Previous button
+    html += `<button class="pagination-btn" data-page="${currentPage - 1}" ${currentPage <= 1 ? 'disabled' : ''}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Previous
+    </button>`;
+    
+    // Page numbers
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+    
+    if (startPage > 1) {
+        html += `<button class="pagination-btn" data-page="1">1</button>`;
+        if (startPage > 2) {
+            html += `<span class="pagination-ellipsis">...</span>`;
+        }
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+    }
+    
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            html += `<span class="pagination-ellipsis">...</span>`;
+        }
+        html += `<button class="pagination-btn" data-page="${totalPages}">${totalPages}</button>`;
+    }
+    
+    // Next button
+    html += `<button class="pagination-btn" data-page="${currentPage + 1}" ${currentPage >= totalPages ? 'disabled' : ''}>
+        Next
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+    </button>`;
+    
+    html += '</div>';
+    
+    paginationEl.innerHTML = html;
+    
+    // Add click handlers
+    paginationEl.querySelectorAll('.pagination-btn').forEach(btn => {
+        if (btn.disabled) return;
+        btn.addEventListener('click', () => {
+            const page = parseInt(btn.dataset.page);
+            if (!isNaN(page)) {
+                loadComments(postId, page, sortBy, sortOrder);
+            }
+        });
+    });
 }
 
 function getInitials(name) {
