@@ -7,7 +7,7 @@ import (
 )
 
 type CommentService interface {
-	GetComments(postId int, pageNumber int, pageSize int, sortBy string, sortOrder string) (comment.CommentResponse, error)
+	GetComments(postId int, pageNumber int, pageSize int, sortBy string, sortOrder string, userID string) (comment.CommentResponse, error)
 	CreateComment(userID string, postId int, content string) (comment.CommentDTO, error)
 }
 
@@ -21,8 +21,8 @@ func NewCommentService(database db.CommentRepository) CommentService {
 	}
 }
 
-func (c CommentServiceImpl) GetComments(postId int, pageNumber int, pageSize int, sortBy string, sortOrder string) (comment.CommentResponse, error) {
-	comments, totalElements, err := c.db.GetComments(postId, pageNumber, pageSize, sortBy, sortOrder)
+func (c CommentServiceImpl) GetComments(postId int, pageNumber int, pageSize int, sortBy string, sortOrder string, userID string) (comment.CommentResponse, error) {
+	comments, totalElements, err := c.db.GetComments(postId, pageNumber, pageSize, sortBy, sortOrder, userID)
 	if err != nil {
 		return comment.CommentResponse{}, err
 	}
@@ -36,6 +36,7 @@ func (c CommentServiceImpl) GetComments(postId int, pageNumber int, pageSize int
 			Nickname:    com.Nickname,
 			CommentText: com.CommentText,
 			Score:       com.Score,
+			UserScore:   com.UserScore,
 			CreatedAt:   com.CreatedAt,
 		}
 	}
