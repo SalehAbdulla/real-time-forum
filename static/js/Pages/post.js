@@ -128,10 +128,10 @@ export async function renderPost(app, params) {
             commentSubmitBtn.textContent = 'Posting...';
             
             try {
-                await api.createComment(post.postId, content);
+                await api.createComment(post.postId + '', content);
                 commentInput.value = '';
                 // Reload comments with current sort
-                loadComments(post.postId, currentPage, currentSortBy, currentSortOrder);
+                loadComments(post.postId, 1, currentSortBy, currentSortOrder);
             } catch (err) {
                 console.error('Failed to create comment:', err);
             } finally {

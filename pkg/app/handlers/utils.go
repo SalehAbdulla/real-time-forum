@@ -4,12 +4,20 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"strings"
 	realtimeforum "real-time-forum"
 	"real-time-forum/pkg/payload"
 )
 
 func (re *HandlerContext) parseForm(w http.ResponseWriter, r *http.Request) bool {
-	if err := r.ParseForm(); err != nil {
+	// Parse multipart form data (FormData from JS) or URL-encoded form data
+	contentType := r.Header.Get("Content-Type")
+	if strings.HasPrefix(contentType, "multipart/form-data") {
+		if err := r.ParseMultipartForm(32 << 20); err != nil { // 32 MB max
+			re.HandleError(w, r, realtimeforum.ErrBadRequest)
+			return false
+		}
+	} else if err := r.ParseForm(); err != nil {
 		re.HandleError(w, r, realtimeforum.ErrBadRequest)
 		return false
 	}
