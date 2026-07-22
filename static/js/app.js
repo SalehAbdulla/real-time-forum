@@ -5,6 +5,7 @@ import { renderFeed } from './pages/feed.js';
 import { renderPost } from './pages/post.js';
 import { renderCreatePost } from './pages/createPost.js';
 import { renderProfile } from './pages/profile.js';
+import { renderChat } from './pages/chat.js';
 import { createParticles } from './utils.js';
 
 function authGuard() {
@@ -51,12 +52,12 @@ async function init() {
         renderCreatePost(app);
     }, authGuard);
 
-    router.addRoute('chat', (app) => {
-        app.innerHTML = '<div class="empty-state" style="margin-top:40vh;"><h1 style="font-size:20px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">Chat</h1><p style="color:var(--text-muted);">Coming soon</p></div>';
+    router.addRoute('chat', (app, params, queryString) => {
+        renderChat(app, params, queryString);
     }, authGuard);
 
-    router.addRoute('chat/:userId', (app, params) => {
-        app.innerHTML = `<div class="empty-state" style="margin-top:40vh;"><h1 style="font-size:20px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">Chat</h1><p style="color:var(--text-muted);">Coming soon</p></div>`;
+    router.addRoute('chat/:userId', (app, params, queryString) => {
+        renderChat(app, params, queryString);
     }, authGuard);
 
     router.addRoute('notifications', (app) => {

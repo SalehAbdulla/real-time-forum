@@ -20,7 +20,11 @@ class Router {
 
     resolve() {
         const hash = window.location.hash.slice(1) || '/login';
-        const [path, ...rest] = hash.split('?');
+        let [path, ...rest] = hash.split('?');
+        // Normalize: strip leading slash so path matches registered patterns (e.g. 'login' not '/login')
+        if (path.startsWith('/')) {
+            path = path.slice(1);
+        }
         const queryString = rest.join('?');
         const params = {};
 
