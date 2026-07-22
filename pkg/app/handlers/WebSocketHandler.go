@@ -20,14 +20,22 @@ var upgrader = websocket.Upgrader{
 }
 
 func (re *HandlerContext) ServeWs(w http.ResponseWriter, r *http.Request) {
+	// Try cookie first, then fall back to query param (for browser cookie restrictions)
+	var sessionToken string
 
-	token, err := r.Cookie("session_token")
-	if err != nil || token.Value == "" {
+	cookie, err := r.Cookie("session_token")
+	if err == nil && cookie.Value != "" {
+		sessionToken = cookie.Value
+	} else {
+		sessionToken = r.URL.Query().Get("token")
+	}
+
+	if sessionToken == "" {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	userID, ok := service.DefaultSessionManager.GetUserIdByToken(token.Value)
+	userID, ok := service.DefaultSessionManager.GetUserIdByToken(sessionToken)
 	if !ok {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
