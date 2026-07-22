@@ -301,6 +301,341 @@ func TestWebSocketPrivateMessage(t *testing.T) {
 	t.Log("message visible from both user perspectives: PASS")
 }
 
+// TestChatSimulationDryRun simulates a full real-time chat conversation between two users.
+// It verifies:
+//   - Both users can connect to WebSocket
+//   - Real-time message delivery over WebSocket (not just REST persistence)
+//   - Full back-and-forth conversation (multiple messages, replies)
+//   - Messages are persisted and retrievable via REST API from both sides
+//   - Unauthenticated WebSocket connections are rejected
+func TestChatSimulationDryRun(t *testing.T) {
+	// ---------- Setup ----------
+	origDir, _ := os.Getwd()
+	os.Chdir("..")
+	defer os.Chdir(origDir)
+
+	app = config.AppConfig{}
+	app.InProduction = false
+	app.UseCache = false
+
+	logger.InitLogger(&app)
+
+	templateCache, err := render.CreateTemplateCache()
+	if err != nil {
+		t.Fatalf("failed to create template cache: %v", err)
+	}
+	app.TemplateCache = templateCache
+	render.NewTemplates(&app)
+
+	database, err := sql.Open("sqlite3", ":memory:")
+	if err != nil {
+		t.Fatalf("failed to open in-memory database: %v", err)
+	}
+	defer database.Close()
+
+	_, err = database.Exec(testSchema)
+	if err != nil {
+		t.Fatalf("failed to execute schema: %v", err)
+	}
+
+	dbConn := &repositories.DB{Conn: database}
+	authService := service.NewAuthService(dbConn)
+	messageService := service.NewMessageService(dbConn, dbConn)
+	notificationService := service.NewNotificationService(dbConn)
+
+	hc := handlers.NewHandlerContext(&app, authService, nil, nil, nil, nil, messageService, notificationService)
+	handlers.SetHandlerContext(hc)
+
+	wsHub := pkgwebsocket.NewHub()
+	hc.SetHub(wsHub)
+	go wsHub.Run()
+
+	wsHandler := pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.ServeWs))
+	messagesHandler := pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.GetChatMessages))
+	mainMux := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/v1/auth/register":
+			handlers.HandlerCtx.Register(w, r)
+		case "/api/v1/auth/login":
+			handlers.HandlerCtx.Login(w, r)
+		case "/api/v1/messages":
+			messagesHandler.ServeHTTP(w, r)
+		case "/ws":
+			wsHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
+
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("failed to listen: %v", err)
+	}
+	server := &http.Server{Handler: mainMux}
+	go server.Serve(listener)
+	defer server.Close()
+	defer listener.Close()
+
+	baseURL := "http://" + listener.Addr().String()
+	wsURL := "ws://" + listener.Addr().String() + "/ws"
+
+	// ---------- Phase 1: Unauthenticated WS connection MUST be rejected ----------
+	t.Run("Phase1_UnauthenticatedRejected", func(t *testing.T) {
+		_, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
+		if err == nil {
+			t.Fatal("expected unauthenticated WS dial to fail, but it succeeded")
+		}
+		t.Logf("unauthenticated WS correctly rejected: %v", err)
+	})
+
+	// ---------- Phase 2: Register users ----------
+	user1ID, token1 := registerTestUser(t, baseURL, "alice", "alice@chat.com", "AlicePass123!@#")
+	user2ID, token2 := registerTestUser(t, baseURL, "bob", "bob@chat.com", "BobPass456!@#")
+
+	t.Logf("alice: id=%s, token=%s", user1ID, token1)
+	t.Logf("bob:   id=%s, token=%s", user2ID, token2)
+
+	// ---------- Phase 3: Connect both users ----------
+	wsAlice := dialWebSocket(t, wsURL, token1)
+	defer wsAlice.Close()
+
+	wsBob := dialWebSocket(t, wsURL, token2)
+	defer wsBob.Close()
+
+	time.Sleep(200 * time.Millisecond)
+
+	// ---------- Phase 4: Alice sends "hello Bob" → Bob receives real-time ----------
+	// Note: the server echoes the incoming_msg back to the sender too,
+	// so we must drain the sender's echo to keep the read channels clean.
+	t.Run("Phase4_AliceSendsFirstMessage", func(t *testing.T) {
+		sendPrivateMsg(t, wsAlice, user2ID, "Hey Bob, how are you?")
+		time.Sleep(200 * time.Millisecond)
+
+		// Alice gets an echo of her own message — drain it
+		echo := readWSMessage(t, wsAlice, 2*time.Second)
+		verifyIncomingMsg(t, echo, user1ID, "Hey Bob, how are you?")
+		t.Log("  [drained sender echo on alice]")
+
+		// Bob receives the incoming message
+		msg := readWSMessage(t, wsBob, 2*time.Second)
+		verifyIncomingMsg(t, msg, user1ID, "Hey Bob, how are you?")
+
+		// Verify persisted via REST
+		assertConversationLength(t, baseURL, token1, user2ID, 1)
+		assertConversationLength(t, baseURL, token2, user1ID, 1)
+
+		t.Log("alice → bob: 'Hey Bob, how are you?' DELIVERED (real-time + persisted)")
+	})
+
+	// ---------- Phase 5: Bob replies → Alice receives real-time ----------
+	t.Run("Phase5_BobReplies", func(t *testing.T) {
+		sendPrivateMsg(t, wsBob, user1ID, "I'm good Alice! What's up?")
+		time.Sleep(200 * time.Millisecond)
+
+		// Bob gets an echo of his own reply — drain it
+		echo := readWSMessage(t, wsBob, 2*time.Second)
+		verifyIncomingMsg(t, echo, user2ID, "I'm good Alice! What's up?")
+		t.Log("  [drained sender echo on bob]")
+
+		// Alice receives Bob's reply
+		msg := readWSMessage(t, wsAlice, 2*time.Second)
+		verifyIncomingMsg(t, msg, user2ID, "I'm good Alice! What's up?")
+
+		assertConversationLength(t, baseURL, token1, user2ID, 2)
+		assertConversationLength(t, baseURL, token2, user1ID, 2)
+
+		t.Log("bob → alice: 'I'm good Alice! What's up?' DELIVERED (real-time + persisted)")
+	})
+
+	// ---------- Phase 6: Rapid back-and-forth multiple messages ----------
+	t.Run("Phase6_MultiMessageExchange", func(t *testing.T) {
+		conversation := []struct {
+			sender    *websocket.Conn
+			recipient *websocket.Conn
+			recipID   string
+			senderID  string
+			text      string
+		}{
+			{wsAlice, wsBob, user2ID, user1ID, "Just working on that forum project"},
+			{wsBob, wsAlice, user1ID, user2ID, "Oh nice, the real-time chat feature?"},
+			{wsAlice, wsBob, user2ID, user1ID, "Yeah exactly! Testing the WebSocket now"},
+			{wsBob, wsAlice, user1ID, user2ID, "Seems to be working great so far"},
+			{wsAlice, wsBob, user2ID, user1ID, "Agreed! The real-time delivery is solid"},
+			{wsBob, wsAlice, user1ID, user2ID, "Let me know if you need any help with it"},
+			{wsAlice, wsBob, user2ID, user1ID, "Will do, thanks Bob!"},
+		}
+
+		expectedTotal := 2 + len(conversation) // previous 2 + new 7 = 9
+
+		for i, turn := range conversation {
+			sendPrivateMsg(t, turn.sender, turn.recipID, turn.text)
+			time.Sleep(150 * time.Millisecond)
+
+			// Drain sender echo
+			echo := readWSMessage(t, turn.sender, 2*time.Second)
+			verifyIncomingMsg(t, echo, turn.senderID, turn.text)
+
+			// Recipient receives the real-time message
+			msg := readWSMessage(t, turn.recipient, 2*time.Second)
+			verifyIncomingMsg(t, msg, "", turn.text)
+			t.Logf("  [%d] DELIVERED: %q", i+3, turn.text)
+		}
+
+		assertConversationLength(t, baseURL, token1, user2ID, expectedTotal)
+		assertConversationLength(t, baseURL, token2, user1ID, expectedTotal)
+
+		t.Logf("multi-message exchange complete: %d total messages", expectedTotal)
+	})
+
+	// ---------- Phase 7: Verify complete conversation from both sides ----------
+	t.Run("Phase7_ConversationIntegrity", func(t *testing.T) {
+		expectedTexts := []string{
+			"Hey Bob, how are you?",
+			"I'm good Alice! What's up?",
+			"Just working on that forum project",
+			"Oh nice, the real-time chat feature?",
+			"Yeah exactly! Testing the WebSocket now",
+			"Seems to be working great so far",
+			"Agreed! The real-time delivery is solid",
+			"Let me know if you need any help with it",
+			"Will do, thanks Bob!",
+		}
+
+		// Helper: verify all expected texts exist in the message list
+		assertContainsAll := func(msgs []messageDTO) {
+			seen := make(map[string]bool)
+			for _, m := range msgs {
+				seen[m.TextMessage] = true
+				// Also verify every message has valid sender/recipient
+				if m.SenderId != user1ID && m.SenderId != user2ID {
+					t.Fatalf("unexpected senderId: %s", m.SenderId)
+				}
+				if m.RecipientId != user1ID && m.RecipientId != user2ID {
+					t.Fatalf("unexpected recipientId: %s", m.RecipientId)
+				}
+				if m.SenderId == m.RecipientId {
+					t.Fatalf("sender cannot be recipient: %s", m.SenderId)
+				}
+			}
+			for _, expected := range expectedTexts {
+				if !seen[expected] {
+					t.Fatalf("missing message: %q", expected)
+				}
+			}
+		}
+
+		// Check from Alice's perspective
+		aliceMsgs := getMessages(t, baseURL, token1, user2ID, 0, 50)
+		if len(aliceMsgs.Data.Messages) != len(expectedTexts) {
+			t.Fatalf("alice sees %d messages, expected %d", len(aliceMsgs.Data.Messages), len(expectedTexts))
+		}
+		assertContainsAll(aliceMsgs.Data.Messages)
+
+		// Check from Bob's perspective
+		bobMsgs := getMessages(t, baseURL, token2, user1ID, 0, 50)
+		if len(bobMsgs.Data.Messages) != len(expectedTexts) {
+			t.Fatalf("bob sees %d messages, expected %d", len(bobMsgs.Data.Messages), len(expectedTexts))
+		}
+		assertContainsAll(bobMsgs.Data.Messages)
+
+		// Verify sender/recipient correctness
+		aliceSentCount := 0
+		bobSentCount := 0
+		for _, m := range aliceMsgs.Data.Messages {
+			if m.SenderId == user1ID && m.RecipientId == user2ID {
+				aliceSentCount++
+			} else if m.SenderId == user2ID && m.RecipientId == user1ID {
+				bobSentCount++
+			}
+		}
+		if aliceSentCount != 5 {
+			t.Fatalf("alice sent 5 messages, counted %d", aliceSentCount)
+		}
+		if bobSentCount != 4 {
+			t.Fatalf("bob sent 4 messages, counted %d", bobSentCount)
+		}
+
+		t.Logf("conversation integrity verified: 9 messages (%d alice, %d bob), all present in both perspectives", aliceSentCount, bobSentCount)
+	})
+
+	t.Log("=== Chat Simulation Dry Run: ALL PHASES PASSED ===")
+}
+
+// sendPrivateMsg sends a private_msg over a WebSocket connection.
+func sendPrivateMsg(t *testing.T, conn *websocket.Conn, recipientID, text string) {
+	t.Helper()
+	msg := map[string]interface{}{
+		"type": "private_msg",
+		"payload": map[string]string{
+			"recipientId": recipientID,
+			"text":        text,
+		},
+	}
+	data, _ := json.Marshal(msg)
+	if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
+		t.Fatalf("write error: %v", err)
+	}
+}
+
+// rawWSMessage is a generic container for any WebSocket message type.
+type rawWSMessage struct {
+	Type    string          `json:"type"`
+	Payload json.RawMessage `json:"payload"`
+}
+
+// readWSMessage reads the next incoming_msg from a WebSocket connection,
+// skipping and discarding non-chat messages (user_status, notification, etc.).
+func readWSMessage(t *testing.T, conn *websocket.Conn, timeout time.Duration) rawWSMessage {
+	t.Helper()
+
+	deadline := time.Now().Add(timeout)
+	conn.SetReadDeadline(deadline)
+
+	for time.Now().Before(deadline) {
+		var msg rawWSMessage
+		err := conn.ReadJSON(&msg)
+		if err != nil {
+			t.Fatalf("read error: %v", err)
+		}
+
+		if msg.Type == pkgwebsocket.MsgTypeIncomingMsg {
+			return msg
+		}
+
+		// Drain non-chat messages: user_status, notification, etc.
+		t.Logf("  [drained %s]", msg.Type)
+	}
+
+	t.Fatalf("timed out waiting for incoming_msg")
+	return rawWSMessage{}
+}
+
+// verifyIncomingMsg checks that an incoming_msg has the expected sender and text.
+func verifyIncomingMsg(t *testing.T, msg rawWSMessage, expectedSenderID, expectedText string) {
+	t.Helper()
+
+	var payload pkgwebsocket.IncomingMsgPayload
+	if err := json.Unmarshal(msg.Payload, &payload); err != nil {
+		t.Fatalf("failed to unmarshal incoming_msg payload: %v", err)
+	}
+
+	if expectedSenderID != "" && payload.SenderId != expectedSenderID {
+		t.Fatalf("expected senderId=%s, got %s", expectedSenderID, payload.SenderId)
+	}
+	if payload.Text != expectedText {
+		t.Fatalf("expected text=%q, got %q", expectedText, payload.Text)
+	}
+}
+
+// assertConversationLength verifies the conversation has exactly `expected` messages.
+func assertConversationLength(t *testing.T, baseURL, token, partnerID string, expected int) {
+	t.Helper()
+	resp := getMessages(t, baseURL, token, partnerID, 0, 50)
+	if len(resp.Data.Messages) != expected {
+		t.Fatalf("expected %d messages in conversation, got %d", expected, len(resp.Data.Messages))
+	}
+}
+
 // messagesResponse mirrors the API response structure for messages.
 type messagesResponse struct {
 	Data struct {

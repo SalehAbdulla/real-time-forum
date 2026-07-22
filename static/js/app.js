@@ -6,6 +6,7 @@ import { renderPost } from './pages/post.js';
 import { renderCreatePost } from './pages/createPost.js';
 import { renderProfile } from './pages/profile.js';
 import { renderChat } from './pages/chat.js';
+import { ws } from './websocket.js';
 import { createParticles } from './utils.js';
 
 function authGuard() {
@@ -28,6 +29,9 @@ async function init() {
         const res = await api.me();
         window.__user = res.data;
         window.__isAuthenticated = true;
+        // Connect WebSocket — the session cookie from the response is HttpOnly,
+        // so the browser will automatically send it on the WS upgrade request.
+        ws.connect();
     } catch {
         window.__isAuthenticated = false;
     }

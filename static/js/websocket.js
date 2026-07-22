@@ -15,10 +15,15 @@ class WSConnection {
             return;
         }
 
+        // Don't attempt connection if not authenticated — the server will reject it
+        if (window.__isAuthenticated !== true) {
+            return;
+        }
+
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        // Pass session token as query param for browser cookie compatibility
-        const token = document.cookie.replace(/(?:(?:^|.*;\s*)session_token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-        const wsUrl = `${protocol}//${window.location.host}/ws${token ? `?token=${encodeURIComponent(token)}` : ''}`;
+        // The session_token cookie is HttpOnly, so it's sent automatically by the browser
+        // on the WebSocket upgrade request. No need to extract it from document.cookie.
+        const wsUrl = `${protocol}//${window.location.host}/ws`;
 
         try {
             this.ws = new WebSocket(wsUrl);

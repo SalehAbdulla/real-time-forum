@@ -1,5 +1,6 @@
 import { api } from './api.js';
 import { router } from './router.js';
+import { ws } from './websocket.js';
 
 let currentTab = 'login';
 
@@ -122,6 +123,8 @@ async function handleLogin() {
         const me = await api.me();
         window.__user = me.data;
     } catch {}
+    // Connect WebSocket now that we're authenticated
+    ws.connect();
     router.navigate('feed');
 }
 
@@ -145,5 +148,7 @@ async function handleRegister() {
         const me = await api.me();
         window.__user = me.data;
     } catch {}
+    // Connect WebSocket now that we're authenticated
+    ws.connect();
     router.navigate('feed');
 }
