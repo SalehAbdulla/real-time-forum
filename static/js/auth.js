@@ -72,10 +72,10 @@ export function renderLoginPage(app) {
 function getLoginFields() {
     return `
         <div class="form-group">
-            <input type="text" name="identifier" class="form-input" placeholder="Email / Username" required>
+            <input type="text" name="identifier" class="form-input" placeholder="Email / Username" autocomplete="username" required>
         </div>
         <div class="form-group">
-            <input type="password" name="password" class="form-input" placeholder="Password" required>
+            <input type="password" name="password" class="form-input" placeholder="Password" autocomplete="current-password" required>
         </div>
     `;
 }
