@@ -2561,7 +2561,6 @@ body {
     font-weight: 400;
     line-height: 1.5;
     word-wrap: break-word;
-    white-space: pre-wrap;
     position: relative;
 }
 
@@ -2665,6 +2664,22 @@ body {
     font-size: 12px;
     font-family: Inter, sans-serif;
     font-weight: 400;
+}
+
+/* Error banner for offline / failed send */
+.chat-error-banner {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: 10px;
+    color: #fca5a5;
+    font-size: 13px;
+    font-family: Inter, sans-serif;
+    font-weight: 500;
+    padding: 10px 14px;
+    margin: 0 12px 8px;
+    text-align: center;
+    opacity: 1;
+    transition: opacity 0.3s ease;
 }
 
 /* Typing indicator */
