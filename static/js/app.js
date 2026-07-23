@@ -6,6 +6,7 @@ import { renderPost } from './pages/post.js';
 import { renderCreatePost } from './pages/createPost.js';
 import { renderProfile } from './pages/profile.js';
 import { renderChat } from './pages/chat.js';
+import { renderNotifications } from './pages/notifications.js';
 import { ws } from './websocket.js';
 import { createParticles } from './utils.js';
 
@@ -65,7 +66,7 @@ async function init() {
     }, authGuard);
 
     router.addRoute('notifications', (app) => {
-        app.innerHTML = '<div class="empty-state" style="margin-top:40vh;"><h1 style="font-size:20px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">Notifications</h1><p style="color:var(--text-muted);">Coming soon</p></div>';
+        renderNotifications(app);
     }, authGuard);
 
     router.addRoute('profile', (app) => {
@@ -73,6 +74,57 @@ async function init() {
     }, authGuard);
 
     router.start();
+
+    // Global: fetch unread notification count and listen for real-time notifications
+    if (window.__isAuthenticated) {
+        initNotificationBadge();
+    }
+}
+
+/**
+ * Fetches the initial unread notification count and sets up the WebSocket listener
+ * to update the sidebar badge across all pages in real time.
+ */
+async function initNotificationBadge() {
+    try {
+        const res = await api.getUnreadCount();
+        const count = res.data?.count || 0;
+        updateGlobalBadge(count);
+    } catch (err) {
+        console.error('Failed to load unread count:', err);
+    }
+
+    // Listen for real-time notification events via WebSocket
+    if (!window._globalNotifCleanup) {
+        window._globalNotifCleanup = ws.on('notification', (payload) => {
+            if (!payload) return;
+            // Increment the global unread count
+            window.__unreadNotifCount = (window.__unreadNotifCount || 0) + 1;
+            updateGlobalBadge(window.__unreadNotifCount);
+        });
+    }
+}
+
+/**
+ * Updates the sidebar notification badge element.
+ */
+function updateGlobalBadge(count) {
+    window.__unreadNotifCount = count;
+    const notifNavItem = document.querySelector('.sidebar-nav-item[data-route="notifications"]');
+    if (!notifNavItem) return;
+
+    let badgeEl = notifNavItem.querySelector('.nav-badge');
+    if (count > 0) {
+        if (!badgeEl) {
+            badgeEl = document.createElement('span');
+            badgeEl.className = 'nav-badge';
+            notifNavItem.appendChild(badgeEl);
+        }
+        badgeEl.textContent = count > 99 ? '99+' : count;
+        badgeEl.style.display = '';
+    } else if (badgeEl) {
+        badgeEl.style.display = 'none';
+    }
 }
 
 if (document.readyState === 'loading') {
