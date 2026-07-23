@@ -92,6 +92,23 @@ func (re *HandlerContext) handlePrivateMessage(sender *pkgwebsocket.Client, msg 
 		return
 	}
 
+	if !re.Hub.IsUserOnline(payload.RecipientId) {
+		errPayload := pkgwebsocket.SendErrorPayload{
+			RecipientId: payload.RecipientId,
+			Message:     "User is offline. Messages can only be sent to online users.",
+		}
+		errData, err := json.Marshal(map[string]interface{}{
+			"type":    pkgwebsocket.MsgTypeSendError,
+			"payload": errPayload,
+		})
+		if err != nil {
+			log.Printf("failed to marshal send_error: %v", err)
+			return
+		}
+		re.Hub.SendToUser(sender.UserID, errData)
+		return
+	}
+
 	savedMsg, err := re.MessageService.SendMessage(sender.UserID, payload.RecipientId, payload.Text)
 	if err != nil {
 		log.Printf("failed to save message: %v", err)

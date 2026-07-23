@@ -173,6 +173,11 @@ function setupWSListeners() {
         console.log('[Chat] WS connected');
     });
     window._wsCleanups.push(cleanup3);
+
+    const cleanup4 = ws.on('send_error', (payload) => {
+        handleSendError(payload);
+    });
+    window._wsCleanups.push(cleanup4);
 }
 
 async function loadChatUsers() {
@@ -283,6 +288,9 @@ async function openConversation(userId) {
 
     // Scroll to bottom
     scrollToBottom(true);
+
+    // Enable/disable input based on online status
+    updateInputForOnlineStatus(isOnline);
 
     // Focus input
     setTimeout(() => document.getElementById('chat-input')?.focus(), 100);
@@ -454,6 +462,9 @@ function handleUserStatus(payload) {
     if (user) {
         user.isOnline = isOnline ? 1 : 0;
     }
+    if (currentChatUser && currentChatUser.userId === userId) {
+        currentChatUser.isOnline = isOnline ? 1 : 0;
+    }
 
     // Update conversation list
     const convItem = document.querySelector(`.chat-conv-item[data-user-id="${userId}"]`);
@@ -476,6 +487,8 @@ function handleUserStatus(payload) {
             statusEl.textContent = isOnline ? 'Online' : 'Offline';
             statusEl.className = 'chat-partner-status ' + (isOnline ? 'online' : 'offline');
         }
+        // Enable/disable input based on online status
+        updateInputForOnlineStatus(isOnline);
     }
 }
 
@@ -485,6 +498,13 @@ function sendMessage() {
 
     const text = input.value.trim();
     if (!text || !currentChatUserId) return;
+
+    // Check if recipient is offline (client-side check as well)
+    const offline = currentChatUser && currentChatUser.isOnline === 0;
+    if (offline) {
+        showChatError('User is offline. Messages can only be sent to online users.');
+        return;
+    }
 
     // Send via WebSocket
     const sent = ws.send('private_msg', {
@@ -516,6 +536,7 @@ function sendMessage() {
     } else {
         // WS not connected - try to reconnect and show a visual hint
         console.warn('[Chat] Message not sent (WS not connected). Reconnecting...');
+        showChatError('Not connected. Reconnecting...');
         ws.connect();
     }
 }
@@ -588,4 +609,48 @@ function formatTime(dateStr) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+}
+
+function handleSendError(payload) {
+    if (!payload) return;
+    showChatError(payload.message || 'Message could not be sent. The user is offline.');
+}
+
+function showChatError(message) {
+    const container = document.getElementById('chat-messages');
+    if (!container) return;
+
+    // Remove existing error banner if any
+    const existing = container.querySelector('.chat-error-banner');
+    if (existing) existing.remove();
+
+    const banner = document.createElement('div');
+    banner.className = 'chat-error-banner';
+    banner.textContent = message;
+    container.insertBefore(banner, container.firstChild);
+
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+        banner.style.opacity = '0';
+        banner.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => banner.remove(), 300);
+    }, 4000);
+}
+
+function updateInputForOnlineStatus(isOnline) {
+    const input = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('chat-send-btn');
+    if (!input) return;
+
+    if (!isOnline) {
+        input.disabled = true;
+        input.placeholder = 'User is offline — messaging unavailable';
+        input.style.opacity = '0.5';
+        if (sendBtn) sendBtn.disabled = true;
+    } else {
+        input.disabled = false;
+        input.placeholder = 'Type a message...';
+        input.style.opacity = '1';
+        if (sendBtn) updateSendButton();
+    }
 }

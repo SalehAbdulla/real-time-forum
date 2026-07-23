@@ -8,6 +8,7 @@ const (
 	MsgTypeIncomingMsg  = "incoming_msg"
 	MsgTypeUserStatus   = "user_status"
 	MsgTypeNotification = "notification"
+	MsgTypeSendError    = "send_error"
 )
 
 type WSMessage struct {
@@ -45,4 +46,9 @@ type NotificationPayload struct {
 	EntityType      string `json:"entityType"` // "comment" or "message"
 	EntityId        int    `json:"entityId"`
 	CreatedAt       string `json:"createdAt"`
+}
+
+type SendErrorPayload struct {
+	RecipientId string `json:"recipientId"`
+	Message     string `json:"message"`
 }
