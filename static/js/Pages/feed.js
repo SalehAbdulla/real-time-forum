@@ -152,6 +152,14 @@ async function loadPosts(reset = false) {
 
         currentPage++;
         hasMore = !data.lastPage;
+
+        // Show "end of feed" message when there are no more posts
+        if (!hasMore && data.posts.length > 0) {
+            const endMsg = document.createElement('div');
+            endMsg.className = 'feed-end-message';
+            endMsg.textContent = 'You\'ve reached the end of the feed';
+            postsFeed.appendChild(endMsg);
+        }
     } catch (err) {
         if (reset) {
             postsFeed.innerHTML = '<div class="empty-state">Failed to load posts. Try again later.</div>';
@@ -170,7 +178,6 @@ const categoryNames = {
 
 function createPostElement(post) {
     const catName = categoryNames[post.categoryId] || 'General';
-    const title = post.title || post.content.substring(0, 80) + (post.content.length > 80 ? '...' : '');
     
     const div = document.createElement('div');
     div.className = 'post-card';
@@ -188,7 +195,6 @@ function createPostElement(post) {
             </div>
             <button class="post-menu">...</button>
         </div>
-        <div class="post-title">${escapeHtml(title)}</div>
         <div class="post-content">${escapeHtml(post.content)}</div>
         <div class="post-actions">
             <button class="action-btn like-btn" data-post-id="${post.postId}" data-score="1">
