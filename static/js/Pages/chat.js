@@ -68,6 +68,14 @@ export async function renderChat(app, params, queryString) {
                     </div>
 
                     <div class="chat-messages" id="chat-messages">
+                        <div class="chat-load-older" id="chat-load-older" style="display:none;">
+                            <button class="chat-load-older-btn" id="chat-load-older-btn">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="23 18 13.5 8.5 4 18"/>
+                                </svg>
+                                Load older messages
+                            </button>
+                        </div>
                         <div class="chat-messages-loader" id="chat-messages-loader" style="display:none;">
                             <div class="loading-spinner">Loading older messages...</div>
                         </div>
@@ -134,22 +142,43 @@ export async function renderChat(app, params, queryString) {
         currentChatUserId = params.userId;
     }
 
-    // Attach scroll listener for loading older messages
-    const messagesEl = document.getElementById('chat-messages');
-    if (messagesEl && !messagesEl._scrollAttached) {
-        messagesEl._scrollAttached = true;
-        messagesEl.addEventListener('scroll', async function onChatScroll() {
-            if (this.scrollTop < 100 && hasMore && !isLoading && !isLoadingOlder) {
-                isLoadingOlder = true;
-                const prevHeight = this.scrollHeight;
-                await loadMessages(true);
-                requestAnimationFrame(() => {
-                    this.scrollTop = this.scrollHeight - prevHeight;
-                });
-                isLoadingOlder = false;
-            }
-        });
-    }
+    // Attach click handler to persistent "Load older messages" button
+    document.getElementById('chat-load-older-btn')?.addEventListener('click', async () => {
+        if (isLoading || isLoadingOlder) return;
+
+        const btn = document.getElementById('chat-load-older-btn');
+        const messagesEl = document.getElementById('chat-messages');
+        if (!messagesEl) return;
+
+        isLoadingOlder = true;
+
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Loading...';
+        }
+
+        // Capture exact scroll dimensions before DOM update
+        const previousScrollHeight = messagesEl.scrollHeight;
+        const previousScrollTop = messagesEl.scrollTop;
+
+        await loadMessages(true);
+
+        // Adjust scroll synchronously right after DOM injection (prevents repaint whiplash)
+        const newScrollHeight = messagesEl.scrollHeight;
+        messagesEl.scrollTop = previousScrollTop + (newScrollHeight - previousScrollHeight);
+
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 18 13.5 8.5 4 18"/>
+                </svg>
+                Load older messages
+            `;
+        }
+
+        isLoadingOlder = false;
+    });
 }
 
 function setupWSListeners() {
@@ -225,8 +254,6 @@ function renderConversations(users) {
         `;
     };
 
-    // Backend returns users sorted by lastMessageTime DESC, then nickname ASC for users without messages.
-    // We preserve that sort within each group.
     const onlineUsers = users.filter(u => u.isOnline === 1);
     const offlineUsers = users.filter(u => u.isOnline === 0 || u.isOnline === undefined || u.isOnline === null);
 
@@ -281,11 +308,9 @@ async function openConversation(userId) {
     const conversationEl = document.getElementById('chat-conversation');
     conversationEl.style.display = 'flex';
 
-    // Find user info
     const user = chatUsers.find(u => u.userId === userId);
     currentChatUser = user;
 
-    // Update header
     const isOnline = user?.isOnline === 1;
     const initials = user?.nickname ? user.nickname.substring(0, 2).toUpperCase() : '?';
     document.getElementById('chat-partner-avatar').textContent = initials;
@@ -295,21 +320,14 @@ async function openConversation(userId) {
     statusEl.textContent = isOnline ? 'Online' : 'Offline';
     statusEl.className = 'chat-partner-status ' + (isOnline ? 'online' : 'offline');
 
-    // Show on mobile: hide sidebar
     if (window.innerWidth <= 768) {
         document.getElementById('chat-sidebar').classList.add('hidden');
     }
 
-    // Load messages (first page)
     await loadMessages(false);
-
-    // Scroll to bottom — force after DOM layout
     jumpToBottom();
-
-    // Enable/disable input based on online status
     updateInputForOnlineStatus(isOnline);
 
-    // Focus input
     const input = document.getElementById('chat-input');
     if (input) input.focus();
 }
@@ -339,24 +357,26 @@ async function loadMessages(isOlder = false) {
         const data = res.data || {};
         const newMessages = data.messages || [];
 
-        if (newMessages.length < LIMIT) {
+        const totalElements = data.totalElements || 0;
+        const loadedSoFar = offset + newMessages.length;
+        if (loadedSoFar >= totalElements) {
             hasMore = false;
         }
 
-        // Filter out duplicates
         const uniqueMessages = newMessages.filter(msg => !messageIds.has(msg.messageId));
         uniqueMessages.forEach(msg => messageIds.add(msg.messageId));
 
-        if (uniqueMessages.length === 0) return;
+        if (uniqueMessages.length === 0) {
+            isLoading = false;
+            loader.style.display = 'none';
+            return;
+        }
 
-        // API returns newest-first; reverse to chronological order
         const ordered = [...uniqueMessages].reverse();
 
         if (isOlder) {
-            // Prepend older messages at the top
             messages = [...ordered, ...messages];
         } else {
-            // Initial load — replace messages
             messages = ordered;
         }
 
@@ -372,7 +392,12 @@ async function loadMessages(isOlder = false) {
 
 function renderMessages() {
     const container = document.getElementById('chat-messages-inner');
+    const loadOlderEl = document.getElementById('chat-load-older');
     if (!container) return;
+
+    if (loadOlderEl) {
+        loadOlderEl.style.display = (messages.length > 0 && hasMore) ? 'flex' : 'none';
+    }
 
     if (messages.length === 0) {
         container.innerHTML = `
@@ -393,14 +418,12 @@ function renderMessages() {
     let lastDate = null;
     let lastSenderId = null;
 
-    messages.forEach((msg, index) => {
+    messages.forEach((msg) => {
         const msgDate = formatDate(msg.timeStamp || msg.createdAt);
-        const isFirstMessage = index === 0;
         const isNewDay = msgDate !== lastDate;
         const isSameSender = msg.senderId === lastSenderId;
         const isMine = msg.senderId === activeUserId;
 
-        // Date separator
         if (isNewDay) {
             html += `<div class="chat-date-separator"><span>${msgDate}</span></div>`;
         }
@@ -426,8 +449,6 @@ function renderMessages() {
     });
 
     container.innerHTML = html;
-
-    // Update conversation previews
     updateConversationPreviews();
 }
 
@@ -444,9 +465,7 @@ function handleIncomingMessage(payload) {
         senderNickname: payload.senderNickname,
     };
 
-    // If we're in the conversation with this sender, add the message
     if (currentChatUserId === payload.senderId) {
-        // Avoid duplicate
         if (messageIds.has(msg.messageId)) return;
         messageIds.add(msg.messageId);
 
@@ -454,15 +473,12 @@ function handleIncomingMessage(payload) {
         renderMessages();
         jumpToBottom();
 
-        // Clear unread count
         delete unreadCounts[payload.senderId];
     } else {
-        // Increment unread count
         unreadCounts[payload.senderId] = (unreadCounts[payload.senderId] || 0) + 1;
         updateConversationPreviews();
     }
 
-    // If the sender is not in our chat users list, refresh
     if (!chatUsers.find(u => u.userId === payload.senderId)) {
         loadChatUsers();
     }
@@ -474,7 +490,6 @@ function handleUserStatus(payload) {
     const userId = payload.userId;
     const isOnline = payload.isOnline === 1;
 
-    // Update chat users list
     const user = chatUsers.find(u => u.userId === userId);
     if (user) {
         user.isOnline = isOnline ? 1 : 0;
@@ -483,7 +498,6 @@ function handleUserStatus(payload) {
         currentChatUser.isOnline = isOnline ? 1 : 0;
     }
 
-    // Update conversation list
     const convItem = document.querySelector(`.chat-conv-item[data-user-id="${userId}"]`);
     if (convItem) {
         convItem.dataset.online = isOnline;
@@ -497,14 +511,12 @@ function handleUserStatus(payload) {
         }
     }
 
-    // Update current conversation header
     if (currentChatUserId === userId) {
         const statusEl = document.getElementById('chat-partner-status');
         if (statusEl) {
             statusEl.textContent = isOnline ? 'Online' : 'Offline';
             statusEl.className = 'chat-partner-status ' + (isOnline ? 'online' : 'offline');
         }
-        // Enable/disable input based on online status
         updateInputForOnlineStatus(isOnline);
     }
 }
@@ -516,20 +528,17 @@ function sendMessage() {
     const text = input.value.trim();
     if (!text || !currentChatUserId) return;
 
-    // Check if recipient is offline (client-side check as well)
     const offline = currentChatUser && currentChatUser.isOnline === 0;
     if (offline) {
         showChatError('User is offline. Messages can only be sent to online users.');
         return;
     }
 
-    // Send via WebSocket
     const sent = ws.send('private_msg', {
         recipientId: currentChatUserId,
         text: text,
     });
 
-    // Optimistic add to UI
     if (sent) {
         const optimisticMsg = {
             messageId: Date.now(),
@@ -551,17 +560,13 @@ function sendMessage() {
         input.style.height = 'auto';
         updateSendButton();
     } else {
-        // WS not connected - try to reconnect and show a visual hint
         console.warn('[Chat] Message not sent (WS not connected). Reconnecting...');
         showChatError('Not connected. Reconnecting...');
         ws.connect();
     }
 }
 
-function emitTyping() {
-    // Simple typing indicator - could extend with WS 'typing' event
-    // For now, just visual
-}
+function emitTyping() {}
 
 function updateSendButton() {
     const input = document.getElementById('chat-input');
@@ -574,7 +579,6 @@ function jumpToBottom() {
     const container = document.getElementById('chat-messages');
     if (!container) return;
 
-    // Force layout flush, then scroll to the very bottom
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
             container.scrollTop = container.scrollHeight;
@@ -646,7 +650,6 @@ function showChatError(message) {
     const container = document.getElementById('chat-messages');
     if (!container) return;
 
-    // Remove existing error banner if any
     const existing = container.querySelector('.chat-error-banner');
     if (existing) existing.remove();
 
@@ -655,7 +658,6 @@ function showChatError(message) {
     banner.textContent = message;
     container.insertBefore(banner, container.firstChild);
 
-    // Auto-remove after 4 seconds
     setTimeout(() => {
         banner.style.opacity = '0';
         banner.style.transition = 'opacity 0.3s ease';

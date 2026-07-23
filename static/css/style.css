@@ -2555,7 +2555,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0;
-    scroll-behavior: smooth;
+    overflow-anchor: none;
+    scroll-behavior: auto !important;
 }
 
 .chat-messages-inner {
@@ -2569,6 +2570,41 @@ body {
 .chat-messages-loader {
     text-align: center;
     padding: 8px 0;
+}
+
+/* "Load older messages" button */
+.chat-load-older {
+    display: flex;
+    justify-content: center;
+    padding: 4px 0 12px;
+}
+
+.chat-load-older-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.04);
+    border: var(--border-faint);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: Inter, sans-serif;
+    font-weight: 470;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: -0.01em;
+}
+
+.chat-load-older-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--accent-light);
+    border-color: rgba(32, 178, 166, 0.18);
+}
+
+.chat-load-older-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* Date separator */
