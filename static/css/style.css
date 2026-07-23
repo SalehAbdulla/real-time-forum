@@ -88,8 +88,8 @@
     --space-12: 48px;
 
     /* ---- Layout (Desktop Card) ---- */
-    --card-width:       1400px;
-    --card-height:      900px;
+    --card-width:       100%;
+    --card-height:      100%;
     --card-radius:      20px;
     --card-padding:     0;
     --sidebar-width:    240px;
@@ -114,9 +114,6 @@
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     background: #08080c;
     position: relative;
     overflow-x: hidden;
@@ -401,17 +398,14 @@ body {
    APP CARD — The main desktop rectangle
    ============================================================ */
 
-/* Full-page wrapper that centers the card */
+/* Full-page wrapper — spans entire viewport like Reddit */
 .app-frame {
     width: 100%;
-    min-height: 100vh;
+    height: 100vh;
     display: flex;
-    justify-content: center;
-    align-items: center;
     position: relative;
     z-index: 1;
     animation: appFadeIn var(--duration-xl) var(--ease-out-expo) both;
-    padding: 24px;
 }
 
 @keyframes appFadeIn {
@@ -419,45 +413,14 @@ body {
     to   { opacity: 1; }
 }
 
-/* The single rounded-corner card container — full glass effect */
+/* Flat full-height container — no card styling */
 .app-inner {
-    width: var(--card-width);
-    height: var(--card-height);
-    background: rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(var(--blur-xl));
-    -webkit-backdrop-filter: blur(var(--blur-xl));
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: var(--card-radius);
-    box-shadow: 
-        0 32px 80px rgba(0, 0, 0, 0.5),
-        0 0 0 1px rgba(255, 255, 255, 0.04),
-        inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    position: relative;
-    overflow: hidden;
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: row;
-}
-
-/* Inner glow */
-.app-inner::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: radial-gradient(ellipse at 50% 0%, rgba(32, 178, 166, 0.04) 0%, transparent 60%);
-    pointer-events: none;
-    border-radius: inherit;
-    z-index: 0;
-}
-
-/* Top shine line */
-.app-inner::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 5%; right: 5%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
-    pointer-events: none;
-    z-index: 0;
+    position: relative;
+    background: rgba(255, 255, 255, 0.015);
 }
 
 /* ============================================================
@@ -978,7 +941,8 @@ body {
     background: transparent;
     position: relative;
     flex: 1;
-    overflow: visible;
+    min-height: 0;
+    overflow: hidden;
     margin: 0 auto;
     padding: 0;
 }
@@ -1353,7 +1317,9 @@ body {
     transition: all var(--duration-normal) var(--ease-out-quart);
     animation: postSlideIn var(--duration-slow) var(--ease-out-expo) both;
     position: relative;
-    overflow: hidden;
+    /* overflow: hidden; */
+    display: flex;
+    flex-direction: column;
 }
 
 .post-card::before {
@@ -1385,11 +1351,6 @@ body {
     font-weight: 560;
     line-height: 1.4;
     margin-bottom: var(--space-2);
-    letter-spacing: -0.02em;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
 }
 
 
@@ -1487,11 +1448,7 @@ body {
     font-family: Inter, sans-serif;
     font-weight: 400;
     line-height: 1.65;
-    margin-bottom: var(--space-4);
     word-wrap: break-word;
-    max-height: 80px;
-    overflow: hidden;
-    letter-spacing: -0.01em;
 }
 
 .post-actions {
@@ -1952,6 +1909,18 @@ body {
     font-size: 14px;
     font-family: Inter, sans-serif;
     font-weight: 400;
+}
+
+.feed-end-message {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 40px var(--space-5);
+    font-size: 13px;
+    font-family: Inter, sans-serif;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    border-top: var(--border-faint);
+    margin-top: var(--space-2);
 }
 
 /* ============================================================
@@ -3035,21 +3004,6 @@ body {
 /* Tablet and below — full-screen mobile layout */
 @media (max-width: 900px) {
     .app-frame { padding: 0; }
-
-    .app-inner {
-        width: 100%;
-        height: 100vh;
-        border-radius: 0;
-        border: none;
-        box-shadow: none;
-        background: transparent;
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
-        max-width: 100%;
-    }
-
-    .app-inner::before,
-    .app-inner::after { display: none; }
 
     /* Hide sidebars on mobile, show feed header + users scroll */
     .app-sidebar { display: none; }
