@@ -146,6 +146,8 @@ async function loadPosts(reset = false) {
             return;
         }
 
+        console.log(data)
+
         data.posts.forEach(post => {
             postsFeed.appendChild(createPostElement(post));
         });

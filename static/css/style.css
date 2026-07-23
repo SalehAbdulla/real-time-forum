@@ -2264,6 +2264,17 @@ body {
     letter-spacing: -0.01em;
 }
 
+/* Section headers: Online / Offline */
+.chat-conv-section-header {
+    padding: var(--space-2) var(--space-3) var(--space-1);
+    font-size: 11px;
+    font-family: Inter, sans-serif;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
 .chat-conv-badge {
     flex-shrink: 0;
     min-width: 20px;

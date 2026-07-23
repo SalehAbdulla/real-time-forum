@@ -202,7 +202,7 @@ function renderConversations(users) {
         return;
     }
 
-    container.innerHTML = users.map(user => {
+    const renderItem = (user) => {
         const isOnline = user.isOnline === 1;
         const initials = user.nickname ? user.nickname.substring(0, 2).toUpperCase() : '?';
         const unread = unreadCounts[user.userId] || 0;
@@ -223,7 +223,24 @@ function renderConversations(users) {
                 </div>
             </div>
         `;
-    }).join('');
+    };
+
+    // Backend returns users sorted by lastMessageTime DESC, then nickname ASC for users without messages.
+    // We preserve that sort within each group.
+    const onlineUsers = users.filter(u => u.isOnline === 1);
+    const offlineUsers = users.filter(u => u.isOnline === 0 || u.isOnline === undefined || u.isOnline === null);
+
+    let html = '';
+    if (onlineUsers.length > 0) {
+        html += `<div class="chat-conv-section-header">Online — ${onlineUsers.length}</div>`;
+        html += onlineUsers.map(renderItem).join('');
+    }
+    if (offlineUsers.length > 0) {
+        html += `<div class="chat-conv-section-header">Offline — ${offlineUsers.length}</div>`;
+        html += offlineUsers.map(renderItem).join('');
+    }
+
+    container.innerHTML = html;
 
     container.querySelectorAll('.chat-conv-item').forEach(el => {
         el.addEventListener('click', () => {
@@ -286,14 +303,15 @@ async function openConversation(userId) {
     // Load messages (first page)
     await loadMessages(false);
 
-    // Scroll to bottom
-    scrollToBottom(true);
+    // Scroll to bottom — force after DOM layout
+    jumpToBottom();
 
     // Enable/disable input based on online status
     updateInputForOnlineStatus(isOnline);
 
     // Focus input
-    setTimeout(() => document.getElementById('chat-input')?.focus(), 100);
+    const input = document.getElementById('chat-input');
+    if (input) input.focus();
 }
 
 function closeConversation() {
@@ -329,21 +347,21 @@ async function loadMessages(isOlder = false) {
         const uniqueMessages = newMessages.filter(msg => !messageIds.has(msg.messageId));
         uniqueMessages.forEach(msg => messageIds.add(msg.messageId));
 
-        if (isOlder && offset > 0) {
-            // Loading older messages — prepend to the top
-            messages = [...uniqueMessages.reverse(), ...messages];
-            offset += LIMIT;
-            renderMessages();
-        } else if (!isOlder) {
-            // First load — set messages directly (they come newest-first from API)
-            messages = [...uniqueMessages.reverse()];
-            offset += LIMIT;
-            renderMessages();
+        if (uniqueMessages.length === 0) return;
+
+        // API returns newest-first; reverse to chronological order
+        const ordered = [...uniqueMessages].reverse();
+
+        if (isOlder) {
+            // Prepend older messages at the top
+            messages = [...ordered, ...messages];
         } else {
-            messages = [...uniqueMessages.reverse()];
-            offset += LIMIT;
-            renderMessages();
+            // Initial load — replace messages
+            messages = ordered;
         }
+
+        offset += uniqueMessages.length;
+        renderMessages();
     } catch (err) {
         console.error('Failed to load messages:', err);
     } finally {
@@ -408,7 +426,6 @@ function renderMessages() {
     });
 
     container.innerHTML = html;
-    scrollToBottom(false);
 
     // Update conversation previews
     updateConversationPreviews();
@@ -435,7 +452,7 @@ function handleIncomingMessage(payload) {
 
         messages.push(msg);
         renderMessages();
-        scrollToBottom(true);
+        jumpToBottom();
 
         // Clear unread count
         delete unreadCounts[payload.senderId];
@@ -553,17 +570,26 @@ function updateSendButton() {
     btn.disabled = !input.value.trim();
 }
 
-function scrollToBottom(immediate) {
+function jumpToBottom() {
     const container = document.getElementById('chat-messages');
     if (!container) return;
 
-    if (immediate) {
-        container.scrollTop = container.scrollHeight;
-    } else {
+    // Force layout flush, then scroll to the very bottom
+    requestAnimationFrame(() => {
         requestAnimationFrame(() => {
             container.scrollTop = container.scrollHeight;
         });
-    }
+    });
+}
+
+function scrollToBottom(animate) {
+    const container = document.getElementById('chat-messages');
+    if (!container) return;
+
+    container.scrollTo({
+        top: container.scrollHeight,
+        behavior: animate ? 'smooth' : 'instant',
+    });
 }
 
 function updateConversationPreviews() {
