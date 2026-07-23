@@ -11,11 +11,26 @@ export function createPostCard(post) {
     card.className = 'post-card';
     
     const avatar = createAvatar(post.nickname, 'sm');
+
+    const isOwner = window.__user && window.__user.userId === post.userId;
     
     card.innerHTML = `
         <div class="post-header">
             <div class="post-user"></div>
-            <button class="post-menu">...</button>
+            ${isOwner ? `
+            <div class="post-menu-wrapper">
+                <button class="post-menu">...</button>
+                <div class="post-menu-dropdown">
+                    <button class="post-menu-item post-menu-delete" data-post-id="${post.postId}">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        Delete Post
+                    </button>
+                </div>
+            </div>
+            ` : ''}
         </div>
         <div class="post-content">${escapeHtml(post.content)}</div>
         <div class="post-actions">
@@ -83,6 +98,43 @@ export function createPostCard(post) {
         e.stopPropagation();
         router.navigate(`post/${post.postId}`);
     });
+
+    // Post menu toggle (only for owners)
+    if (isOwner) {
+        const menuBtn = card.querySelector('.post-menu');
+        const dropdown = card.querySelector('.post-menu-dropdown');
+
+        menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('open');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!card.contains(e.target)) {
+                dropdown.classList.remove('open');
+            }
+        }, { once: false });
+
+        // Delete post handler
+        const deleteBtn = card.querySelector('.post-menu-delete');
+        deleteBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            dropdown.classList.remove('open');
+            if (confirm('Are you sure you want to delete this post?')) {
+                try {
+                    await api.deletePost(post.postId);
+                    card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.95)';
+                    setTimeout(() => card.remove(), 300);
+                } catch (err) {
+                    console.error('Failed to delete post:', err);
+                    alert(err.message || 'Failed to delete post');
+                }
+            }
+        });
+    }
     
     return card;
 }

@@ -81,6 +81,9 @@ export const api = {
     getMessages: (partnerId, offset = 0) =>
         apiRequest('GET', `/api/v1/messages?partnerId=${partnerId}&offset=${offset}`),
 
+    deletePost: (postId) =>
+        apiRequest('DELETE', `/api/v1/posts?id=${postId}`),
+
     // Notifications
     getNotifications: (offset = 0, limit = 10, unread = false) =>
         apiRequest('GET', `/api/v1/notifications?offset=${offset}&limit=${limit}${unread ? '&unread=true' : ''}`),
