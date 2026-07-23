@@ -95,7 +95,7 @@
     --sidebar-width:    240px;
 
     /* ---- Feed Container ---- */
-    --feed-max-width:   780px;
+    --feed-max-width:   100%;
     --feed-pad-x:       32px;
 
     /* ---- Transitions ---- */
@@ -1306,6 +1306,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
+    align-items: center;
 }
 
 .post-card {
@@ -1320,6 +1321,7 @@ body {
     /* overflow: hidden; */
     display: flex;
     flex-direction: column;
+    width: 60%;
 }
 
 .post-card::before {
