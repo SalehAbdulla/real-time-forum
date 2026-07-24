@@ -142,7 +142,16 @@ func (db *DB) CreateComment(userId string, postId int, content string) (models.C
 }
 
 func (db *DB) DeleteComment(commentId int, userId string) error {
-	
+	// Get the postId before deleting so we can update the counter
+	var postId int
+	err := db.Conn.QueryRow(
+		`SELECT postId FROM comment WHERE commentId = ? AND userId = ?`,
+		commentId, userId,
+	).Scan(&postId)
+	if err != nil {
+		return realtimeforum.ErrForbidden
+	}
+
 	result, err := db.Conn.Exec(
 		`DELETE FROM comment WHERE commentId = ? AND userId = ?`,
 		commentId, userId,
@@ -158,6 +167,15 @@ func (db *DB) DeleteComment(commentId int, userId string) error {
 
 	if rowsAffected == 0 {
 		return realtimeforum.ErrForbidden
+	}
+
+	// Decrement the comments counter on the post
+	_, err = db.Conn.Exec(
+		`UPDATE post SET commentsCounter = MAX(commentsCounter - 1, 0) WHERE postId = ?`,
+		postId,
+	)
+	if err != nil {
+		return realtimeforum.ErrInternal
 	}
 
 	return nil
