@@ -131,15 +131,3 @@ CREATE INDEX idx_comment_userId ON comment (userId);
 
 CREATE INDEX idx_notifications_user 
 ON notification (userId, isRead, createdAt DESC);
-
-insert into post values(
-    1, 
-    "47809b05-e7c7-4772-8141-06ace85e2c88", 
-    "Test", 
-    "Hello World!", 
-    1,
-    0,
-    0,
-    "13-7-2026",
-    "13-7-2026"
-)

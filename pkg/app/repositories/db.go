@@ -8,6 +8,9 @@ import (
 //go:embed schema.sql
 var schemaSQL string
 
+//go:embed seed.sql
+var seedSQL string
+
 type DB struct {
 	Conn *sql.DB
 }
@@ -24,5 +27,10 @@ func RunMigrations(conn *sql.DB) error {
 	}
 
 	_, err = conn.Exec(schemaSQL)
+	if err != nil {
+		return err
+	}
+
+	_, err = conn.Exec(seedSQL)
 	return err
 }
