@@ -9,6 +9,7 @@ import (
 type CommentService interface {
 	GetComments(postId int, pageNumber int, pageSize int, sortBy string, sortOrder string, userID string) (comment.CommentResponse, error)
 	CreateComment(userID string, postId int, content string) (comment.CommentDTO, error)
+	DeleteComment(commentId int, userId string) error
 }
 
 type CommentServiceImpl struct {
@@ -67,4 +68,8 @@ func (c CommentServiceImpl) CreateComment(userId string, postId int, content str
 		CommentText: createdComment.CommentText,
 		CreatedAt:   createdComment.CreatedAt,
 	}, nil
+}
+
+func (c CommentServiceImpl) DeleteComment(commentId int, userId string) error {
+	return c.db.DeleteComment(commentId, userId)
 }
