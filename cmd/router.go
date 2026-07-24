@@ -9,12 +9,8 @@ import (
 func routes() http.Handler {
 	mux := http.NewServeMux()
 
-	
 	mux.HandleFunc("POST /api/v1/auth/register", handlers.HandlerCtx.Register)
 	mux.HandleFunc("POST /api/v1/auth/login", handlers.HandlerCtx.Login)
-	mux.HandleFunc("GET /", handlers.HandlerCtx.Home)
-
-	
 
 	mux.Handle("POST /api/v1/auth/logout", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.Logout)))
 	mux.Handle("GET /api/v1/auth/me", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.Me)))
@@ -31,14 +27,18 @@ func routes() http.Handler {
 	mux.Handle("GET /api/v1/messages", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.GetChatMessages)))
 	mux.HandleFunc("GET /ws", handlers.HandlerCtx.ServeWs)
 
-	
 	mux.Handle("GET /api/v1/notifications", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.GetNotifications)))
 	mux.Handle("GET /api/v1/notifications/unread-count", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.GetUnreadCount)))
 	mux.Handle("PATCH /api/v1/notifications/{notificationId}/read", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.MarkAsRead)))
 	mux.Handle("PATCH /api/v1/notifications/read-all", pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.MarkAllAsRead)))
 
-	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	fileServer := http.StripPrefix("/static/", http.FileServer(http.Dir("static")))
+	mux.Handle("GET /static/", pkgmiddleware.NoDirListing(fileServer))
 
-	
+	// SPA catch-all for GET requests (matches /, /feed, /post/42, etc.)
+	mux.HandleFunc("GET /{path...}", handlers.HandlerCtx.Home)
+	// Catch-all for non-GET methods on unknown paths
+	mux.HandleFunc("/{path...}", handlers.HandlerCtx.NotFound)
+
 	return RequestLogger(mux)
 }

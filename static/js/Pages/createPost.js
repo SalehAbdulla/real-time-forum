@@ -154,7 +154,7 @@ export async function renderCreatePost(app) {
         const title = titleInput.value.trim();
         const content = contentTextarea.value.trim();
 
-        
+        // Client-side validation for instant feedback (server validates too as fallback)
         if (title.length < 3 || title.length > 30) {
             showError('Title must be between 3 and 30 characters');
             return;
@@ -177,7 +177,7 @@ export async function renderCreatePost(app) {
             if (res.success && res.data) {
                 router.navigate(`post/${res.data.postId}`);
             } else {
-                showError('Failed to create post. Please try again.');
+                showError(res.message || 'Failed to create post. Please try again.');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = `
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -187,7 +187,7 @@ export async function renderCreatePost(app) {
                 `;
             }
         } catch (err) {
-            const msg = err.message || 'Failed to create post. Please try again.';
+            const msg = err.error || err.message || 'Failed to create post. Please try again.';
             showError(msg);
             submitBtn.disabled = false;
             submitBtn.innerHTML = `

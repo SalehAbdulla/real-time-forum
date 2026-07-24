@@ -1,5 +1,6 @@
 import { api } from '../api.js';
 import { escapeHtml, timeAgo, safeUpperCase, showInputError, validateLength } from '../utils.js';
+import { router } from '../router.js';
 
 export async function renderPost(app, params) {
     app.innerHTML = '<div class="loading-spinner">Loading post...</div>';
@@ -152,7 +153,7 @@ export async function renderPost(app, params) {
         commentSubmitBtn.addEventListener('click', async () => {
             const content = commentInput.value.trim();
             
-            
+            // Client-side validation for instant feedback (server validates too as fallback)
             const commentErr = validateLength(content, 3, 300, 'Comment');
             if (commentErr) {
                 showInputError(commentInput.closest('.comment-form'), commentErr);
@@ -426,7 +427,7 @@ async function loadPostUsers() {
         `).join('');
         container.querySelectorAll('.user-card').forEach(el => {
             el.addEventListener('click', () => {
-                window.location.hash = `chat/${el.dataset.userId}`;
+                router.navigate(`chat/${el.dataset.userId}`);
             });
         });
     } catch (err) {
