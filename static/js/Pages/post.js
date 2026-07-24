@@ -225,6 +225,7 @@ async function loadComments(postId, page = 1, sortBy = 'createdAt', sortOrder = 
         
         commentsList.innerHTML = comments.map(comment => {
             const isLiked = comment.userScore === 1;
+            const isCommentOwner = window.__user && window.__user.userId === comment.userId;
             return `
             <div class="comment-card">
                 <div class="comment-header">
@@ -233,6 +234,20 @@ async function loadComments(postId, page = 1, sortBy = 'createdAt', sortOrder = 
                         <span class="comment-username">${escapeHtml(safeUpperCase(comment.nickname))}</span>
                         <span class="comment-time">${timeAgo(comment.createdAt)}</span>
                     </div>
+                    ${isCommentOwner ? `
+                    <div class="comment-menu-wrapper">
+                        <button class="comment-menu">...</button>
+                        <div class="comment-menu-dropdown">
+                            <button class="comment-menu-item comment-menu-delete" data-comment-id="${comment.commentId}">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                                Delete Comment
+                            </button>
+                        </div>
+                    </div>
+                    ` : ''}
                 </div>
                 <p class="comment-body">${escapeHtml(comment.commentText || '')}</p>
                 <div class="comment-actions">
@@ -265,6 +280,48 @@ async function loadComments(postId, page = 1, sortBy = 'createdAt', sortOrder = 
                     console.error('Failed to react on comment:', err);
                 }
             });
+        });
+
+        // Comment menu toggle and delete handlers
+        document.querySelectorAll('.comment-menu').forEach(menuBtn => {
+            const card = menuBtn.closest('.comment-card');
+            const dropdown = menuBtn.nextElementSibling;
+
+            menuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Close any other open menus first
+                document.querySelectorAll('.comment-menu-dropdown.open').forEach(d => {
+                    if (d !== dropdown) d.classList.remove('open');
+                });
+                dropdown.classList.toggle('open');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!card.contains(e.target)) {
+                    dropdown.classList.remove('open');
+                }
+            }, { once: false });
+
+            // Delete comment handler
+            const deleteBtn = dropdown.querySelector('.comment-menu-delete');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    dropdown.classList.remove('open');
+                    if (confirm('Are you sure you want to delete this comment?')) {
+                        try {
+                            const commentId = parseInt(deleteBtn.dataset.commentId);
+                            await api.deleteComment(commentId);
+                            // Reload current page of comments
+                            loadComments(postId, page, sortBy, sortOrder);
+                        } catch (err) {
+                            console.error('Failed to delete comment:', err);
+                            alert(err.message || 'Failed to delete comment');
+                        }
+                    }
+                });
+            }
         });
         
         // Update comment count in the header
