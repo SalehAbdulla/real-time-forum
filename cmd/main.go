@@ -45,6 +45,11 @@ func main() {
 
 	dbConn := &db.DB{Conn: database}
 
+	if err := db.RunMigrations(database); err != nil {
+		app.Logger.Error("failed to run database migrations", "error", err)
+		os.Exit(1)
+	}
+
 	
 	authService := service.NewAuthService(dbConn)
 	categoryService := service.NewCategoryService(dbConn)
