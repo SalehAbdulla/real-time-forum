@@ -428,7 +428,8 @@ body {
     box-shadow: 0 0 10px rgba(32, 178, 166, 0.5);
     vertical-align: middle;
     position: relative;
-    top: -1px;
+    /* top: -1px; */
+    margin-top: 10px;
 }
 
 .sidebar-nav {
