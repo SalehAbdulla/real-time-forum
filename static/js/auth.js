@@ -106,7 +106,11 @@ function getRegisterFields() {
             <input type="text" name="age" class="form-input" placeholder="Age" required>
         </div>
         <div class="form-group">
-            <input type="text" name="gender" class="form-input" placeholder="Gender" required>
+            <select name="gender" class="form-input" required>
+                <option value="" disabled selected>Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select>
         </div>
     `;
 }
