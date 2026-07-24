@@ -158,3 +158,35 @@ func (re *HandlerContext) CreateComments(w http.ResponseWriter, r *http.Request)
 		Message: "Comment created successfully",
 	})
 }
+
+func (re *HandlerContext) DeleteComment(w http.ResponseWriter, r *http.Request) {
+	userID, ok := middleware.UserIDFromContext(r.Context())
+	if !ok || userID == "" {
+		re.HandleError(w, r, realtimeforum.ErrUnauthorized)
+		return
+	}
+
+	commentIdStr := strings.TrimSpace(r.URL.Query().Get("id"))
+	if commentIdStr == "" {
+		re.HandleError(w, r, realtimeforum.ErrBadRequest)
+		return
+	}
+
+	commentId, err := strconv.Atoi(commentIdStr)
+	if err != nil {
+		re.HandleError(w, r, realtimeforum.ErrBadRequest)
+		return
+	}
+
+	if err := re.CommentService.DeleteComment(commentId, userID); err != nil {
+		re.HandleError(w, r, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(payload.SuccessResponse[any]{
+		Success: true,
+		Data:    nil,
+		Message: "Comment deleted successfully",
+	})
+}
