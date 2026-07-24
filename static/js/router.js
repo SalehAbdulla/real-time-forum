@@ -19,7 +19,7 @@ class Router {
     }
 
     async resolve() {
-        const hash = window.location.hash.slice(1) || '/login';
+        const hash = window.location.hash.slice(1) || (window.__isAuthenticated ? 'feed' : 'login');
         let [path, ...rest] = hash.split('?');
         // Normalize: strip leading slash so path matches registered patterns (e.g. 'login' not '/login')
         if (path.startsWith('/')) {
