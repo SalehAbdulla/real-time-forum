@@ -8,6 +8,7 @@ import (
 type CommentRepository interface {
 	GetComments(postId int, pageNumber int, pageSize int, sortBy string, sortOrder string, userID string) ([]models.Comment, int, error)
 	CreateComment(userId string, postId int, content string) (models.Comment, error)
+	DeleteComment(commentId int, userId string) error
 }
 
 func (db *DB) GetComments(postId int, pageNumber int, pageSize int, sortBy string, sortOrder string, userID string) ([]models.Comment, int, error) {
@@ -138,4 +139,26 @@ func (db *DB) CreateComment(userId string, postId int, content string) (models.C
 	}
 
 	return com, nil
+}
+
+func (db *DB) DeleteComment(commentId int, userId string) error {
+	// Only allow the comment owner to delete it
+	result, err := db.Conn.Exec(
+		`DELETE FROM comment WHERE commentId = ? AND userId = ?`,
+		commentId, userId,
+	)
+	if err != nil {
+		return realtimeforum.ErrInternal
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return realtimeforum.ErrInternal
+	}
+
+	if rowsAffected == 0 {
+		return realtimeforum.ErrForbidden
+	}
+
+	return nil
 }
