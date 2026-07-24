@@ -305,6 +305,12 @@ function filterConversations(query) {
 async function openConversation(userId) {
     if (!userId) return;
 
+    
+    const prevPartner = currentChatUserId;
+    if (prevPartner) {
+        ws.send('close_chat', { partnerId: prevPartner });
+    }
+
     delete unreadCounts[userId];
 
     currentChatUserId = userId;
@@ -345,11 +351,20 @@ async function openConversation(userId) {
     jumpToBottom();
     updateInputForOnlineStatus(isOnline);
 
+    
+    
+    ws.send('open_chat', { partnerId: userId });
+
     const input = document.getElementById('chat-input');
     if (input) input.focus();
 }
 
 function closeConversation() {
+    
+    if (currentChatUserId) {
+        ws.send('close_chat', { partnerId: currentChatUserId });
+    }
+
     currentChatUserId = null;
     currentChatUser = null;
     document.getElementById('chat-welcome').style.display = 'flex';

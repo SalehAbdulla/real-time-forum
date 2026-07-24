@@ -12,6 +12,7 @@ type NotificationService interface {
 	CreateNotification(userID, actorID, entityType string, entityID int) (notification.NotificationDTO, error)
 	MarkAsRead(notificationID int, userID string) error
 	MarkAllAsRead(userID string) error
+	MarkAsReadByActor(userID, actorID, entityType string) error
 }
 
 type NotificationServiceImpl struct {
@@ -82,4 +83,8 @@ func (n NotificationServiceImpl) MarkAsRead(notificationID int, userID string) e
 
 func (n NotificationServiceImpl) MarkAllAsRead(userID string) error {
 	return n.notificationRepo.MarkAllAsRead(userID)
+}
+
+func (n NotificationServiceImpl) MarkAsReadByActor(userID, actorID, entityType string) error {
+	return n.notificationRepo.MarkAsReadByActor(userID, actorID, entityType)
 }

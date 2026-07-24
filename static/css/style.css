@@ -4231,6 +4231,22 @@ select.form-input option {
         flex-shrink: 0;
     }
 
+    .nav-item .nav-badge {
+        position: absolute;
+        top: -2px;
+        right: -4px;
+        background: var(--accent);
+        color: #08080c;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 1px 5px;
+        border-radius: var(--radius-full);
+        min-width: 16px;
+        text-align: center;
+        line-height: 1.4;
+        border: 2px solid #0a0a0f;
+    }
+
     .nav-profile-avatar {
         width: 40px;
         height: 40px;

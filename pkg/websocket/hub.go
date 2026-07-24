@@ -130,6 +130,13 @@ func (h *Hub) IsUserOnline(userID string) bool {
 	return ok
 }
 
+func (h *Hub) GetClientByUserID(userID string) *Client {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+
+	return h.clients[userID]
+}
+
 func (h *Hub) GetOnlineUsers() []string {
 	h.mu.RLock()
 	defer h.mu.RUnlock()

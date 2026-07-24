@@ -127,6 +127,7 @@ class Router {
                                         <path d="M10 2C7.79086 2 6 3.79086 6 6V9C6 9.55228 5.55228 10 5 10H4V12H16V10H15C14.4477 10 14 9.55228 14 9V6C14 3.79086 12.2091 2 10 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                         <path d="M8 14V15C8 16.1046 8.89543 17 10 17C11.1046 17 12 16.1046 12 15V14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>
+                                    <span class="nav-badge nav-badge--bottom" style="display:none;"></span>
                                 </button>
                                 <button class="nav-item" data-route="profile" aria-label="Profile">
                                     <svg width="22" height="22" viewBox="0 0 20 20" fill="none">

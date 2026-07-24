@@ -103,20 +103,39 @@ async function initNotificationBadge() {
 
 function updateGlobalBadge(count) {
     window.__unreadNotifCount = count;
-    const notifNavItem = document.querySelector('.sidebar-nav-item[data-route="notifications"]');
-    if (!notifNavItem) return;
 
-    let badgeEl = notifNavItem.querySelector('.nav-badge');
-    if (count > 0) {
-        if (!badgeEl) {
-            badgeEl = document.createElement('span');
-            badgeEl.className = 'nav-badge';
-            notifNavItem.appendChild(badgeEl);
+    
+    const sidebarNavItem = document.querySelector('.sidebar-nav-item[data-route="notifications"]');
+    if (sidebarNavItem) {
+        let badgeEl = sidebarNavItem.querySelector('.nav-badge');
+        if (count > 0) {
+            if (!badgeEl) {
+                badgeEl = document.createElement('span');
+                badgeEl.className = 'nav-badge';
+                sidebarNavItem.appendChild(badgeEl);
+            }
+            badgeEl.textContent = count > 99 ? '99+' : count;
+            badgeEl.style.display = '';
+        } else if (badgeEl) {
+            badgeEl.style.display = 'none';
         }
-        badgeEl.textContent = count > 99 ? '99+' : count;
-        badgeEl.style.display = '';
-    } else if (badgeEl) {
-        badgeEl.style.display = 'none';
+    }
+
+    
+    const bottomNavItem = document.querySelector('#bottom-nav .nav-item[data-route="notifications"]');
+    if (bottomNavItem) {
+        let bottomBadge = bottomNavItem.querySelector('.nav-badge');
+        if (count > 0) {
+            if (!bottomBadge) {
+                bottomBadge = document.createElement('span');
+                bottomBadge.className = 'nav-badge';
+                bottomNavItem.appendChild(bottomBadge);
+            }
+            bottomBadge.textContent = count > 99 ? '99+' : count;
+            bottomBadge.style.display = '';
+        } else if (bottomBadge) {
+            bottomBadge.style.display = 'none';
+        }
     }
 }
 

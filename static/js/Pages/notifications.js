@@ -97,20 +97,39 @@ function updateUnreadUI() {
 
 function syncSidebarBadge() {
     window.__unreadNotifCount = unreadCount;
-    const notifNavItem = document.querySelector('.sidebar-nav-item[data-route="notifications"]');
-    if (!notifNavItem) return;
 
-    let badgeEl = notifNavItem.querySelector('.nav-badge');
-    if (unreadCount > 0) {
-        if (!badgeEl) {
-            badgeEl = document.createElement('span');
-            badgeEl.className = 'nav-badge';
-            notifNavItem.appendChild(badgeEl);
+    
+    const sidebarNavItem = document.querySelector('.sidebar-nav-item[data-route="notifications"]');
+    if (sidebarNavItem) {
+        let badgeEl = sidebarNavItem.querySelector('.nav-badge');
+        if (unreadCount > 0) {
+            if (!badgeEl) {
+                badgeEl = document.createElement('span');
+                badgeEl.className = 'nav-badge';
+                sidebarNavItem.appendChild(badgeEl);
+            }
+            badgeEl.textContent = unreadCount > 99 ? '99+' : unreadCount;
+            badgeEl.style.display = '';
+        } else if (badgeEl) {
+            badgeEl.style.display = 'none';
         }
-        badgeEl.textContent = unreadCount > 99 ? '99+' : unreadCount;
-        badgeEl.style.display = '';
-    } else if (badgeEl) {
-        badgeEl.style.display = 'none';
+    }
+
+    
+    const bottomNavItem = document.querySelector('#bottom-nav .nav-item[data-route="notifications"]');
+    if (bottomNavItem) {
+        let bottomBadge = bottomNavItem.querySelector('.nav-badge');
+        if (unreadCount > 0) {
+            if (!bottomBadge) {
+                bottomBadge = document.createElement('span');
+                bottomBadge.className = 'nav-badge';
+                bottomNavItem.appendChild(bottomBadge);
+            }
+            bottomBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+            bottomBadge.style.display = '';
+        } else if (bottomBadge) {
+            bottomBadge.style.display = 'none';
+        }
     }
 }
 
@@ -175,7 +194,8 @@ function renderNotificationList(listEl) {
             const notifId = parseInt(card.dataset.notifId, 10);
             const entityType = card.dataset.entityType;
             const entityId = card.dataset.entityId;
-            handleNotificationClick(notifId, entityType, entityId, card);
+            const actorId = card.dataset.actorId;
+            handleNotificationClick(notifId, entityType, entityId, actorId, card);
         });
     });
 
@@ -200,7 +220,8 @@ function renderNotificationCard(notif) {
         <div class="notif-card ${isUnread ? 'notif-card--unread' : ''}" 
              data-notif-id="${notif.notificationId}" 
              data-entity-type="${notif.entityType}" 
-             data-entity-id="${notif.entityId}">
+             data-entity-id="${notif.entityId}"
+             data-actor-id="${notif.actorId}">
             <div class="notif-card-left">
                 <div class="notif-avatar">${actorInitials}</div>
                 ${isUnread ? '<div class="notif-unread-dot"></div>' : ''}
@@ -238,7 +259,7 @@ function renderEmptyState() {
     `;
 }
 
-async function handleNotificationClick(notifId, entityType, entityId, card) {
+async function handleNotificationClick(notifId, entityType, entityId, actorId, card) {
     
     markSingleAsRead(notifId, card);
 
@@ -246,7 +267,7 @@ async function handleNotificationClick(notifId, entityType, entityId, card) {
     if (entityType === 'comment') {
         router.navigate(`post/${entityId}`);
     } else if (entityType === 'message') {
-        router.navigate(`chat/${entityId}`);
+        router.navigate(`chat/${actorId}`);
     }
 }
 
@@ -351,7 +372,7 @@ function handleRealtimeNotification(payload) {
             
             newCard.addEventListener('click', (e) => {
                 if (e.target.closest('.notif-mark-read-btn')) return;
-                handleNotificationClick(newNotif.notificationId, newNotif.entityType, newNotif.entityId, newCard);
+                handleNotificationClick(newNotif.notificationId, newNotif.entityType, newNotif.entityId, newNotif.actorId, newCard);
             });
 
             const markReadBtn = newCard.querySelector('.notif-mark-read-btn');

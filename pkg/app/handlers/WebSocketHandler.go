@@ -78,6 +78,10 @@ func (re *HandlerContext) handleWebSocketMessage(client *pkgwebsocket.Client, me
 		re.handleTyping(client, msg)
 	case pkgwebsocket.MsgTypeTypingStopped:
 		re.handleTypingStopped(client, msg)
+	case pkgwebsocket.MsgTypeOpenChat:
+		re.handleOpenChat(client, msg)
+	case pkgwebsocket.MsgTypeCloseChat:
+		re.handleCloseChat(client, msg)
 	default:
 		log.Printf("unknown message type from user %s: %s", client.UserID, msg.Type)
 	}
@@ -145,31 +149,41 @@ func (re *HandlerContext) handlePrivateMessage(sender *pkgwebsocket.Client, msg 
 
 	re.Hub.SendToUser(sender.UserID, incomingData)
 
-	notif, err := re.NotificationService.CreateNotification(payload.RecipientId, sender.UserID, "message", savedMsg.MessageId)
-	if err != nil {
-		log.Printf("failed to create notification for private message: %v", err)
-		return
+	
+	isRecipientViewingSender := false
+	recipientClient := re.Hub.GetClientByUserID(payload.RecipientId)
+	if recipientClient != nil && recipientClient.CurrentChatPartner == sender.UserID {
+		isRecipientViewingSender = true
 	}
 
-	notifPayload := pkgwebsocket.NotificationPayload{
-		NotificationId: notif.NotificationId,
-		ActorId:        notif.ActorId,
-		ActorNickname:  notif.ActorNickname,
-		EntityType:     notif.EntityType,
-		EntityId:       notif.EntityId,
-		CreatedAt:      notif.CreatedAt,
-	}
+	
+	if !isRecipientViewingSender {
+		notif, err := re.NotificationService.CreateNotification(payload.RecipientId, sender.UserID, "message", savedMsg.MessageId)
+		if err != nil {
+			log.Printf("failed to create notification for private message: %v", err)
+			return
+		}
 
-	notifData, err := json.Marshal(map[string]interface{}{
-		"type":    pkgwebsocket.MsgTypeNotification,
-		"payload": notifPayload,
-	})
-	if err != nil {
-		log.Printf("failed to marshal notification: %v", err)
-		return
-	}
+		notifPayload := pkgwebsocket.NotificationPayload{
+			NotificationId: notif.NotificationId,
+			ActorId:        notif.ActorId,
+			ActorNickname:  notif.ActorNickname,
+			EntityType:     notif.EntityType,
+			EntityId:       notif.EntityId,
+			CreatedAt:      notif.CreatedAt,
+		}
 
-	re.Hub.SendToUser(payload.RecipientId, notifData)
+		notifData, err := json.Marshal(map[string]interface{}{
+			"type":    pkgwebsocket.MsgTypeNotification,
+			"payload": notifPayload,
+		})
+		if err != nil {
+			log.Printf("failed to marshal notification: %v", err)
+			return
+		}
+
+		re.Hub.SendToUser(payload.RecipientId, notifData)
+	}
 }
 
 func (re *HandlerContext) handleTyping(client *pkgwebsocket.Client, msg pkgwebsocket.WSMessage) {
@@ -199,6 +213,22 @@ func (re *HandlerContext) handleTyping(client *pkgwebsocket.Client, msg pkgwebso
 	}
 
 	re.Hub.SendToUser(payload.RecipientId, typingData)
+}
+
+func (re *HandlerContext) handleOpenChat(client *pkgwebsocket.Client, msg pkgwebsocket.WSMessage) {
+	var payload pkgwebsocket.OpenChatPayload
+	if err := json.Unmarshal(msg.Payload, &payload); err != nil {
+		return
+	}
+
+	client.CurrentChatPartner = payload.PartnerId
+
+	
+	re.NotificationService.MarkAsReadByActor(client.UserID, payload.PartnerId, "message")
+}
+
+func (re *HandlerContext) handleCloseChat(client *pkgwebsocket.Client, msg pkgwebsocket.WSMessage) {
+	client.CurrentChatPartner = ""
 }
 
 func (re *HandlerContext) handleTypingStopped(client *pkgwebsocket.Client, msg pkgwebsocket.WSMessage) {

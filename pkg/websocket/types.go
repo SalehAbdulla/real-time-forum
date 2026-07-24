@@ -5,12 +5,14 @@ import "encoding/json"
 const (
 	MsgTypePrivateMsg = "private_msg"
 
-	MsgTypeIncomingMsg  = "incoming_msg"
-	MsgTypeUserStatus   = "user_status"
-	MsgTypeNotification = "notification"
-	MsgTypeSendError    = "send_error"
-	MsgTypeTyping       = "typing"
-	MsgTypeTypingStopped = "typing_stopped"
+	MsgTypeIncomingMsg    = "incoming_msg"
+	MsgTypeUserStatus     = "user_status"
+	MsgTypeNotification   = "notification"
+	MsgTypeSendError      = "send_error"
+	MsgTypeTyping         = "typing"
+	MsgTypeTypingStopped  = "typing_stopped"
+	MsgTypeOpenChat       = "open_chat"
+	MsgTypeCloseChat      = "close_chat"
 )
 
 type WSMessage struct {
@@ -58,4 +60,8 @@ type SendErrorPayload struct {
 type TypingPayload struct {
 	SenderId   string `json:"senderId"`
 	RecipientId string `json:"recipientId"`
+}
+
+type OpenChatPayload struct {
+	PartnerId string `json:"partnerId"`
 }

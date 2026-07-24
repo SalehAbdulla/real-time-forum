@@ -11,6 +11,7 @@ type NotificationRepository interface {
 	CreateNotification(userID, actorID, entityType string, entityID int) (models.Notification, error)
 	MarkAsRead(notificationID int, userID string) error
 	MarkAllAsRead(userID string) error
+	MarkAsReadByActor(userID, actorID, entityType string) error
 }
 
 func (db *DB) GetNotifications(userID string, offset, limit int, unreadOnly bool) ([]models.Notification, int, error) {
@@ -156,5 +157,17 @@ func (db *DB) MarkAllAsRead(userID string) error {
 	}
 
 	_ = rowsAffected
+	return nil
+}
+
+func (db *DB) MarkAsReadByActor(userID, actorID, entityType string) error {
+	_, err := db.Conn.Exec(
+		"UPDATE notification SET isRead = 1 WHERE userId = ? AND actorId = ? AND entityType = ? AND isRead = 0",
+		userID, actorID, entityType,
+	)
+	if err != nil {
+		return realtimeforum.ErrInternal
+	}
+
 	return nil
 }
