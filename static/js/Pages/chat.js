@@ -324,6 +324,10 @@ async function openConversation(userId) {
         document.getElementById('chat-sidebar').classList.add('hidden');
     }
 
+    // Hide mobile bottom nav while in conversation
+    const bottomNav = document.getElementById('bottom-nav');
+    if (bottomNav) bottomNav.style.display = 'none';
+
     await loadMessages(false);
     jumpToBottom();
     updateInputForOnlineStatus(isOnline);
@@ -341,6 +345,10 @@ function closeConversation() {
     if (window.innerWidth <= 768) {
         document.getElementById('chat-sidebar').classList.remove('hidden');
     }
+
+    // Show mobile bottom nav when back to conversation list
+    const bottomNav = document.getElementById('bottom-nav');
+    if (bottomNav) bottomNav.style.display = '';
 }
 
 async function loadMessages(isOlder = false) {

@@ -201,18 +201,6 @@ class Router {
                     });
                 });
 
-                // Hide bottom nav only when inside an active conversation (chat/:userId)
-                // Show it on the main chat conversations list
-                const bottomNav = document.getElementById('bottom-nav');
-                if (bottomNav) {
-                    const isChatConversation = /^chat\/\d+$/.test(path);
-                    if (isChatConversation) {
-                        bottomNav.style.display = 'none';
-                    } else {
-                        bottomNav.style.display = '';
-                    }
-                }
-
                 // Set active state on bottom nav
                 const allBottomNavItems = document.querySelectorAll('#bottom-nav .nav-item');
                 allBottomNavItems.forEach(item => {
@@ -224,6 +212,13 @@ class Router {
 
                 const panel = document.getElementById('app-panel');
                 await this.routes[pattern](panel, match.params, queryString);
+
+                // Hide bottom nav when inside an active conversation (chat/:userId), show on chat list
+                const bottomNav = document.getElementById('bottom-nav');
+                if (bottomNav) {
+                    const isChatConversation = /^chat\/\d+$/.test(path);
+                    bottomNav.style.display = isChatConversation ? 'none' : '';
+                }
 
                 // Inject global users scroll on mobile (after async page render completes)
                 this.ensureGlobalUsersScroll();
