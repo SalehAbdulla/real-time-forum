@@ -26,11 +26,11 @@ A production-grade, single-page real-time forum application built with **Go**, *
 ## ✨ Features
 
 - **User Authentication** — Register, login, session-based auth with secure password hashing (bcrypt)
-- **Posts & Comments** — Create, read, delete posts and threaded comments
+- **Posts & Comments** — Create, read, delete posts and threaded comments with pagination and infinite scroll
 - **Reactions** — Like/dislike posts and comments
 - **Categories** — Browse and filter posts by category
-- **Real-Time Chat** — WebSocket-powered private messaging with typing indicators and online presence
-- **Notifications** — Real-time notifications for new comments and messages
+- **Real-Time Chat** — WebSocket-powered private messaging with paginated history, typing indicators, and online presence
+- **Notifications** — Real-time notifications for new comments and messages with paginated history
 - **Responsive SPA** — Client-side routing with a mobile-first UI built in vanilla JavaScript
 - **Structured Logging** — Request-level logging with duration, status codes, and user agent tracking
 
