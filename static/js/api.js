@@ -84,6 +84,9 @@ export const api = {
     deletePost: (postId) =>
         apiRequest('DELETE', `/api/v1/posts?id=${postId}`),
 
+    deleteComment: (commentId) =>
+        apiRequest('DELETE', `/api/v1/posts/comments?id=${commentId}`),
+
     // Notifications
     getNotifications: (offset = 0, limit = 10, unread = false) =>
         apiRequest('GET', `/api/v1/notifications?offset=${offset}&limit=${limit}${unread ? '&unread=true' : ''}`),
