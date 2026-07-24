@@ -1510,6 +1510,81 @@ body {
     color: #fb7185;
 }
 
+/* ---- Comment Menu (same as post menu) ---- */
+.comment-menu {
+    background: none; border: none;
+    color: var(--text-muted);
+    font-size: 18px;
+    font-family: Inter, sans-serif;
+    font-weight: 400;
+    cursor: pointer;
+    padding: 6px 8px;
+    line-height: 1;
+    transition: all var(--duration-fast) ease;
+    border-radius: var(--radius-sm);
+    margin-left: auto;
+}
+
+.comment-menu:hover {
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.comment-menu-wrapper {
+    position: relative;
+    margin-left: auto;
+}
+
+.comment-menu-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 4px;
+    background: rgba(20, 20, 30, 0.95);
+    backdrop-filter: blur(var(--blur-lg));
+    -webkit-backdrop-filter: blur(var(--blur-lg));
+    border: var(--border-default);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    min-width: 160px;
+    z-index: 100;
+    overflow: hidden;
+    animation: dropdownIn 0.15s var(--ease-out-quart);
+}
+
+.comment-menu-dropdown.open {
+    display: block;
+}
+
+.comment-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 14px;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-family: Inter, sans-serif;
+    font-weight: 450;
+    cursor: pointer;
+    transition: all var(--duration-fast) ease;
+    text-align: left;
+    letter-spacing: -0.01em;
+}
+
+.comment-menu-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-primary);
+}
+
+.comment-menu-delete:hover {
+    background: rgba(251, 113, 133, 0.12);
+    color: #fb7185;
+}
+
 .post-content {
     color: var(--text-secondary);
     font-size: 13.5px;
