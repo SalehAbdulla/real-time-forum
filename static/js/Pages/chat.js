@@ -13,7 +13,10 @@ let isLoading = false;
 let isLoadingOlder = false;
 let chatUsers = [];
 let activeUserId = null;
-let typingTimeout = null;
+let typingTimer = null;
+const TYPING_DEBOUNCE_MS = 2000;
+const TYPING_THROTTLE_MS = 1500;
+let lastTypingEmit = 0;
 let unreadCounts = {};
 let messageIds = new Set();
 
@@ -207,6 +210,16 @@ function setupWSListeners() {
         handleSendError(payload);
     });
     window._wsCleanups.push(cleanup4);
+
+    const cleanup5 = ws.on('typing', (payload) => {
+        handleTypingIndicator(payload);
+    });
+    window._wsCleanups.push(cleanup5);
+
+    const cleanup6 = ws.on('typing_stopped', (payload) => {
+        handleTypingStoppedIndicator(payload);
+    });
+    window._wsCleanups.push(cleanup6);
 }
 
 async function loadChatUsers() {
@@ -584,7 +597,69 @@ function sendMessage() {
     }
 }
 
-function emitTyping() {}
+function emitTyping() {
+    if (!currentChatUserId || !ws.isConnected) return;
+
+    const now = Date.now();
+
+    // Clear any existing stop timeout
+    if (typingTimer) {
+        clearTimeout(typingTimer);
+    }
+
+    // Throttle: don't emit more than once per throttle interval
+    if (now - lastTypingEmit >= TYPING_THROTTLE_MS) {
+        lastTypingEmit = now;
+        ws.send('typing', {
+            senderId: activeUserId,
+            recipientId: currentChatUserId,
+        });
+    }
+
+    // Set timeout to emit typing_stopped after debounce period of inactivity
+    typingTimer = setTimeout(() => {
+        if (ws.isConnected && currentChatUserId) {
+            ws.send('typing_stopped', {
+                senderId: activeUserId,
+                recipientId: currentChatUserId,
+            });
+        }
+        typingTimer = null;
+        lastTypingEmit = 0;
+    }, TYPING_DEBOUNCE_MS);
+}
+
+function handleTypingIndicator(payload) {
+    if (!payload || payload.senderId !== currentChatUserId) return;
+
+    const indicator = document.getElementById('chat-typing-indicator');
+    if (indicator) {
+        indicator.style.display = 'flex';
+    }
+
+    // Auto-hide after debounce window if no typing_stopped received
+    if (window._typingHideTimer) {
+        clearTimeout(window._typingHideTimer);
+    }
+    window._typingHideTimer = setTimeout(() => {
+        const el = document.getElementById('chat-typing-indicator');
+        if (el) el.style.display = 'none';
+    }, TYPING_DEBOUNCE_MS + 500);
+}
+
+function handleTypingStoppedIndicator(payload) {
+    if (!payload || payload.senderId !== currentChatUserId) return;
+
+    const indicator = document.getElementById('chat-typing-indicator');
+    if (indicator) {
+        indicator.style.display = 'none';
+    }
+
+    if (window._typingHideTimer) {
+        clearTimeout(window._typingHideTimer);
+        window._typingHideTimer = null;
+    }
+}
 
 function updateSendButton() {
     const input = document.getElementById('chat-input');

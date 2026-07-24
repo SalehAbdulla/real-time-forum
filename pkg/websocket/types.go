@@ -9,6 +9,8 @@ const (
 	MsgTypeUserStatus   = "user_status"
 	MsgTypeNotification = "notification"
 	MsgTypeSendError    = "send_error"
+	MsgTypeTyping       = "typing"
+	MsgTypeTypingStopped = "typing_stopped"
 )
 
 type WSMessage struct {
@@ -51,4 +53,9 @@ type NotificationPayload struct {
 type SendErrorPayload struct {
 	RecipientId string `json:"recipientId"`
 	Message     string `json:"message"`
+}
+
+type TypingPayload struct {
+	SenderId   string `json:"senderId"`
+	RecipientId string `json:"recipientId"`
 }

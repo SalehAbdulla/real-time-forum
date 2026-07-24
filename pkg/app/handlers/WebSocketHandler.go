@@ -74,6 +74,10 @@ func (re *HandlerContext) handleWebSocketMessage(client *pkgwebsocket.Client, me
 	switch msg.Type {
 	case pkgwebsocket.MsgTypePrivateMsg:
 		re.handlePrivateMessage(client, msg)
+	case pkgwebsocket.MsgTypeTyping:
+		re.handleTyping(client, msg)
+	case pkgwebsocket.MsgTypeTypingStopped:
+		re.handleTypingStopped(client, msg)
 	default:
 		log.Printf("unknown message type from user %s: %s", client.UserID, msg.Type)
 	}
@@ -166,6 +170,64 @@ func (re *HandlerContext) handlePrivateMessage(sender *pkgwebsocket.Client, msg 
 	}
 
 	re.Hub.SendToUser(payload.RecipientId, notifData)
+}
+
+func (re *HandlerContext) handleTyping(client *pkgwebsocket.Client, msg pkgwebsocket.WSMessage) {
+	var payload pkgwebsocket.TypingPayload
+	if err := json.Unmarshal(msg.Payload, &payload); err != nil {
+		return
+	}
+
+	if payload.RecipientId == "" {
+		return
+	}
+
+	// Validate that sender ID matches the authenticated client
+	if client.UserID != payload.SenderId {
+		return
+	}
+
+	typingData, err := json.Marshal(map[string]interface{}{
+		"type":    pkgwebsocket.MsgTypeTyping,
+		"payload": pkgwebsocket.TypingPayload{
+			SenderId:    client.UserID,
+			RecipientId: payload.RecipientId,
+		},
+	})
+	if err != nil {
+		return
+	}
+
+	re.Hub.SendToUser(payload.RecipientId, typingData)
+}
+
+func (re *HandlerContext) handleTypingStopped(client *pkgwebsocket.Client, msg pkgwebsocket.WSMessage) {
+	var payload pkgwebsocket.TypingPayload
+	if err := json.Unmarshal(msg.Payload, &payload); err != nil {
+		return
+	}
+
+	if payload.RecipientId == "" {
+		return
+	}
+
+	// Validate that sender ID matches the authenticated client
+	if client.UserID != payload.SenderId {
+		return
+	}
+
+	stoppedData, err := json.Marshal(map[string]interface{}{
+		"type":    pkgwebsocket.MsgTypeTypingStopped,
+		"payload": pkgwebsocket.TypingPayload{
+			SenderId:    client.UserID,
+			RecipientId: payload.RecipientId,
+		},
+	})
+	if err != nil {
+		return
+	}
+
+	re.Hub.SendToUser(payload.RecipientId, stoppedData)
 }
 
 func (re *HandlerContext) SetHub(hub *pkgwebsocket.Hub) {

@@ -1,21 +1,9 @@
-/* ============================================================
-   REAL-TIME FORUM — Premium Glassmorphism Design System
-   ============================================================
-   Award-winning UI/UX with deep liquid glass aesthetic,
-   micro-interactions, and atmospheric ambient effects.
-   Desktop: wide 16:9 rounded card with sidebar + main panel.
-   Mobile: full-width immersive.
-   ============================================================ */
-
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* ============================================================
-   DESIGN TOKENS
-   ============================================================ */
 :root {
     /* ---- Glass Surface Layers ---- */
     --glass-base:      rgba(255, 255, 255, 0.03);
@@ -1979,9 +1967,6 @@ body {
     height: 14px;
 }
 
-/* ============================================================
-   COMMENTS PAGINATION
-   ============================================================ */
 .comments-pagination {
     padding: var(--space-4) 0 var(--space-6);
 }
