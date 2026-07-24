@@ -426,7 +426,7 @@ body {
     background: var(--accent);
     border-radius: 1px;
     box-shadow: 0 0 10px rgba(32, 178, 166, 0.5);
-    margin-top: 10px;
+    vertical-align: baseline;
 }
 
 .sidebar-nav {
@@ -596,6 +596,14 @@ body {
     min-width: 0;
 }
 
+#app-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    width: 100%;
+}
+
 .auth-container {
     width: 380px;
     padding: var(--space-10) var(--space-8);
@@ -667,10 +675,9 @@ body {
     width: 7px; height: 7px;
     background: var(--accent);
     margin-left: 2px;
-    vertical-align: bottom;
+    vertical-align: baseline;
     border-radius: 1px;
     box-shadow: 0 0 12px rgba(32, 178, 166, 0.6);
-    margin-bottom: 3px;
 }
 
 .auth-tabs {
