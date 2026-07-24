@@ -203,6 +203,10 @@ function setupWSListeners() {
 
     const cleanup3 = ws.on('connected', () => {
         console.log('[Chat] WS connected');
+        if (currentChatUserId) {
+            ws.send('open_chat', { partnerId: currentChatUserId });
+        }
+        loadChatUsers();
     });
     window._wsCleanups.push(cleanup3);
 
