@@ -18,7 +18,7 @@ class Router {
         window.location.hash = path;
     }
 
-    resolve() {
+    async resolve() {
         const hash = window.location.hash.slice(1) || '/login';
         let [path, ...rest] = hash.split('?');
         // Normalize: strip leading slash so path matches registered patterns (e.g. 'login' not '/login')
@@ -118,6 +118,28 @@ class Router {
                                 </svg>
                             </button>
 
+                            <!-- Bottom Navigation (Mobile) -->
+                            <nav class="bottom-nav" id="bottom-nav">
+                                <button class="nav-item active" data-route="feed" aria-label="Home">
+                                    <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
+                                        <path d="M2 10L10 2L18 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M4 8V16H16V8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                                <button class="nav-item" data-route="notifications" aria-label="Notifications">
+                                    <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
+                                        <path d="M10 2C7.79086 2 6 3.79086 6 6V9C6 9.55228 5.55228 10 5 10H4V12H16V10H15C14.4477 10 14 9.55228 14 9V6C14 3.79086 12.2091 2 10 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M8 14V15C8 16.1046 8.89543 17 10 17C11.1046 17 12 16.1046 12 15V14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                                <button class="nav-item" data-route="profile" aria-label="Profile">
+                                    <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
+                                        <circle cx="10" cy="6" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M2 18C2 14.6863 5.58172 12 10 12C14.4183 12 18 14.6863 18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </button>
+                            </nav>
+
                             <!-- Right Sidebar (Users) -->
                             <div class="app-rightbar">
                                 <div class="rightbar-header">
@@ -171,11 +193,41 @@ class Router {
                     fab.addEventListener('click', () => this.navigate('create'));
                 }
 
+                // Bottom navigation clicks (mobile)
+                document.querySelectorAll('#bottom-nav .nav-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const route = item.dataset.route;
+                        if (route) this.navigate(route);
+                    });
+                });
+
+                // Hide bottom nav only when inside an active conversation (chat/:userId)
+                // Show it on the main chat conversations list
+                const bottomNav = document.getElementById('bottom-nav');
+                if (bottomNav) {
+                    const isChatConversation = /^chat\/\d+$/.test(path);
+                    if (isChatConversation) {
+                        bottomNav.style.display = 'none';
+                    } else {
+                        bottomNav.style.display = '';
+                    }
+                }
+
+                // Set active state on bottom nav
+                const allBottomNavItems = document.querySelectorAll('#bottom-nav .nav-item');
+                allBottomNavItems.forEach(item => {
+                    item.classList.toggle('active', item.dataset.route === path);
+                });
+
                 // Load users into right sidebar
                 this.loadRightbarUsers();
 
                 const panel = document.getElementById('app-panel');
-                this.routes[pattern](panel, match.params, queryString);
+                await this.routes[pattern](panel, match.params, queryString);
+
+                // Inject global users scroll on mobile (after async page render completes)
+                this.ensureGlobalUsersScroll();
+                this.loadGlobalUsersScroll();
                 return;
             }
         }
@@ -225,6 +277,55 @@ class Router {
         } catch (err) {
             container.innerHTML = '<div class="rightbar-empty">Failed to load</div>';
         }
+    }
+
+    ensureGlobalUsersScroll() {
+        // Insert global users scroll at top of app-panel if not already present
+        const panel = document.getElementById('app-panel');
+        if (!panel) return;
+        let wrapper = document.getElementById('global-users-wrapper');
+        if (!wrapper) {
+            wrapper = document.createElement('div');
+            wrapper.className = 'users-wrapper';
+            wrapper.id = 'global-users-wrapper';
+            wrapper.innerHTML = '<div class="users-scroll" id="global-users-scroll"><div class="loading-spinner">Loading users...</div></div>';
+            panel.insertBefore(wrapper, panel.firstChild);
+        }
+    }
+
+    async loadGlobalUsersScroll() {
+        const container = document.getElementById('global-users-scroll');
+        if (!container) return;
+        try {
+            const res = await fetch('/api/v1/messages/users', { credentials: 'include' });
+            const data = await res.json();
+            const users = data.data || [];
+            if (users.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            container.innerHTML = users.map(user => `
+                <div class="user-card" data-user-id="${user.userId}">
+                    <div class="user-avatar-wrapper">
+                        <div class="user-avatar-sm">${user.nickname ? user.nickname.substring(0, 2).toUpperCase() : '?'}</div>
+                        <div class="online-dot ${user.isOnline === 1 ? 'online' : 'offline'}"></div>
+                    </div>
+                    <div class="user-nickname">${this.escapeHtml(user.nickname)}</div>
+                </div>
+            `).join('');
+            container.querySelectorAll('.user-card').forEach(el => {
+                el.addEventListener('click', () => {
+                    this.navigate(`chat/${el.dataset.userId}`);
+                });
+            });
+        } catch (err) {
+            container.innerHTML = '';
+        }
+    }
+
+    escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>').replace(/"/g, '"');
     }
 
     matchRoute(pattern, path) {

@@ -32,12 +32,6 @@ export async function renderFeed(app, params, queryString) {
                 </div>
             </div>
 
-            <div class="users-wrapper">
-                <div class="users-scroll" id="users-scroll">
-                    <div class="loading-spinner">Loading users...</div>
-                </div>
-            </div>
-
             <div class="categories-wrapper">
                 <div class="categories-scroll" id="categories-scroll">
                     <button class="category-pill${currentCategory === 'all' ? ' active' : ''}" data-category="all">All</button>
@@ -58,8 +52,6 @@ export async function renderFeed(app, params, queryString) {
 
         </div>
     `;
-
-    loadUsers();
 
     // Mobile category pills
     document.querySelectorAll('.category-pill').forEach(pill => {

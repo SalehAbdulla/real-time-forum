@@ -985,14 +985,15 @@ body {
     display: none;
     justify-content: space-between;
     align-items: center;
-    padding: var(--space-3) var(--container-pad);
+    padding: var(--space-3) var(--feed-pad-x);
     min-height: 60px;
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(var(--blur-lg));
-    -webkit-backdrop-filter: blur(var(--blur-lg));
+    background: rgba(8, 8, 12, 0.85);
+    backdrop-filter: blur(var(--blur-xl));
+    -webkit-backdrop-filter: blur(var(--blur-xl));
     border-bottom: var(--border-faint);
-    position: relative;
-    z-index: 10;
+    position: sticky;
+    top: 0;
+    z-index: 50;
     flex-shrink: 0;
 }
 
@@ -1570,7 +1571,8 @@ body {
 .post-detail {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
 }
 
@@ -3482,31 +3484,804 @@ body {
    RESPONSIVE
    ============================================================ */
 
-/* Tablet and below — full-screen mobile layout */
+/* ---- Tablet & small desktop (≤900px) — hide sidebars, show mobile UI ---- */
 @media (max-width: 900px) {
     .app-frame { padding: 0; }
 
-    /* Hide sidebars on mobile, show feed header + users scroll */
+    /* Hide desktop sidebars */
     .app-sidebar { display: none; }
     .app-rightbar { display: none; }
 
+    /* Show mobile-only components */
     .users-wrapper { display: block; }
     .categories-wrapper { display: block; }
 
-    .feed-header { display: flex; }
-
-    .auth-container { margin-top: 60px; }
-}
-
-/* Small phones */
-@media (max-width: 480px) {
-    .auth-container {
-        width: calc(100% - 32px);
-        max-width: 380px;
-        padding: var(--space-8) var(--space-6);
-        margin: var(--space-5) var(--space-4);
+    /* Feed — full-width layout */
+    :root {
+        --feed-pad-x: 16px;
     }
 
+    .posts-feed {
+        padding: var(--space-2) var(--feed-pad-x) var(--space-10);
+        gap: var(--space-2);
+    }
+
+    /* Post cards — full width on mobile */
+    .post-card {
+        width: 100%;
+        padding: var(--space-4);
+        border-radius: var(--radius-md);
+    }
+
+    .post-title {
+        font-size: 15px;
+    }
+
+    .post-content {
+        font-size: 13px;
+    }
+
+    .post-actions {
+        gap: 14px;
+    }
+
+    .action-btn {
+        font-size: 11px;
+        padding: 3px 6px;
+    }
+
+    .action-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    /* FAB — reposition to bottom-right over the feed */
+    .fab-create {
+        right: 20px;
+        bottom: 20px;
+        width: 48px;
+        height: 48px;
+    }
+
+    .fab-create svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    /* Auth container — centered with breathing room */
+    .auth-container {
+        width: calc(100% - 48px);
+        max-width: 400px;
+        padding: var(--space-8) var(--space-6);
+        margin: var(--space-6) auto;
+    }
+
+    .auth-logo span {
+        font-size: 24px;
+    }
+
+    /* Post detail */
+    .post-detail-header {
+        padding: var(--space-3) var(--feed-pad-x);
+    }
+
+    .post-detail-card {
+        padding: var(--space-4) var(--feed-pad-x);
+    }
+
+    .post-detail-heading {
+        font-size: 18px;
+    }
+
+    .post-detail-body {
+        font-size: 14px;
+    }
+
+    .post-detail-actions .action-btn {
+        font-size: 12px;
+    }
+
+    .post-detail-actions .action-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    /* Comments */
+    .comments-section {
+        padding: var(--space-3) var(--feed-pad-x);
+    }
+
+    .comments-header {
+        gap: var(--space-2);
+    }
+
+    .comments-heading {
+        font-size: 15px;
+    }
+
+    .sort-btn {
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+
+    .comment-card {
+        padding: var(--space-3);
+    }
+
+    .comment-body {
+        font-size: 12px;
+    }
+
+    /* Create post */
+    .create-post-page {
+        padding: var(--space-3) var(--space-3);
+    }
+
+    .create-post-card {
+        padding: var(--space-5);
+        border-radius: var(--radius-lg);
+    }
+
+    .create-post-title {
+        font-size: 16px;
+    }
+
+    .create-cat-pill {
+        padding: 6px 14px;
+        font-size: 12px;
+    }
+
+    .create-textarea {
+        min-height: 100px;
+        font-size: 14px;
+    }
+
+    /* Profile */
+    .profile-page {
+        padding: var(--space-3) var(--space-3);
+        max-width: 100%;
+    }
+
+    .profile-card {
+        padding: var(--space-5);
+        border-radius: var(--radius-lg);
+    }
+
+    .profile-avatar-large {
+        width: 60px;
+        height: 60px;
+        font-size: 20px;
+    }
+
+    .profile-name {
+        font-size: 18px;
+    }
+
+    /* Notifications */
+    .notifications-header {
+        padding: var(--space-3) var(--feed-pad-x);
+        flex-wrap: wrap;
+        gap: var(--space-2);
+    }
+
+    .notifications-title {
+        font-size: 16px;
+    }
+
+    .notifications-list {
+        padding: var(--space-1) var(--feed-pad-x) var(--space-10);
+    }
+
+    .notif-card {
+        padding: var(--space-2) var(--space-2);
+    }
+
+    .notif-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 12px;
+    }
+
+    .notif-actor-name {
+        font-size: 13px;
+    }
+
+    .notif-action {
+        font-size: 12px;
+    }
+
+    /* Notification toast — full-width at bottom */
+    .notif-toast {
+        left: 12px;
+        right: 12px;
+        bottom: 80px;
+        max-width: none;
+    }
+
+    .notifications-mark-all-btn span:not(.hidden) {
+        display: none;
+    }
+
+    /* Chat — responsive sidebar/main toggle */
+    .chat-sidebar {
+        width: 100%;
+        border-right: none;
+    }
+
+    .chat-sidebar.hidden {
+        display: none;
+    }
+
+    .chat-back-btn {
+        display: flex;
+    }
+
+    .chat-layout {
+        height: 100%;
+    }
+
+    .chat-conv-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 13px;
+    }
+
+    .chat-messages {
+        padding: var(--space-3) var(--space-3) var(--space-2);
+    }
+
+    .chat-msg-content {
+        max-width: 85%;
+    }
+
+    .chat-input-bar {
+        padding: var(--space-2) var(--space-3);
+    }
+
+    /* Hide right sidebar when chat is active */
+    .app-inner:has(.chat-layout) .app-rightbar {
+        display: none;
+    }
+}
+
+/* ---- Smaller tablets & large phones (≤768px) ---- */
+@media (max-width: 768px) {
+    :root {
+        --feed-pad-x: 12px;
+    }
+
+    .post-card {
+        padding: var(--space-3);
+    }
+
+    .post-header {
+        margin-bottom: var(--space-2);
+    }
+
+    .post-actions {
+        gap: 10px;
+        padding-top: var(--space-1);
+    }
+
+    .action-btn {
+        font-size: 10px;
+        gap: 4px;
+    }
+
+    .action-btn svg {
+        width: 15px;
+        height: 15px;
+    }
+
+    /* Auth */
+    .auth-container {
+        padding: var(--space-6) var(--space-5);
+        margin: var(--space-4) auto;
+    }
+
+    .auth-logo span {
+        font-size: 22px;
+    }
+
+    .auth-tab {
+        font-size: 13px;
+        padding: 9px 12px;
+    }
+
+    /* Chat */
+    .chat-msg-content {
+        max-width: 90%;
+    }
+
+    .chat-msg-bubble {
+        font-size: 13px;
+        padding: 8px 14px;
+    }
+
+    .chat-conversation-header {
+        padding: var(--space-2) var(--space-3);
+    }
+
+    .chat-partner-name {
+        font-size: 14px;
+    }
+
+    /* Profile */
+    .profile-card {
+        padding: var(--space-4);
+    }
+
+    .profile-avatar-large {
+        width: 56px;
+        height: 56px;
+        font-size: 18px;
+    }
+
+    /* Notifications */
+    .notif-card {
+        padding: var(--space-2) var(--space-1);
+        gap: var(--space-2);
+    }
+
+    .notif-mark-read-btn {
+        width: 28px;
+        height: 28px;
+    }
+
+    /* Create post */
+    .create-post-card {
+        padding: var(--space-4);
+    }
+
+    .create-categories {
+        gap: 6px;
+    }
+
+    .create-cat-pill {
+        padding: 5px 12px;
+        font-size: 11px;
+    }
+}
+
+/* ---- Small phones (≤640px) ---- */
+@media (max-width: 640px) {
+    .post-card {
+        border-radius: var(--radius-sm);
+    }
+
+    .post-title {
+        font-size: 14px;
+    }
+
+    .post-user {
+        gap: 8px;
+    }
+
+    .post-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 10px;
+    }
+
+    .post-username {
+        font-size: 12px;
+    }
+
+    .post-time {
+        font-size: 10px;
+    }
+
+    .post-category-tag {
+        font-size: 9px;
+        padding: 1px 6px;
+    }
+
+    .post-content {
+        font-size: 12px;
+        line-height: 1.55;
+    }
+
+    /* Auth */
+    .auth-container {
+        width: calc(100% - 32px);
+        max-width: 360px;
+        padding: var(--space-5) var(--space-4);
+        border-radius: var(--radius-lg);
+    }
+
+    .auth-logo span {
+        font-size: 20px;
+    }
+
+    .form-input {
+        height: 46px;
+    }
+
+    .btn-submit {
+        padding: 13px 16px;
+        font-size: 14px;
+    }
+
+    /* Chat */
+    .chat-msg-content {
+        max-width: 92%;
+    }
+
+    .chat-msg-bubble {
+        font-size: 12px;
+        padding: 7px 12px;
+    }
+
+    .chat-msg-mine .chat-msg-bubble {
+        border-bottom-right-radius: 4px;
+    }
+
+    .chat-msg-theirs .chat-msg-bubble {
+        border-bottom-left-radius: 4px;
+    }
+
+    .chat-input {
+        font-size: 13px;
+    }
+
+    .chat-send-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    /* Post detail */
+    .post-detail-heading {
+        font-size: 16px;
+    }
+
+    .post-detail-body {
+        font-size: 13px;
+    }
+
+    /* Comments */
+    .comment-form {
+        gap: var(--space-2);
+    }
+
+    .comment-input {
+        font-size: 12px;
+        padding: 10px 12px;
+    }
+
+    .comment-submit-btn {
+        padding: 7px 16px;
+        font-size: 12px;
+    }
+
+    .comment-body {
+        font-size: 12px;
+    }
+
+    /* Profile */
+    .profile-title {
+        font-size: 18px;
+    }
+
+    .profile-detail-label {
+        font-size: 11px;
+    }
+
+    .profile-detail-value {
+        font-size: 13px;
+    }
+
+    /* Create Post */
+    .create-post-title {
+        font-size: 15px;
+    }
+
+    .create-label {
+        font-size: 11px;
+    }
+
+    .create-textarea {
+        min-height: 80px;
+        font-size: 13px;
+        padding: 12px 14px;
+    }
+
+    /* FAB */
+    .fab-create {
+        right: 16px;
+        bottom: 16px;
+        width: 44px;
+        height: 44px;
+    }
+
+    .fab-create svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* Feed header */
+    .feed-header {
+        padding: var(--space-2) var(--feed-pad-x);
+        min-height: 52px;
+    }
+
+    .feed-logo span,
+    .feed-header-left .logo span {
+        font-size: 20px;
+    }
+
+    .header-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 11px;
+    }
+
+    /* Bottom nav spacing — ensure feed content isn't hidden behind bottom nav */
+    .posts-feed {
+        padding-bottom: 80px;
+    }
+
+    .notifications-list {
+        padding-bottom: 80px;
+    }
+}
+
+/* ---- Small phones (≤480px) ---- */
+@media (max-width: 480px) {
+    :root {
+        --feed-pad-x: 10px;
+    }
+
+    .auth-container {
+        width: calc(100% - 24px);
+        max-width: 100%;
+        padding: var(--space-4) var(--space-3);
+        margin: var(--space-3) var(--space-3);
+        border-radius: var(--radius-md);
+    }
+
+    .auth-logo span {
+        font-size: 18px;
+    }
+
+    .auth-tab {
+        font-size: 12px;
+        padding: 8px 10px;
+    }
+
+    .form-input {
+        height: 44px;
+        font-size: 14px;
+        padding: 0 14px;
+    }
+
+    .btn-submit {
+        padding: 12px 14px;
+        font-size: 13px;
+    }
+
+    /* Posts */
+    .post-card {
+        padding: var(--space-2) var(--space-3);
+    }
+
+    .post-actions {
+        gap: 8px;
+    }
+
+    .action-btn {
+        font-size: 10px;
+    }
+
+    .action-btn svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    /* Comments */
+    .comments-section {
+        padding: var(--space-2) var(--feed-pad-x);
+    }
+
+    .comment-card {
+        padding: var(--space-2);
+    }
+
+    /* Chat */
+    .chat-msg-content {
+        max-width: 94%;
+    }
+
+    .chat-msg-bubble {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+
+    .chat-input-bar {
+        padding: var(--space-1) var(--space-2);
+    }
+
+    .chat-input-wrapper {
+        padding: 2px 2px 2px 12px;
+    }
+
+    /* Create Post */
+    .create-post-page {
+        padding: var(--space-2) var(--space-2);
+    }
+
+    .create-post-card {
+        padding: var(--space-3);
+    }
+
+    /* Profile */
+    .profile-page {
+        padding: var(--space-2) var(--space-2);
+    }
+
+    .profile-card {
+        padding: var(--space-3);
+    }
+
+    /* Notifications */
+    .notifications-header {
+        padding: var(--space-2) var(--feed-pad-x);
+    }
+
+    .notif-card {
+        padding: var(--space-1) 0;
+        gap: var(--space-1);
+    }
+
+    /* Post detail */
+    .post-detail-header {
+        padding: var(--space-2) var(--feed-pad-x);
+    }
+
+    .post-detail-card {
+        padding: var(--space-3) var(--feed-pad-x);
+    }
+
+    /* FAB */
+    .fab-create {
+        right: 12px;
+        bottom: 16px;
+        width: 42px;
+        height: 42px;
+    }
+
+    /* Bottom nav spacing */
+    .posts-feed {
+        padding-bottom: 80px;
+    }
+
+    .notifications-list {
+        padding-bottom: 80px;
+    }
+}
+
+/* ============================================================
+   BOTTOM NAVIGATION (Mobile only) — Floating Pill
+   ============================================================ */
+.bottom-nav {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .bottom-nav {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 25px;
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        height: 48px;
+        padding: 4px;
+        background: rgba(82, 86, 89, 0.23);
+        backdrop-filter: blur(30px) saturate(180%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+        border-radius: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        z-index: 100;
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 1000px;
+        background: transparent;
+        border: none;
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all var(--duration-normal) var(--ease-out-quart);
+        position: relative;
+        flex-shrink: 0;
+        padding: 0;
+    }
+
+    .nav-item:hover {
+        color: var(--accent-light);
+    }
+
+    .nav-item.active {
+        background: rgba(32, 178, 166, 0.20);
+        color: var(--accent);
+    }
+
+    .nav-item.active:hover {
+        color: var(--accent);
+    }
+
+    .nav-item svg {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+    }
+
+    .nav-profile-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-full);
+        background: rgba(255, 255, 255, 0.08);
+        border: var(--border-default);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-primary);
+        font-size: 13px;
+        font-family: Inter, sans-serif;
+        font-weight: 600;
+    }
+
+    .nav-item.active .nav-profile-avatar {
+        background: rgba(32, 178, 166, 0.20);
+        color: var(--accent);
+        border-color: rgba(32, 178, 166, 0.20);
+    }
+}
+
+@media (max-width: 640px) {
+    .bottom-nav {
+        left: 16px;
+        bottom: 16px;
+        height: 44px;
+        padding: 3px;
+        gap: 22px;
+    }
+
+    .nav-item {
+        width: 38px;
+        height: 38px;
+    }
+
+    .nav-item svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .bottom-nav {
+        left: 12px;
+        bottom: 16px;
+        height: 42px;
+        padding: 3px;
+        gap: 18px;
+    }
+
+    .nav-item {
+        width: 36px;
+        height: 36px;
+    }
+
+    .nav-item svg {
+        width: 17px;
+        height: 17px;
+    }
 }
 
 /* Selection */
