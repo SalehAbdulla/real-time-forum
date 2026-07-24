@@ -2,6 +2,7 @@
 
 A production-grade, single-page real-time forum application built with **Go**, **WebSockets**, **SQLite**, and vanilla JavaScript — containerized with Docker and deployed via GitHub Actions.
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-View_App-46E3B7?logo=render)](https://real-time-forum.onrender.com)
 ![Go Version](https://img.shields.io/badge/Go-1.25-00ADD8?logo=go)
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)
 ![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite)
