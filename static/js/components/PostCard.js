@@ -30,6 +30,7 @@ export function createPostCard(post) {
             </div>
             ` : ''}
         </div>
+        <h2 class="post-title">${escapeHtml(post.title)}</h2>
         <div class="post-content">${escapeHtml(post.content)}</div>
         <div class="post-actions">
             <button class="action-btn like-btn" data-post-id="${post.postId}" data-score="1">
