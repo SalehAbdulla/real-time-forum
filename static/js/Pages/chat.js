@@ -798,7 +798,7 @@ function updateInputForOnlineStatus(isOnline) {
 
     if (!isOnline) {
         input.disabled = true;
-        input.placeholder = 'User is offline — messaging unavailable';
+        input.placeholder = 'User is offline, messaging unavailable';
         input.style.opacity = '0.5';
         if (sendBtn) sendBtn.disabled = true;
     } else {
