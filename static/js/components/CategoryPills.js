@@ -1,6 +1,4 @@
-/**
- * CategoryPills component — horizontal scrollable category filter
- */
+
 
 const defaultCategories = [
     { id: 'all', label: 'All' },

@@ -1,4 +1,4 @@
-// WebSocket connection manager for real-time messaging
+
 class WSConnection {
     constructor() {
         this.ws = null;
@@ -15,14 +15,14 @@ class WSConnection {
             return;
         }
 
-        // Don't attempt connection if not authenticated — the server will reject it
+        
         if (window.__isAuthenticated !== true) {
             return;
         }
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        // The session_token cookie is HttpOnly, so it's sent automatically by the browser
-        // on the WebSocket upgrade request. No need to extract it from document.cookie.
+        
+        
         const wsUrl = `${protocol}//${window.location.host}/ws`;
 
         try {

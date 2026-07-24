@@ -1,6 +1,4 @@
-/**
- * UsersScroll component — horizontal scrollable online users list
- */
+
 import { api } from '../api.js';
 import { router } from '../router.js';
 import { createAvatarWithStatus } from './Avatar.js';
@@ -17,7 +15,7 @@ export function createUsersScroll() {
     
     wrapper.appendChild(scroll);
     
-    // Load users async
+    
     loadUsers(scroll);
     
     return wrapper;

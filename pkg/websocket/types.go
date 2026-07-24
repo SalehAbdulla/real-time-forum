@@ -38,14 +38,14 @@ type IncomingMsgPayload struct {
 
 type UserStatusPayload struct {
 	UserId   string `json:"userId"`
-	IsOnline int    `json:"isOnline"` // 1 or 0
+	IsOnline int    `json:"isOnline"` 
 }
 
 type NotificationPayload struct {
 	NotificationId  int    `json:"notificationId"`
 	ActorId         string `json:"actorId"`
 	ActorNickname   string `json:"actorNickname"`
-	EntityType      string `json:"entityType"` // "comment" or "message"
+	EntityType      string `json:"entityType"` 
 	EntityId        int    `json:"entityId"`
 	CreatedAt       string `json:"createdAt"`
 }

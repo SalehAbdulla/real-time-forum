@@ -10,7 +10,7 @@ let loading = false;
 let hasMore = true;
 
 export async function renderFeed(app, params, queryString) {
-    // Parse category from query string if provided
+    
     if (queryString) {
         const qs = new URLSearchParams(queryString);
         const catFromQs = qs.get('category');
@@ -54,7 +54,7 @@ export async function renderFeed(app, params, queryString) {
         </div>
     `;
 
-    // Mobile category pills
+    
     document.querySelectorAll('.category-pill').forEach(pill => {
         pill.addEventListener('click', () => {
             document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
@@ -66,7 +66,7 @@ export async function renderFeed(app, params, queryString) {
         });
     });
 
-    // Show FAB on feed page
+    
     const fab = document.getElementById('fab-create');
     if (fab) {
         fab.style.display = 'flex';
@@ -148,7 +148,7 @@ async function loadPosts(reset = false) {
         currentPage++;
         hasMore = !data.lastPage;
 
-        // Show "end of feed" message when there are no more posts
+        
         if (!hasMore && data.posts.length > 0) {
             const endMsg = document.createElement('div');
             endMsg.className = 'feed-end-message';
@@ -221,16 +221,16 @@ function createPostElement(post) {
         </div>
     `;
 
-    // Click to view post detail
+    
     div.addEventListener('click', (e) => {
         if (!e.target.closest('.action-btn') && !e.target.closest('.post-menu') && !e.target.closest('.post-menu-item')) {
             router.navigate(`post/${post.postId}`);
         }
     });
 
-    // Like button - use userScore from API for initial state, then toggle
+    
     const likeBtn = div.querySelector('.like-btn');
-    // Set initial state from server data
+    
     if (post.userScore === 1) {
         likeBtn.classList.add('liked');
     }
@@ -241,7 +241,7 @@ function createPostElement(post) {
             const res = await api.react('post', post.postId, 1);
             const newScore = res.data.totalScore;
             likeBtn.querySelector('span').textContent = newScore;
-            // If score decreased, we removed our like; if increased, we added our like
+            
             if (newScore < oldScore) {
                 likeBtn.classList.remove('liked');
             } else {
@@ -252,14 +252,14 @@ function createPostElement(post) {
         }
     });
 
-    // Comment button
+    
     const commentBtn = div.querySelector('.comment-btn');
     commentBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         router.navigate(`post/${post.postId}`);
     });
 
-    // Post menu toggle (only for owners)
+    
     if (isOwner) {
         const menuBtn = div.querySelector('.post-menu');
         const dropdown = div.querySelector('.post-menu-dropdown');
@@ -269,14 +269,14 @@ function createPostElement(post) {
             dropdown.classList.toggle('open');
         });
 
-        // Close dropdown when clicking outside
+        
         document.addEventListener('click', (e) => {
             if (!div.contains(e.target)) {
                 dropdown.classList.remove('open');
             }
         });
 
-        // Delete post handler
+        
         const deleteBtn = div.querySelector('.post-menu-delete');
         deleteBtn.addEventListener('click', async (e) => {
             e.stopPropagation();

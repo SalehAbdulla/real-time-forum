@@ -82,7 +82,7 @@ func (db *DB) UpsertReaction(userId string, entityType string, entityId int, sco
 		return 0, realtimeforum.ErrInternal
 	}
 
-	// Sync the total score back to the parent entity (post or comment)
+	
 	switch entityType {
 	case "post":
 		_, err = db.Conn.Exec(

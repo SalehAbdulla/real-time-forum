@@ -23,15 +23,15 @@ function guestGuard() {
 }
 
 async function init() {
-    // Initialize ambient particles
+    
     createParticles();
 
     try {
         const res = await api.me();
         window.__user = res.data;
         window.__isAuthenticated = true;
-        // Connect WebSocket — the session cookie from the response is HttpOnly,
-        // so the browser will automatically send it on the WS upgrade request.
+        
+        
         ws.connect();
     } catch {
         window.__isAuthenticated = false;
@@ -75,16 +75,12 @@ async function init() {
 
     router.start();
 
-    // Global: fetch unread notification count and listen for real-time notifications
+    
     if (window.__isAuthenticated) {
         initNotificationBadge();
     }
 }
 
-/**
- * Fetches the initial unread notification count and sets up the WebSocket listener
- * to update the sidebar badge across all pages in real time.
- */
 async function initNotificationBadge() {
     try {
         const res = await api.getUnreadCount();
@@ -94,20 +90,17 @@ async function initNotificationBadge() {
         console.error('Failed to load unread count:', err);
     }
 
-    // Listen for real-time notification events via WebSocket
+    
     if (!window._globalNotifCleanup) {
         window._globalNotifCleanup = ws.on('notification', (payload) => {
             if (!payload) return;
-            // Increment the global unread count
+            
             window.__unreadNotifCount = (window.__unreadNotifCount || 0) + 1;
             updateGlobalBadge(window.__unreadNotifCount);
         });
     }
 }
 
-/**
- * Updates the sidebar notification badge element.
- */
 function updateGlobalBadge(count) {
     window.__unreadNotifCount = count;
     const notifNavItem = document.querySelector('.sidebar-nav-item[data-route="notifications"]');

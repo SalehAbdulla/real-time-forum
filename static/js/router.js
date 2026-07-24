@@ -21,7 +21,7 @@ class Router {
     async resolve() {
         const hash = window.location.hash.slice(1) || (window.__isAuthenticated ? 'feed' : 'login');
         let [path, ...rest] = hash.split('?');
-        // Normalize: strip leading slash so path matches registered patterns (e.g. 'login' not '/login')
+        
         if (path.startsWith('/')) {
             path = path.slice(1);
         }
@@ -40,7 +40,7 @@ class Router {
                 this.currentRoute = pattern;
                 const app = document.getElementById('app');
 
-                // Auth routes — render standalone without the desktop card frame
+                
                 if (path === 'login' || path === 'register') {
                     app.innerHTML = `<div id="app-content"></div>`;
                     const content = document.getElementById('app-content');
@@ -48,14 +48,14 @@ class Router {
                     return;
                 }
 
-                // Authenticated routes — render inside the desktop card frame
+                
                 const name = window.__user ? (window.__user.nickname || window.__user.firstName || 'User') : 'User';
                 const initials = name.substring(0, 2).toUpperCase();
 
                 app.innerHTML = `
                     <div class="app-frame">
                         <div class="app-inner">
-                            <!-- Left Sidebar -->
+                            
                             <div class="app-sidebar">
                                 <div class="sidebar-logo">
                                     <span>forum</span><span class="logo-dot"></span>
@@ -83,7 +83,7 @@ class Router {
                                     </button>
                                 </nav>
 
-                                <!-- Categories in sidebar (desktop) -->
+                                
                                 <div class="sidebar-categories">
                                     <span class="sidebar-categories-label">Categories</span>
                                     <div class="sidebar-categories-list">
@@ -108,17 +108,17 @@ class Router {
                                 </div>
                             </div>
 
-                            <!-- Main Panel -->
+                            
                             <div class="app-panel" id="app-panel"></div>
 
-                            <!-- FAB (hidden by default, shown on feed page) -->
+                            
                             <button class="fab-create" id="fab-create" aria-label="Create Post" style="display:none;">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
                                     <path d="M12 4V20M4 12H20"/>
                                 </svg>
                             </button>
 
-                            <!-- Bottom Navigation (Mobile) -->
+                            
                             <nav class="bottom-nav" id="bottom-nav">
                                 <button class="nav-item active" data-route="feed" aria-label="Home">
                                     <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
@@ -140,7 +140,7 @@ class Router {
                                 </button>
                             </nav>
 
-                            <!-- Right Sidebar (Users) -->
+                            
                             <div class="app-rightbar">
                                 <div class="rightbar-header">
                                     <span>Online</span>
@@ -154,7 +154,7 @@ class Router {
                     </div>
                 `;
 
-                // Sidebar navigation clicks
+                
                 document.querySelectorAll('.sidebar-nav-item').forEach(item => {
                     item.addEventListener('click', () => {
                         const route = item.dataset.route;
@@ -162,13 +162,13 @@ class Router {
                     });
                 });
 
-                // Profile click
+                
                 const profile = document.getElementById('sidebar-profile');
                 if (profile) {
                     profile.addEventListener('click', () => this.navigate('profile'));
                 }
 
-                // Sync sidebar category active state from query string
+                
                 if (path === 'feed' && queryString) {
                     const qs = new URLSearchParams(queryString);
                     const catFromQs = qs.get('category');
@@ -179,7 +179,7 @@ class Router {
                     }
                 }
 
-                // Sidebar category clicks — navigate to feed with category query param
+                
                 document.querySelectorAll('.sidebar-cat-pill').forEach(pill => {
                     pill.addEventListener('click', () => {
                         const cat = pill.dataset.category;
@@ -187,13 +187,13 @@ class Router {
                     });
                 });
 
-                // FAB click
+                
                 const fab = document.getElementById('fab-create');
                 if (fab) {
                     fab.addEventListener('click', () => this.navigate('create'));
                 }
 
-                // Bottom navigation clicks (mobile)
+                
                 document.querySelectorAll('#bottom-nav .nav-item').forEach(item => {
                     item.addEventListener('click', () => {
                         const route = item.dataset.route;
@@ -201,33 +201,33 @@ class Router {
                     });
                 });
 
-                // Set active state on bottom nav
+                
                 const allBottomNavItems = document.querySelectorAll('#bottom-nav .nav-item');
                 allBottomNavItems.forEach(item => {
                     item.classList.toggle('active', item.dataset.route === path);
                 });
 
-                // Load users into right sidebar
+                
                 this.loadRightbarUsers();
 
                 const panel = document.getElementById('app-panel');
                 await this.routes[pattern](panel, match.params, queryString);
 
-                // Hide bottom nav when inside an active conversation (chat/:userId), show on chat list
+                
                 const bottomNav = document.getElementById('bottom-nav');
                 if (bottomNav) {
                     const isChatConversation = /^chat\/\d+$/.test(path);
                     bottomNav.style.display = isChatConversation ? 'none' : '';
                 }
 
-                // Inject global users scroll on mobile (after async page render completes)
+                
                 this.ensureGlobalUsersScroll();
                 this.loadGlobalUsersScroll();
                 return;
             }
         }
 
-        // No route matched — show 404
+        
         const app = document.getElementById('app');
         const isAuth = window.__isAuthenticated === true;
         app.innerHTML = `
@@ -275,7 +275,7 @@ class Router {
     }
 
     ensureGlobalUsersScroll() {
-        // Insert global users scroll at top of app-panel if not already present
+        
         const panel = document.getElementById('app-panel');
         if (!panel) return;
         let wrapper = document.getElementById('global-users-wrapper');

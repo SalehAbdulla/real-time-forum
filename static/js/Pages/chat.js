@@ -145,7 +145,7 @@ export async function renderChat(app, params, queryString) {
         currentChatUserId = params.userId;
     }
 
-    // Attach click handler to persistent "Load older messages" button
+    
     document.getElementById('chat-load-older-btn')?.addEventListener('click', async () => {
         if (isLoading || isLoadingOlder) return;
 
@@ -160,13 +160,13 @@ export async function renderChat(app, params, queryString) {
             btn.textContent = 'Loading...';
         }
 
-        // Capture exact scroll dimensions before DOM update
+        
         const previousScrollHeight = messagesEl.scrollHeight;
         const previousScrollTop = messagesEl.scrollTop;
 
         await loadMessages(true);
 
-        // Adjust scroll synchronously right after DOM injection (prevents repaint whiplash)
+        
         const newScrollHeight = messagesEl.scrollHeight;
         messagesEl.scrollTop = previousScrollTop + (newScrollHeight - previousScrollHeight);
 
@@ -337,7 +337,7 @@ async function openConversation(userId) {
         document.getElementById('chat-sidebar').classList.add('hidden');
     }
 
-    // Hide mobile bottom nav while in conversation
+    
     const bottomNav = document.getElementById('bottom-nav');
     if (bottomNav) bottomNav.style.display = 'none';
 
@@ -359,7 +359,7 @@ function closeConversation() {
         document.getElementById('chat-sidebar').classList.remove('hidden');
     }
 
-    // Show mobile bottom nav when back to conversation list
+    
     const bottomNav = document.getElementById('bottom-nav');
     if (bottomNav) bottomNav.style.display = '';
 }
@@ -549,7 +549,7 @@ function sendMessage() {
     const text = input.value.trim();
     if (!text || !currentChatUserId) return;
 
-    // Validate message length
+    
     if (text.length > 2000) {
         showChatError('Message is too long. Please keep it under 2000 characters.');
         return;
@@ -602,12 +602,12 @@ function emitTyping() {
 
     const now = Date.now();
 
-    // Clear any existing stop timeout
+    
     if (typingTimer) {
         clearTimeout(typingTimer);
     }
 
-    // Throttle: don't emit more than once per throttle interval
+    
     if (now - lastTypingEmit >= TYPING_THROTTLE_MS) {
         lastTypingEmit = now;
         ws.send('typing', {
@@ -616,7 +616,7 @@ function emitTyping() {
         });
     }
 
-    // Set timeout to emit typing_stopped after debounce period of inactivity
+    
     typingTimer = setTimeout(() => {
         if (ws.isConnected && currentChatUserId) {
             ws.send('typing_stopped', {
@@ -637,7 +637,7 @@ function handleTypingIndicator(payload) {
         indicator.style.display = 'flex';
     }
 
-    // Auto-hide after debounce window if no typing_stopped received
+    
     if (window._typingHideTimer) {
         clearTimeout(window._typingHideTimer);
     }

@@ -54,7 +54,7 @@ export function renderProfile(app) {
         </div>
     `;
 
-    // Logout handler
+    
     document.getElementById('profile-logout-btn').addEventListener('click', async () => {
         const btn = document.getElementById('profile-logout-btn');
         btn.disabled = true;
@@ -63,7 +63,7 @@ export function renderProfile(app) {
         try {
             await api.logout();
         } catch (err) {
-            // Even if the request fails, we still want to log out locally
+            
             console.error('Logout request failed:', err);
         }
 

@@ -1,6 +1,4 @@
-/**
- * PostCard component — displays a single post in the feed
- */
+
 import { api } from '../api.js';
 import { router } from '../router.js';
 import { createAvatar } from './Avatar.js';
@@ -49,7 +47,7 @@ export function createPostCard(post) {
         </div>
     `;
     
-    // Insert avatar + user info into post-user
+    
     const postUser = card.querySelector('.post-user');
     postUser.appendChild(avatar);
     
@@ -61,16 +59,16 @@ export function createPostCard(post) {
     `;
     postUser.appendChild(userInfo);
     
-    // Click to view post detail
+    
     card.addEventListener('click', (e) => {
         if (!e.target.closest('.action-btn') && !e.target.closest('.post-menu')) {
             router.navigate(`post/${post.postId}`);
         }
     });
     
-    // Like button - use userScore from API for initial state, then toggle
+    
     const likeBtn = card.querySelector('.like-btn');
-    // Set initial state from server data
+    
     if (post.userScore === 1) {
         likeBtn.classList.add('liked');
     }
@@ -81,7 +79,7 @@ export function createPostCard(post) {
             const res = await api.react('post', post.postId, 1);
             const newScore = res.data.totalScore;
             likeBtn.querySelector('span').textContent = newScore;
-            // If score decreased, we removed our like; if increased, we added our like
+            
             if (newScore < oldScore) {
                 likeBtn.classList.remove('liked');
             } else {
@@ -92,14 +90,14 @@ export function createPostCard(post) {
         }
     });
     
-    // Comment button
+    
     const commentBtn = card.querySelector('.comment-btn');
     commentBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         router.navigate(`post/${post.postId}`);
     });
 
-    // Post menu toggle (only for owners)
+    
     if (isOwner) {
         const menuBtn = card.querySelector('.post-menu');
         const dropdown = card.querySelector('.post-menu-dropdown');
@@ -109,14 +107,14 @@ export function createPostCard(post) {
             dropdown.classList.toggle('open');
         });
 
-        // Close dropdown when clicking outside
+        
         document.addEventListener('click', (e) => {
             if (!card.contains(e.target)) {
                 dropdown.classList.remove('open');
             }
         }, { once: false });
 
-        // Delete post handler
+        
         const deleteBtn = card.querySelector('.post-menu-delete');
         deleteBtn.addEventListener('click', async (e) => {
             e.stopPropagation();

@@ -24,7 +24,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// testSchema is the SQL schema used to set up the in-memory database for testing.
 const testSchema = `
 PRAGMA foreign_keys = OFF;
 
@@ -160,13 +159,8 @@ CREATE INDEX idx_notifications_user
 ON notification (userId, isRead, createdAt DESC);
 `
 
-// TestWebSocketPrivateMessage tests the full WebSocket flow:
-// 1. Register two users
-// 2. Open WebSocket connections for both
-// 3. Send a private message from user1 to user2
-// 4. Verify the message was saved in the database via REST API
 func TestWebSocketPrivateMessage(t *testing.T) {
-	// ---------- Setup ----------
+	
 	origDir, _ := os.Getwd()
 	os.Chdir("..")
 	defer os.Chdir(origDir)
@@ -184,7 +178,7 @@ func TestWebSocketPrivateMessage(t *testing.T) {
 	app.TemplateCache = templateCache
 	render.NewTemplates(&app)
 
-	// Use in-memory database for testing
+	
 	database, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
 		t.Fatalf("failed to open in-memory database: %v", err)
@@ -196,7 +190,7 @@ func TestWebSocketPrivateMessage(t *testing.T) {
 		t.Fatalf("failed to execute schema: %v", err)
 	}
 
-	// Initialize services and handlers
+	
 	dbConn := &repositories.DB{Conn: database}
 	authService := service.NewAuthService(dbConn)
 	messageService := service.NewMessageService(dbConn, dbConn)
@@ -209,7 +203,7 @@ func TestWebSocketPrivateMessage(t *testing.T) {
 	hc.SetHub(wsHub)
 	go wsHub.Run()
 
-	// Build a handler that routes auth endpoints directly and protected endpoints through AuthMiddleware.
+	
 	wsHandler := pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.ServeWs))
 	messagesHandler := pkgmiddleware.AuthMiddleware(http.HandlerFunc(handlers.HandlerCtx.GetChatMessages))
 	mainMux := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -239,24 +233,24 @@ func TestWebSocketPrivateMessage(t *testing.T) {
 	baseURL := "http://" + listener.Addr().String()
 	wsURL := "ws://" + listener.Addr().String() + "/ws"
 
-	// ---------- Register two users ----------
+	
 	user1ID, token1 := registerTestUser(t, baseURL, "testuser1", "user1@test.com", "TestPass123!@#")
 	user2ID, token2 := registerTestUser(t, baseURL, "testuser2", "user2@test.com", "TestPass123!@#")
 
 	t.Logf("user1: id=%s, token=%s", user1ID, token1)
 	t.Logf("user2: id=%s, token=%s", user2ID, token2)
 
-	// ---------- Open WebSocket connections ----------
+	
 	ws1 := dialWebSocket(t, wsURL, token1)
 	defer ws1.Close()
 
 	ws2 := dialWebSocket(t, wsURL, token2)
 	defer ws2.Close()
 
-	// Give the hub time to register both clients
+	
 	time.Sleep(200 * time.Millisecond)
 
-	// ---------- user1 sends private message to user2 ----------
+	
 	privateMsg := map[string]interface{}{
 		"type": "private_msg",
 		"payload": map[string]string{
@@ -270,10 +264,10 @@ func TestWebSocketPrivateMessage(t *testing.T) {
 		t.Fatalf("ws1 write error: %v", err)
 	}
 
-	// Give the server time to process the message
+	
 	time.Sleep(200 * time.Millisecond)
 
-	// ---------- Verify the message was saved via REST API ----------
+	
 	messagesResp := getMessages(t, baseURL, token1, user2ID, 0, 10)
 	msgs := messagesResp.Data.Messages
 	if len(msgs) != 1 {
@@ -292,7 +286,7 @@ func TestWebSocketPrivateMessage(t *testing.T) {
 	}
 	t.Logf("message verified: sender=%s, recipient=%s, text=%s", msg.SenderId, msg.RecipientId, msg.TextMessage)
 
-	// ---------- Also verify from user2's perspective ----------
+	
 	messagesResp2 := getMessages(t, baseURL, token2, user1ID, 0, 10)
 	msgs2 := messagesResp2.Data.Messages
 	if len(msgs2) != 1 {
@@ -301,15 +295,8 @@ func TestWebSocketPrivateMessage(t *testing.T) {
 	t.Log("message visible from both user perspectives: PASS")
 }
 
-// TestChatSimulationDryRun simulates a full real-time chat conversation between two users.
-// It verifies:
-//   - Both users can connect to WebSocket
-//   - Real-time message delivery over WebSocket (not just REST persistence)
-//   - Full back-and-forth conversation (multiple messages, replies)
-//   - Messages are persisted and retrievable via REST API from both sides
-//   - Unauthenticated WebSocket connections are rejected
 func TestChatSimulationDryRun(t *testing.T) {
-	// ---------- Setup ----------
+	
 	origDir, _ := os.Getwd()
 	os.Chdir("..")
 	defer os.Chdir(origDir)
@@ -379,7 +366,7 @@ func TestChatSimulationDryRun(t *testing.T) {
 	baseURL := "http://" + listener.Addr().String()
 	wsURL := "ws://" + listener.Addr().String() + "/ws"
 
-	// ---------- Phase 1: Unauthenticated WS connection MUST be rejected ----------
+	
 	t.Run("Phase1_UnauthenticatedRejected", func(t *testing.T) {
 		_, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
 		if err == nil {
@@ -388,14 +375,14 @@ func TestChatSimulationDryRun(t *testing.T) {
 		t.Logf("unauthenticated WS correctly rejected: %v", err)
 	})
 
-	// ---------- Phase 2: Register users ----------
+	
 	user1ID, token1 := registerTestUser(t, baseURL, "alice", "alice@chat.com", "AlicePass123!@#")
 	user2ID, token2 := registerTestUser(t, baseURL, "bob", "bob@chat.com", "BobPass456!@#")
 
 	t.Logf("alice: id=%s, token=%s", user1ID, token1)
 	t.Logf("bob:   id=%s, token=%s", user2ID, token2)
 
-	// ---------- Phase 3: Connect both users ----------
+	
 	wsAlice := dialWebSocket(t, wsURL, token1)
 	defer wsAlice.Close()
 
@@ -404,40 +391,40 @@ func TestChatSimulationDryRun(t *testing.T) {
 
 	time.Sleep(200 * time.Millisecond)
 
-	// ---------- Phase 4: Alice sends "hello Bob" → Bob receives real-time ----------
-	// Note: the server echoes the incoming_msg back to the sender too,
-	// so we must drain the sender's echo to keep the read channels clean.
+	
+	
+	
 	t.Run("Phase4_AliceSendsFirstMessage", func(t *testing.T) {
 		sendPrivateMsg(t, wsAlice, user2ID, "Hey Bob, how are you?")
 		time.Sleep(200 * time.Millisecond)
 
-		// Alice gets an echo of her own message — drain it
+		
 		echo := readWSMessage(t, wsAlice, 2*time.Second)
 		verifyIncomingMsg(t, echo, user1ID, "Hey Bob, how are you?")
 		t.Log("  [drained sender echo on alice]")
 
-		// Bob receives the incoming message
+		
 		msg := readWSMessage(t, wsBob, 2*time.Second)
 		verifyIncomingMsg(t, msg, user1ID, "Hey Bob, how are you?")
 
-		// Verify persisted via REST
+		
 		assertConversationLength(t, baseURL, token1, user2ID, 1)
 		assertConversationLength(t, baseURL, token2, user1ID, 1)
 
 		t.Log("alice → bob: 'Hey Bob, how are you?' DELIVERED (real-time + persisted)")
 	})
 
-	// ---------- Phase 5: Bob replies → Alice receives real-time ----------
+	
 	t.Run("Phase5_BobReplies", func(t *testing.T) {
 		sendPrivateMsg(t, wsBob, user1ID, "I'm good Alice! What's up?")
 		time.Sleep(200 * time.Millisecond)
 
-		// Bob gets an echo of his own reply — drain it
+		
 		echo := readWSMessage(t, wsBob, 2*time.Second)
 		verifyIncomingMsg(t, echo, user2ID, "I'm good Alice! What's up?")
 		t.Log("  [drained sender echo on bob]")
 
-		// Alice receives Bob's reply
+		
 		msg := readWSMessage(t, wsAlice, 2*time.Second)
 		verifyIncomingMsg(t, msg, user2ID, "I'm good Alice! What's up?")
 
@@ -447,7 +434,7 @@ func TestChatSimulationDryRun(t *testing.T) {
 		t.Log("bob → alice: 'I'm good Alice! What's up?' DELIVERED (real-time + persisted)")
 	})
 
-	// ---------- Phase 6: Rapid back-and-forth multiple messages ----------
+	
 	t.Run("Phase6_MultiMessageExchange", func(t *testing.T) {
 		conversation := []struct {
 			sender    *websocket.Conn
@@ -465,17 +452,17 @@ func TestChatSimulationDryRun(t *testing.T) {
 			{wsAlice, wsBob, user2ID, user1ID, "Will do, thanks Bob!"},
 		}
 
-		expectedTotal := 2 + len(conversation) // previous 2 + new 7 = 9
+		expectedTotal := 2 + len(conversation) 
 
 		for i, turn := range conversation {
 			sendPrivateMsg(t, turn.sender, turn.recipID, turn.text)
 			time.Sleep(150 * time.Millisecond)
 
-			// Drain sender echo
+			
 			echo := readWSMessage(t, turn.sender, 2*time.Second)
 			verifyIncomingMsg(t, echo, turn.senderID, turn.text)
 
-			// Recipient receives the real-time message
+			
 			msg := readWSMessage(t, turn.recipient, 2*time.Second)
 			verifyIncomingMsg(t, msg, "", turn.text)
 			t.Logf("  [%d] DELIVERED: %q", i+3, turn.text)
@@ -487,7 +474,7 @@ func TestChatSimulationDryRun(t *testing.T) {
 		t.Logf("multi-message exchange complete: %d total messages", expectedTotal)
 	})
 
-	// ---------- Phase 7: Verify complete conversation from both sides ----------
+	
 	t.Run("Phase7_ConversationIntegrity", func(t *testing.T) {
 		expectedTexts := []string{
 			"Hey Bob, how are you?",
@@ -501,12 +488,12 @@ func TestChatSimulationDryRun(t *testing.T) {
 			"Will do, thanks Bob!",
 		}
 
-		// Helper: verify all expected texts exist in the message list
+		
 		assertContainsAll := func(msgs []messageDTO) {
 			seen := make(map[string]bool)
 			for _, m := range msgs {
 				seen[m.TextMessage] = true
-				// Also verify every message has valid sender/recipient
+				
 				if m.SenderId != user1ID && m.SenderId != user2ID {
 					t.Fatalf("unexpected senderId: %s", m.SenderId)
 				}
@@ -524,21 +511,21 @@ func TestChatSimulationDryRun(t *testing.T) {
 			}
 		}
 
-		// Check from Alice's perspective
+		
 		aliceMsgs := getMessages(t, baseURL, token1, user2ID, 0, 50)
 		if len(aliceMsgs.Data.Messages) != len(expectedTexts) {
 			t.Fatalf("alice sees %d messages, expected %d", len(aliceMsgs.Data.Messages), len(expectedTexts))
 		}
 		assertContainsAll(aliceMsgs.Data.Messages)
 
-		// Check from Bob's perspective
+		
 		bobMsgs := getMessages(t, baseURL, token2, user1ID, 0, 50)
 		if len(bobMsgs.Data.Messages) != len(expectedTexts) {
 			t.Fatalf("bob sees %d messages, expected %d", len(bobMsgs.Data.Messages), len(expectedTexts))
 		}
 		assertContainsAll(bobMsgs.Data.Messages)
 
-		// Verify sender/recipient correctness
+		
 		aliceSentCount := 0
 		bobSentCount := 0
 		for _, m := range aliceMsgs.Data.Messages {
@@ -561,7 +548,6 @@ func TestChatSimulationDryRun(t *testing.T) {
 	t.Log("=== Chat Simulation Dry Run: ALL PHASES PASSED ===")
 }
 
-// sendPrivateMsg sends a private_msg over a WebSocket connection.
 func sendPrivateMsg(t *testing.T, conn *websocket.Conn, recipientID, text string) {
 	t.Helper()
 	msg := map[string]interface{}{
@@ -577,14 +563,11 @@ func sendPrivateMsg(t *testing.T, conn *websocket.Conn, recipientID, text string
 	}
 }
 
-// rawWSMessage is a generic container for any WebSocket message type.
 type rawWSMessage struct {
 	Type    string          `json:"type"`
 	Payload json.RawMessage `json:"payload"`
 }
 
-// readWSMessage reads the next incoming_msg from a WebSocket connection,
-// skipping and discarding non-chat messages (user_status, notification, etc.).
 func readWSMessage(t *testing.T, conn *websocket.Conn, timeout time.Duration) rawWSMessage {
 	t.Helper()
 
@@ -602,7 +585,7 @@ func readWSMessage(t *testing.T, conn *websocket.Conn, timeout time.Duration) ra
 			return msg
 		}
 
-		// Drain non-chat messages: user_status, notification, etc.
+		
 		t.Logf("  [drained %s]", msg.Type)
 	}
 
@@ -610,7 +593,6 @@ func readWSMessage(t *testing.T, conn *websocket.Conn, timeout time.Duration) ra
 	return rawWSMessage{}
 }
 
-// verifyIncomingMsg checks that an incoming_msg has the expected sender and text.
 func verifyIncomingMsg(t *testing.T, msg rawWSMessage, expectedSenderID, expectedText string) {
 	t.Helper()
 
@@ -627,7 +609,6 @@ func verifyIncomingMsg(t *testing.T, msg rawWSMessage, expectedSenderID, expecte
 	}
 }
 
-// assertConversationLength verifies the conversation has exactly `expected` messages.
 func assertConversationLength(t *testing.T, baseURL, token, partnerID string, expected int) {
 	t.Helper()
 	resp := getMessages(t, baseURL, token, partnerID, 0, 50)
@@ -636,7 +617,6 @@ func assertConversationLength(t *testing.T, baseURL, token, partnerID string, ex
 	}
 }
 
-// messagesResponse mirrors the API response structure for messages.
 type messagesResponse struct {
 	Data struct {
 		Messages      []messageDTO `json:"messages"`
@@ -655,7 +635,6 @@ type messageDTO struct {
 	IsRead      int    `json:"isRead"`
 }
 
-// getMessages fetches messages from the REST API.
 func getMessages(t *testing.T, baseURL, token, partnerID string, offset, limit int) messagesResponse {
 	t.Helper()
 	url := fmt.Sprintf("%s/api/v1/messages?partnerId=%s&offset=%d&limit=%d", baseURL, partnerID, offset, limit)
@@ -683,7 +662,6 @@ func getMessages(t *testing.T, baseURL, token, partnerID string, offset, limit i
 	return result
 }
 
-// registerTestUser registers a user and returns (userID, sessionToken).
 func registerTestUser(t *testing.T, baseURL, nickname, email, password string) (string, string) {
 	t.Helper()
 
@@ -725,7 +703,6 @@ func registerTestUser(t *testing.T, baseURL, nickname, email, password string) (
 	return registerResp.Data.UserID, token
 }
 
-// dialWebSocket opens a WebSocket connection with the session token as a cookie.
 func dialWebSocket(t *testing.T, wsURL, token string) *websocket.Conn {
 	t.Helper()
 

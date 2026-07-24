@@ -1,6 +1,4 @@
-/**
- * BottomNav component — fixed bottom navigation bar
- */
+
 import { router } from '../router.js';
 
 const navItems = [

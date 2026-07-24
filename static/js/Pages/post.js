@@ -98,12 +98,12 @@ export async function renderPost(app, params) {
             </div>
         `;
         
-        // Back button
+        
         document.getElementById('back-btn').addEventListener('click', () => {
             window.history.back();
         });
         
-        // Like button - use userScore from API for initial state, then toggle
+        
         const likeBtn = document.getElementById('detail-like-btn');
         if (post.userScore === 1) {
             likeBtn.classList.add('liked');
@@ -124,11 +124,11 @@ export async function renderPost(app, params) {
             }
         });
         
-        // Comment submit
+        
         const commentInput = document.getElementById('comment-input');
         const commentSubmitBtn = document.getElementById('comment-submit-btn');
         
-        // Comment character counter
+        
         const commentCharCount = document.getElementById('comment-char-count');
         commentInput.addEventListener('input', () => {
             if (commentCharCount) {
@@ -136,7 +136,7 @@ export async function renderPost(app, params) {
             }
         });
 
-        // Block non-ASCII characters on comment input
+        
         commentInput.addEventListener('beforeinput', (e) => {
             if (e.data) {
                 for (const ch of e.data) {
@@ -152,7 +152,7 @@ export async function renderPost(app, params) {
         commentSubmitBtn.addEventListener('click', async () => {
             const content = commentInput.value.trim();
             
-            // Validate comment
+            
             const commentErr = validateLength(content, 3, 300, 'Comment');
             if (commentErr) {
                 showInputError(commentInput.closest('.comment-form'), commentErr);
@@ -166,7 +166,7 @@ export async function renderPost(app, params) {
                 await api.createComment(post.postId + '', content);
                 commentInput.value = '';
                 if (commentCharCount) commentCharCount.textContent = '0/300';
-                // Reload comments with current sort
+                
                 loadComments(post.postId, 1, currentSortBy, currentSortOrder);
             } catch (err) {
                 const msg = err.error || err.message || 'Failed to post comment. Please try again.';
@@ -177,7 +177,7 @@ export async function renderPost(app, params) {
             }
         });
         
-        // Sort buttons
+        
         let currentPage = 1;
         let currentSortBy = 'createdAt';
         let currentSortOrder = 'desc';
@@ -193,13 +193,13 @@ export async function renderPost(app, params) {
             });
         });
         
-        // Set default active sort
+        
         document.querySelector('.sort-btn').classList.add('active');
         
-        // Load users into post page scroll
+        
         loadPostUsers();
         
-        // Load comments
+        
         loadComments(post.postId, currentPage, currentSortBy, currentSortOrder);
         
     } catch (err) {
@@ -261,7 +261,7 @@ async function loadComments(postId, page = 1, sortBy = 'createdAt', sortOrder = 
             </div>
         `}).join('');
         
-        // Add like handlers for comments - use userScore from server for accurate state
+        
         document.querySelectorAll('.comment-like-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
@@ -282,28 +282,28 @@ async function loadComments(postId, page = 1, sortBy = 'createdAt', sortOrder = 
             });
         });
 
-        // Comment menu toggle and delete handlers
+        
         document.querySelectorAll('.comment-menu').forEach(menuBtn => {
             const card = menuBtn.closest('.comment-card');
             const dropdown = menuBtn.nextElementSibling;
 
             menuBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                // Close any other open menus first
+                
                 document.querySelectorAll('.comment-menu-dropdown.open').forEach(d => {
                     if (d !== dropdown) d.classList.remove('open');
                 });
                 dropdown.classList.toggle('open');
             });
 
-            // Close dropdown when clicking outside
+            
             document.addEventListener('click', (e) => {
                 if (!card.contains(e.target)) {
                     dropdown.classList.remove('open');
                 }
             }, { once: false });
 
-            // Delete comment handler
+            
             const deleteBtn = dropdown.querySelector('.comment-menu-delete');
             if (deleteBtn) {
                 deleteBtn.addEventListener('click', async (e) => {
@@ -313,7 +313,7 @@ async function loadComments(postId, page = 1, sortBy = 'createdAt', sortOrder = 
                         try {
                             const commentId = parseInt(deleteBtn.dataset.commentId);
                             await api.deleteComment(commentId);
-                            // Reload current page of comments
+                            
                             loadComments(postId, page, sortBy, sortOrder);
                         } catch (err) {
                             console.error('Failed to delete comment:', err);
@@ -324,13 +324,13 @@ async function loadComments(postId, page = 1, sortBy = 'createdAt', sortOrder = 
             }
         });
         
-        // Update comment count in the header
+        
         const commentCountSpan = document.querySelector('#detail-comment-btn span');
         if (commentCountSpan) {
             commentCountSpan.textContent = data.totalElements || comments.length;
         }
         
-        // Render pagination
+        
         renderPagination(paginationEl, data, postId, sortBy, sortOrder);
         
     } catch (err) {
@@ -350,7 +350,7 @@ function renderPagination(paginationEl, data, postId, sortBy, sortOrder) {
     
     let html = '<div class="pagination-controls">';
     
-    // Previous button
+    
     html += `<button class="pagination-btn" data-page="${currentPage - 1}" ${currentPage <= 1 ? 'disabled' : ''}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M19 12H5M12 19l-7-7 7-7"/>
@@ -358,7 +358,7 @@ function renderPagination(paginationEl, data, postId, sortBy, sortOrder) {
         Previous
     </button>`;
     
-    // Page numbers
+    
     const startPage = Math.max(1, currentPage - 2);
     const endPage = Math.min(totalPages, currentPage + 2);
     
@@ -380,7 +380,7 @@ function renderPagination(paginationEl, data, postId, sortBy, sortOrder) {
         html += `<button class="pagination-btn" data-page="${totalPages}">${totalPages}</button>`;
     }
     
-    // Next button
+    
     html += `<button class="pagination-btn" data-page="${currentPage + 1}" ${currentPage >= totalPages ? 'disabled' : ''}>
         Next
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -392,7 +392,7 @@ function renderPagination(paginationEl, data, postId, sortBy, sortOrder) {
     
     paginationEl.innerHTML = html;
     
-    // Add click handlers
+    
     paginationEl.querySelectorAll('.pagination-btn').forEach(btn => {
         if (btn.disabled) return;
         btn.addEventListener('click', () => {

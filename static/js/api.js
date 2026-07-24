@@ -33,7 +33,7 @@ function formEncode(obj) {
 }
 
 export const api = {
-    // Auth
+    
     login: (identifier, password, rememberMe = false) =>
         apiRequest('POST', '/api/v1/auth/login', formEncode({ identifier, password, rememberMe })),
 
@@ -46,7 +46,7 @@ export const api = {
     me: () =>
         apiRequest('GET', '/api/v1/auth/me'),
 
-    // Posts
+    
     getPosts: (page = 1, size = 10, sortBy = 'createdAt', sortOrder = 'desc', categoryId = 0) => {
         let url = `/api/v1/posts?page=${page}&size=${size}&sortBy=${sortBy}&sortOrder=${sortOrder}`;
         if (categoryId > 0) url += `&categoryId=${categoryId}`;
@@ -59,22 +59,22 @@ export const api = {
     createPost: (title, content, categoryId) =>
         apiRequest('POST', '/api/v1/posts', { title, content, categoryId }),
 
-    // Comments
+    
     getComments: (postId, page = 1, size = 10, sortBy = 'createdAt', sortOrder = 'desc') =>
         apiRequest('GET', `/api/v1/posts/comments?postId=${postId}&page=${page}&size=${size}&sortBy=${sortBy}&sortOrder=${sortOrder}`),
 
     createComment: (postId, content) =>
         apiRequest('POST', '/api/v1/posts/comments', formEncode({ postId, content })),
 
-    // Reactions
+    
     react: (entityType, entityId, score) =>
         apiRequest('POST', '/api/v1/reactions', { entityType, entityId, score }),
 
-    // Categories
+    
     getCategories: () =>
         apiRequest('GET', '/api/v1/categories'),
 
-    // Messages
+    
     getChatUsers: () =>
         apiRequest('GET', '/api/v1/messages/users'),
 
@@ -87,7 +87,7 @@ export const api = {
     deleteComment: (commentId) =>
         apiRequest('DELETE', `/api/v1/posts/comments?id=${commentId}`),
 
-    // Notifications
+    
     getNotifications: (offset = 0, limit = 10, unread = false) =>
         apiRequest('GET', `/api/v1/notifications?offset=${offset}&limit=${limit}${unread ? '&unread=true' : ''}`),
 

@@ -90,7 +90,7 @@ func (re *HandlerContext) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if rememberMe {
-		cookie.MaxAge = 60 * 60 * 24 * 30 // 30 days
+		cookie.MaxAge = 60 * 60 * 24 * 30 
 	}
 
 	http.SetCookie(w, cookie)

@@ -1,7 +1,4 @@
-/**
- * Avatar component — circular initial-based avatar
- * Uses global CSS glass classes for styling
- */
+
 import { getInitials } from '../utils.js';
 
 export function createAvatar(name, size = 'md', onClick = null) {
@@ -23,9 +20,6 @@ export function createAvatar(name, size = 'md', onClick = null) {
     return avatar;
 }
 
-/**
- * Avatar with online/offline dot wrapper
- */
 export function createAvatarWithStatus(name, isOnline, size = 'lg') {
     const wrapper = document.createElement('div');
     wrapper.className = 'avatar-wrapper';

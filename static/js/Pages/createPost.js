@@ -84,7 +84,7 @@ export async function renderCreatePost(app) {
         </div>
     `;
 
-    // Back button
+    
     document.getElementById('create-back-btn').addEventListener('click', () => {
         window.history.back();
     });
@@ -99,7 +99,7 @@ export async function renderCreatePost(app) {
 
     let selectedCategory = null;
 
-    // Character counters
+    
     titleInput.addEventListener('input', () => {
         titleCharCount.textContent = `${titleInput.value.length}/30`;
         validateForm();
@@ -110,7 +110,7 @@ export async function renderCreatePost(app) {
         validateForm();
     });
 
-    // Block non-ASCII characters on inputs with data-ascii attribute
+    
     document.querySelectorAll('[data-ascii="true"]').forEach(input => {
         input.addEventListener('beforeinput', (e) => {
             if (e.data) {
@@ -125,7 +125,7 @@ export async function renderCreatePost(app) {
         });
     });
 
-    // Category selection
+    
     categoryPills.forEach(pill => {
         pill.addEventListener('click', () => {
             categoryPills.forEach(p => p.classList.remove('active'));
@@ -149,12 +149,12 @@ export async function renderCreatePost(app) {
         }
     }
 
-    // Submit
+    
     submitBtn.addEventListener('click', async () => {
         const title = titleInput.value.trim();
         const content = contentTextarea.value.trim();
 
-        // Final validation
+        
         if (title.length < 3 || title.length > 30) {
             showError('Title must be between 3 and 30 characters');
             return;

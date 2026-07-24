@@ -118,7 +118,7 @@ async function handleLogin() {
     const password = form.querySelector('[name="password"]').value;
     const rememberMe = document.getElementById('remember-me')?.checked || false;
 
-    // Client-side validation
+    
     if (!identifier) {
         errorEl.textContent = 'Please enter your email or username.';
         errorEl.style.display = 'block';
@@ -132,12 +132,12 @@ async function handleLogin() {
 
     const res = await api.login(identifier, password, rememberMe);
     window.__isAuthenticated = true;
-    // Fetch user profile
+    
     try {
         const me = await api.me();
         window.__user = me.data;
     } catch {}
-    // Connect WebSocket now that we're authenticated
+    
     ws.connect();
     router.navigate('feed');
 }
@@ -157,7 +157,7 @@ async function handleRegister() {
         gender: form.querySelector('[name="gender"]').value.trim().toLowerCase(),
     };
 
-    // Client-side validation
+    
     const nickErr = validateLength(fields.nickName, 2, 33, 'Username');
     if (nickErr) {
         errorEl.textContent = nickErr;
@@ -214,12 +214,12 @@ async function handleRegister() {
 
     const res = await api.register(fields);
     window.__isAuthenticated = true;
-    // Fetch user profile
+    
     try {
         const me = await api.me();
         window.__user = me.data;
     } catch {}
-    // Connect WebSocket now that we're authenticated
+    
     ws.connect();
     router.navigate('feed');
 }

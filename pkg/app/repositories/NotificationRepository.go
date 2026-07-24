@@ -151,7 +151,7 @@ func (db *DB) MarkAllAsRead(userID string) error {
 	}
 
 	if rowsAffected == 0 {
-		// No unread notifications — not an error, just return 0
+		
 		return nil
 	}
 

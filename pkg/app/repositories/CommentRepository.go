@@ -112,7 +112,7 @@ func (db *DB) CreateComment(userId string, postId int, content string) (models.C
 		return models.Comment{}, realtimeforum.ErrInternal
 	}
 
-	// Update the comment count on the post
+	
 	_, err = db.Conn.Exec(
 		`UPDATE post SET commentsCounter = commentsCounter + 1 WHERE postId = ?`,
 		postId,
@@ -142,7 +142,7 @@ func (db *DB) CreateComment(userId string, postId int, content string) (models.C
 }
 
 func (db *DB) DeleteComment(commentId int, userId string) error {
-	// Only allow the comment owner to delete it
+	
 	result, err := db.Conn.Exec(
 		`DELETE FROM comment WHERE commentId = ? AND userId = ?`,
 		commentId, userId,

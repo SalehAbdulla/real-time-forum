@@ -20,14 +20,12 @@ const (
 	SendBufferSize = 256
 )
 
-// Client represents a single WebSocket connection.
 type Client struct {
 	Hub    *Hub
 	Conn   *websocket.Conn
 	Send   chan []byte
 	UserID string
 }
-
 
 func (c *Client) ReadPump(handleMessage func(client *Client, messageType int, data []byte)) {
 	defer func() {

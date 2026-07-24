@@ -5,7 +5,6 @@ import (
 	"sync"
 )
 
-// Hub maintains the set of active clients and handles message routing.
 type Hub struct {
 	mu sync.RWMutex
 

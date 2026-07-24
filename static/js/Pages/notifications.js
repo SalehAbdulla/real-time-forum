@@ -39,7 +39,7 @@ export async function renderNotifications(app, params, queryString) {
     await loadUnreadCount();
     await loadNotifications(true);
 
-    // Infinite scroll
+    
     const listEl = document.getElementById('notifications-list');
     listEl.addEventListener('scroll', () => {
         if (listEl.scrollTop + listEl.clientHeight >= listEl.scrollHeight - 150) {
@@ -47,17 +47,17 @@ export async function renderNotifications(app, params, queryString) {
         }
     });
 
-    // Mark all as read
+    
     document.getElementById('mark-all-read-btn')?.addEventListener('click', markAllAsRead);
 
-    // Listen for real-time notifications via WebSocket
+    
     if (!window._notifCleanup) {
         window._notifCleanup = ws.on('notification', handleRealtimeNotification);
     }
 }
 
 async function loadUnreadCount() {
-    // Try to reuse the global count if already loaded by app.js
+    
     if (typeof window.__unreadNotifCount === 'number') {
         unreadCount = window.__unreadNotifCount;
         updateUnreadUI();
@@ -91,7 +91,7 @@ function updateUnreadUI() {
         markAllBtn.style.display = unreadCount > 0 ? 'inline-flex' : 'none';
     }
 
-    // Sync sidebar nav badge via the shared global function
+    
     syncSidebarBadge();
 }
 
@@ -166,10 +166,10 @@ function renderNotificationList(listEl) {
 
     listEl.innerHTML = notificationsCache.map(notif => renderNotificationCard(notif)).join('');
 
-    // Attach click handlers
+    
     listEl.querySelectorAll('.notif-card').forEach(card => {
         card.addEventListener('click', (e) => {
-            // Don't navigate if clicking the mark-read button
+            
             if (e.target.closest('.notif-mark-read-btn')) return;
             
             const notifId = parseInt(card.dataset.notifId, 10);
@@ -179,7 +179,7 @@ function renderNotificationList(listEl) {
         });
     });
 
-    // Attach mark-as-read button handlers
+    
     listEl.querySelectorAll('.notif-mark-read-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.stopPropagation();
@@ -239,10 +239,10 @@ function renderEmptyState() {
 }
 
 async function handleNotificationClick(notifId, entityType, entityId, card) {
-    // Mark as read first (fire-and-forget)
+    
     markSingleAsRead(notifId, card);
 
-    // Navigate based on entity type
+    
     if (entityType === 'comment') {
         router.navigate(`post/${entityId}`);
     } else if (entityType === 'message') {
@@ -262,11 +262,11 @@ async function markSingleAsRead(notifId, card) {
             if (btn) btn.remove();
         }
 
-        // Update local cache
+        
         const cached = notificationsCache.find(n => n.notificationId === notifId);
         if (cached) cached.isRead = 1;
 
-        // Decrement unread count
+        
         if (unreadCount > 0) {
             unreadCount--;
             updateUnreadUI();
@@ -286,12 +286,12 @@ async function markAllAsRead() {
     try {
         await api.markAllAsRead();
         
-        // Update all local notifications
+        
         notificationsCache.forEach(n => n.isRead = 1);
         unreadCount = 0;
         updateUnreadUI();
 
-        // Re-render
+        
         const listEl = document.getElementById('notifications-list');
         if (listEl) {
             renderNotificationList(listEl);
@@ -314,14 +314,14 @@ async function markAllAsRead() {
 function handleRealtimeNotification(payload) {
     if (!payload) return;
 
-    // Increment unread count
+    
     unreadCount++;
     updateUnreadUI();
 
-    // If on notifications page, prepend the new notification
+    
     const listEl = document.getElementById('notifications-list');
     if (listEl) {
-        // Check if we're on the notifications page by looking for the container
+        
         const page = document.querySelector('.notifications-page');
         if (page) {
             const newNotif = {
@@ -336,19 +336,19 @@ function handleRealtimeNotification(payload) {
 
             notificationsCache.unshift(newNotif);
 
-            // Remove empty state if present
+            
             const emptyState = listEl.querySelector('.notif-empty-state');
             if (emptyState) {
                 listEl.innerHTML = '';
             }
 
-            // Prepend the new card
+            
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = renderNotificationCard(newNotif);
             const newCard = tempDiv.firstElementChild;
             listEl.insertBefore(newCard, listEl.firstChild);
 
-            // Attach handlers to the new card
+            
             newCard.addEventListener('click', (e) => {
                 if (e.target.closest('.notif-mark-read-btn')) return;
                 handleNotificationClick(newNotif.notificationId, newNotif.entityType, newNotif.entityId, newCard);
@@ -364,12 +364,12 @@ function handleRealtimeNotification(payload) {
         }
     }
 
-    // Show a toast notification
+    
     showToast(payload);
 }
 
 function showToast(payload) {
-    // Remove existing toast
+    
     const existingToast = document.querySelector('.notif-toast');
     if (existingToast) existingToast.remove();
 
@@ -397,12 +397,12 @@ function showToast(payload) {
 
     document.body.appendChild(toast);
 
-    // Animate in
+    
     requestAnimationFrame(() => {
         toast.classList.add('notif-toast--visible');
     });
 
-    // Auto-dismiss after 5 seconds
+    
     setTimeout(() => {
         toast.classList.remove('notif-toast--visible');
         setTimeout(() => toast.remove(), 400);

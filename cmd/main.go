@@ -23,7 +23,7 @@ func main() {
 	app.UseCache = false
 	app.LogLevel = os.Getenv("LOG_LEVEL")
 
-	// Initialize structured logger
+	
 	logger.InitLogger(&app)
 
 	templateCache, err := render.CreateTemplateCache()
@@ -35,7 +35,7 @@ func main() {
 
 	render.NewTemplates(&app)
 
-	// Initialize database
+	
 	database, err := sql.Open("sqlite3", "./pkg/app/repositories/realTimeForum.db")
 	if err != nil {
 		app.Logger.Error("failed to open database", "error", err)
@@ -45,7 +45,7 @@ func main() {
 
 	dbConn := &db.DB{Conn: database}
 
-	// Initialize services
+	
 	authService := service.NewAuthService(dbConn)
 	categoryService := service.NewCategoryService(dbConn)
 	reactService := service.NewReactionService(dbConn)
@@ -57,7 +57,7 @@ func main() {
 	hc := handlers.NewHandlerContext(&app, authService, categoryService, postService, commentService, reactService, messageService, notificationService)
 	handlers.SetHandlerContext(hc)
 
-	// Initialize WebSocket hub
+	
 	wsHub := pkgwebsocket.NewHub()
 	hc.SetHub(wsHub)
 	go wsHub.Run()

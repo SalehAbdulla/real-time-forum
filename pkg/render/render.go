@@ -14,8 +14,6 @@ func NewTemplates(a *config.AppConfig) {
 	app = a
 }
 
-// RenderTemplate serves the single HTML file (index.html) for the SPA.
-// The templateName parameter is ignored — all routes serve index.html.
 func RenderTemplate(w http.ResponseWriter, templateData *models.TemplateData) error {
 	var templateCache map[string]*template.Template
 	var err error
@@ -40,7 +38,6 @@ func RenderTemplate(w http.ResponseWriter, templateData *models.TemplateData) er
 	return nil
 }
 
-// CreateTemplateCache parses only the single index.html file for the SPA.
 func CreateTemplateCache() (map[string]*template.Template, error) {
 	myCache := map[string]*template.Template{}
 

@@ -1,6 +1,4 @@
-/**
- * FeedHeader component — top bar with logo and user avatar
- */
+
 import { createLogo } from './Logo.js';
 import { createAvatar } from './Avatar.js';
 import { router } from '../router.js';

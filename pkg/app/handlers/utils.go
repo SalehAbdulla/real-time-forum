@@ -10,10 +10,10 @@ import (
 )
 
 func (re *HandlerContext) parseForm(w http.ResponseWriter, r *http.Request) bool {
-	// Parse multipart form data (FormData from JS) or URL-encoded form data
+	
 	contentType := r.Header.Get("Content-Type")
 	if strings.HasPrefix(contentType, "multipart/form-data") {
-		if err := r.ParseMultipartForm(32 << 20); err != nil { // 32 MB max
+		if err := r.ParseMultipartForm(32 << 20); err != nil { 
 			re.HandleError(w, r, realtimeforum.ErrBadRequest)
 			return false
 		}
@@ -24,7 +24,6 @@ func (re *HandlerContext) parseForm(w http.ResponseWriter, r *http.Request) bool
 	return true
 }
 
-// isASCII returns true if the string contains only printable ASCII characters (0x20-0x7E).
 func isASCII(s string) bool {
 	for _, r := range s {
 		if r < 0x20 || r > 0x7E {
@@ -34,9 +33,8 @@ func isASCII(s string) bool {
 	return true
 }
 
-// HandleError logs the error with request context and sends an appropriate HTTP response.
 func (re *HandlerContext) HandleError(w http.ResponseWriter, r *http.Request, err error) {
-	// Determine HTTP status code and log level from the error type
+	
 	var statusCode int
 	var level slog.Level
 
@@ -60,7 +58,7 @@ func (re *HandlerContext) HandleError(w http.ResponseWriter, r *http.Request, er
 		statusCode = http.StatusInternalServerError
 		level = slog.LevelError
 	default:
-		// Check if the error is a known validation/business-logic error (4xx)
+		
 		switch {
 		case err == realtimeforum.ErrInvalidEmail,
 			err == realtimeforum.ErrEmailExists,
@@ -87,7 +85,7 @@ func (re *HandlerContext) HandleError(w http.ResponseWriter, r *http.Request, er
 		}
 	}
 
-	// Log the error with request context
+	
 	re.App.Logger.LogAttrs(r.Context(), level, "request error",
 		slog.String("error", err.Error()),
 		slog.String("method", r.Method),

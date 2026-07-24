@@ -20,7 +20,7 @@ var upgrader = websocket.Upgrader{
 }
 
 func (re *HandlerContext) ServeWs(w http.ResponseWriter, r *http.Request) {
-	// Try cookie first, then fall back to query param (for browser cookie restrictions)
+	
 	var sessionToken string
 
 	cookie, err := r.Cookie("session_token")
@@ -182,7 +182,7 @@ func (re *HandlerContext) handleTyping(client *pkgwebsocket.Client, msg pkgwebso
 		return
 	}
 
-	// Validate that sender ID matches the authenticated client
+	
 	if client.UserID != payload.SenderId {
 		return
 	}
@@ -211,7 +211,7 @@ func (re *HandlerContext) handleTypingStopped(client *pkgwebsocket.Client, msg p
 		return
 	}
 
-	// Validate that sender ID matches the authenticated client
+	
 	if client.UserID != payload.SenderId {
 		return
 	}

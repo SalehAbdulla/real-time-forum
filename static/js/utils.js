@@ -1,6 +1,4 @@
-/**
- * Shared utility functions
- */
+
 
 export function getInitials(name) {
     if (!name) return '?';
@@ -37,9 +35,6 @@ export function timeAgo(timestamp) {
     return `${diffDays} days ago`;
 }
 
-/**
- * Slim down a Unix timestamp to days/hours/min ago
- */
 export function formatUnixTimestamp(ts) {
     if (!ts) return '';
     const now = Math.floor(Date.now() / 1000);
@@ -50,9 +45,6 @@ export function formatUnixTimestamp(ts) {
     return `${Math.floor(diff / 86400)}d ago`;
 }
 
-/**
- * Create floating ambient particles in the background
- */
 export function createParticles() {
     const container = document.getElementById('particles-container');
     if (!container) return;
@@ -74,19 +66,13 @@ export function createParticles() {
     }
 }
 
-// ─── Input Validation Helpers ────────────────────────────────────────────────
-
-/**
- * Show a temporary error banner inside a given container element.
- * The banner auto-dismisses after 5 seconds.
- */
 export function showInputError(containerId, message) {
     const container = typeof containerId === 'string'
         ? document.getElementById(containerId)
         : containerId;
     if (!container) return;
 
-    // Remove any existing inline error
+    
     const existing = container.querySelector('.input-error-banner');
     if (existing) existing.remove();
 
@@ -96,7 +82,7 @@ export function showInputError(containerId, message) {
     banner.setAttribute('role', 'alert');
     container.appendChild(banner);
 
-    // Trigger reflow for animation
+    
     banner.offsetHeight;
     banner.style.opacity = '1';
 
@@ -108,10 +94,6 @@ export function showInputError(containerId, message) {
     }, 5000);
 }
 
-/**
- * Validate an email address with a simple regex.
- * Returns an error message string, or null if valid.
- */
 export function validateEmail(email) {
     if (!email || !email.trim()) return 'Please enter your email address.';
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -119,10 +101,6 @@ export function validateEmail(email) {
     return null;
 }
 
-/**
- * Validate a password meets the minimum requirements.
- * Returns an error message string, or null if valid.
- */
 export function validatePassword(password) {
     if (!password) return 'Please enter a password.';
     if (password.length < 12) return 'Password must be at least 12 characters.';
@@ -136,9 +114,6 @@ export function validatePassword(password) {
     return null;
 }
 
-/**
- * Validate a text field is between min and max length.
- */
 export function validateLength(value, min, max, fieldName) {
     const trimmed = (value || '').trim();
     if (!trimmed) return `${fieldName} is required.`;

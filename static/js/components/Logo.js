@@ -1,6 +1,4 @@
-/**
- * Logo component — "forum." with teal square dot
- */
+
 export function createLogo(size = 'default') {
     const fontSize = size === 'large' ? '26px' : '24px';
     const dotSize = size === 'large' ? '6px' : '5px';
