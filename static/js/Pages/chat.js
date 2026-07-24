@@ -515,9 +515,33 @@ function handleIncomingMessage(payload) {
         updateConversationPreviews();
     }
 
-    if (!chatUsers.find(u => u.userId === payload.senderId)) {
+    
+    const sender = chatUsers.find(u => u.userId === payload.senderId);
+    if (sender) {
+        sender.lastMessageTime = payload.timeStamp || new Date().toISOString();
+    } else {
         loadChatUsers();
+        return;
     }
+
+    
+    chatUsers.sort((a, b) => {
+        const aTime = a.lastMessageTime || '';
+        const bTime = b.lastMessageTime || '';
+
+        
+        if (aTime && bTime) {
+            return bTime.localeCompare(aTime);
+        }
+        
+        if (aTime && !bTime) return -1;
+        if (!aTime && bTime) return 1;
+
+        
+        return (a.nickname || '').localeCompare(b.nickname || '');
+    });
+
+    renderConversations(chatUsers);
 }
 
 function handleUserStatus(payload) {
@@ -534,18 +558,8 @@ function handleUserStatus(payload) {
         currentChatUser.isOnline = isOnline ? 1 : 0;
     }
 
-    const convItem = document.querySelector(`.chat-conv-item[data-user-id="${userId}"]`);
-    if (convItem) {
-        convItem.dataset.online = isOnline;
-        const statusDot = convItem.querySelector('.chat-conv-status');
-        if (statusDot) {
-            statusDot.className = 'chat-conv-status ' + (isOnline ? 'online' : 'offline');
-        }
-        const preview = convItem.querySelector('.chat-conv-preview');
-        if (preview) {
-            preview.textContent = isOnline ? 'Online' : 'Offline';
-        }
-    }
+    
+    renderConversations(chatUsers);
 
     if (currentChatUserId === userId) {
         const statusEl = document.getElementById('chat-partner-status');
