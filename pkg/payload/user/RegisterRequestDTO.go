@@ -67,6 +67,14 @@ func (d *RegisterRequestDTO) ParseAndValidate(r *http.Request) error {
 		return realtimeforum.ErrNickNameLength
 	}
 
+	if len(d.FirstName) < 1 || len(d.FirstName) > 50 {
+		return realtimeforum.ErrBadRequest
+	}
+
+	if len(d.LastName) < 1 || len(d.LastName) > 50 {
+		return realtimeforum.ErrBadRequest
+	}
+
 	if _, err := mail.ParseAddress(d.Email); err != nil {
 		return realtimeforum.ErrInvalidEmail
 	}

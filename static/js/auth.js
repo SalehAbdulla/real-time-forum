@@ -85,25 +85,25 @@ function getLoginFields() {
 function getRegisterFields() {
     return `
         <div class="form-group">
-            <input type="text" name="nickName" class="form-input" placeholder="Nickname" required>
+            <input type="text" name="nickName" class="form-input" placeholder="Nickname" minlength="2" maxlength="33" autocomplete="username" required>
         </div>
         <div class="form-group">
-            <input type="email" name="email" class="form-input" placeholder="Email" required>
+            <input type="email" name="email" class="form-input" placeholder="Email" autocomplete="email" required>
         </div>
         <div class="form-group">
-            <input type="text" name="firstName" class="form-input" placeholder="First Name" required>
+            <input type="text" name="firstName" class="form-input" placeholder="First Name" minlength="1" maxlength="50" autocomplete="given-name" required>
         </div>
         <div class="form-group">
-            <input type="text" name="lastName" class="form-input" placeholder="Last Name" required>
+            <input type="text" name="lastName" class="form-input" placeholder="Last Name" minlength="1" maxlength="50" autocomplete="family-name" required>
         </div>
         <div class="form-group">
-            <input type="password" name="password" class="form-input" placeholder="Password" required>
+            <input type="password" name="password" class="form-input" placeholder="Password" minlength="8" autocomplete="new-password" required>
         </div>
         <div class="form-group">
-            <input type="password" name="confirmPassword" class="form-input" placeholder="Confirm Password" required>
+            <input type="password" name="confirmPassword" class="form-input" placeholder="Confirm Password" minlength="8" autocomplete="new-password" required>
         </div>
         <div class="form-group">
-            <input type="text" name="age" class="form-input" placeholder="Age" required>
+            <input type="number" name="age" class="form-input" placeholder="Age" min="1" max="100" required>
         </div>
         <div class="form-group">
             <select name="gender" class="form-input" required>
