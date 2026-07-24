@@ -8,9 +8,15 @@ export function getInitials(name) {
 }
 
 export function escapeHtml(text) {
+    if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+export function safeUpperCase(text) {
+    if (!text) return '';
+    return text.toUpperCase();
 }
 
 export function timeAgo(timestamp) {
@@ -66,4 +72,77 @@ export function createParticles() {
         
         container.appendChild(particle);
     }
+}
+
+// ─── Input Validation Helpers ────────────────────────────────────────────────
+
+/**
+ * Show a temporary error banner inside a given container element.
+ * The banner auto-dismisses after 5 seconds.
+ */
+export function showInputError(containerId, message) {
+    const container = typeof containerId === 'string'
+        ? document.getElementById(containerId)
+        : containerId;
+    if (!container) return;
+
+    // Remove any existing inline error
+    const existing = container.querySelector('.input-error-banner');
+    if (existing) existing.remove();
+
+    const banner = document.createElement('div');
+    banner.className = 'input-error-banner';
+    banner.textContent = message;
+    banner.setAttribute('role', 'alert');
+    container.appendChild(banner);
+
+    // Trigger reflow for animation
+    banner.offsetHeight;
+    banner.style.opacity = '1';
+
+    setTimeout(() => {
+        banner.style.opacity = '0';
+        setTimeout(() => {
+            if (banner.parentNode) banner.remove();
+        }, 300);
+    }, 5000);
+}
+
+/**
+ * Validate an email address with a simple regex.
+ * Returns an error message string, or null if valid.
+ */
+export function validateEmail(email) {
+    if (!email || !email.trim()) return 'Please enter your email address.';
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!re.test(email.trim())) return 'Please enter a valid email address.';
+    return null;
+}
+
+/**
+ * Validate a password meets the minimum requirements.
+ * Returns an error message string, or null if valid.
+ */
+export function validatePassword(password) {
+    if (!password) return 'Please enter a password.';
+    if (password.length < 12) return 'Password must be at least 12 characters.';
+    if (password.length > 64) return 'Password must be at most 64 characters.';
+    const hasLetter = /[a-zA-Z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSymbol = /[^a-zA-Z0-9\s]/.test(password);
+    if (!hasLetter || !hasNumber || !hasSymbol) {
+        return 'Password must contain at least one letter, one number, and one symbol.';
+    }
+    return null;
+}
+
+/**
+ * Validate a text field is between min and max length.
+ */
+export function validateLength(value, min, max, fieldName) {
+    const trimmed = (value || '').trim();
+    if (!trimmed) return `${fieldName} is required.`;
+    if (trimmed.length < min) return `${fieldName} must be at least ${min} characters.`;
+    if (trimmed.length > max) return `${fieldName} must be at most ${max} characters.`;
+    return null;
 }

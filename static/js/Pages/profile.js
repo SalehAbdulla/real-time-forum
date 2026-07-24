@@ -1,5 +1,6 @@
 import { api } from '../api.js';
 import { router } from '../router.js';
+import { escapeHtml, safeUpperCase } from '../utils.js';
 
 export function renderProfile(app) {
     const user = window.__user || {};
@@ -16,7 +17,7 @@ export function renderProfile(app) {
             <div class="profile-card">
                 <div class="profile-avatar-section">
                     <div class="profile-avatar-large">${initials}</div>
-                    <h2 class="profile-name">${escapeHtml(name)}</h2>
+                    <h2 class="profile-name">${escapeHtml(safeUpperCase(name))}</h2>
                     ${user.nickname ? `<p class="profile-nickname">@${escapeHtml(user.nickname)}</p>` : ''}
                 </div>
 
@@ -72,9 +73,3 @@ export function renderProfile(app) {
     });
 }
 
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}

@@ -1,6 +1,6 @@
 import { api } from '../api.js';
 import { router } from '../router.js';
-import { escapeHtml } from '../utils.js';
+import { escapeHtml, showInputError, validateLength } from '../utils.js';
 
 const categories = [
     { id: 1, name: 'Tech' },
@@ -36,10 +36,12 @@ export async function renderCreatePost(app) {
                             class="glass-input create-input" 
                             placeholder="What's on your mind?"
                             maxlength="30"
+                            data-ascii="true"
                             autocomplete="off"
                         />
                         <div class="create-field-hint">
                             <span class="create-char-count" id="title-char-count">0/30</span>
+                            <span class="create-ascii-hint">English characters only</span>
                         </div>
                     </div>
 
@@ -49,11 +51,13 @@ export async function renderCreatePost(app) {
                             id="create-content" 
                             class="create-textarea" 
                             placeholder="Share your thoughts..."
-                            maxlength="100"
+                            maxlength="500"
                             rows="5"
+                            data-ascii="true"
                         ></textarea>
                         <div class="create-field-hint">
-                            <span class="create-char-count" id="content-char-count">0/100</span>
+                            <span class="create-char-count" id="content-char-count">0/500</span>
+                            <span class="create-ascii-hint">English characters only</span>
                         </div>
                     </div>
 
@@ -101,8 +105,23 @@ export async function renderCreatePost(app) {
     });
 
     contentTextarea.addEventListener('input', () => {
-        contentCharCount.textContent = `${contentTextarea.value.length}/100`;
+        contentCharCount.textContent = `${contentTextarea.value.length}/500`;
         validateForm();
+    });
+
+    // Block non-ASCII characters on inputs with data-ascii attribute
+    document.querySelectorAll('[data-ascii="true"]').forEach(input => {
+        input.addEventListener('beforeinput', (e) => {
+            if (e.data) {
+                for (const ch of e.data) {
+                    if (ch.charCodeAt(0) < 32 || ch.charCodeAt(0) > 126) {
+                        e.preventDefault();
+                        showInputError(input.closest('.create-field'), 'Only English characters are allowed.');
+                        return;
+                    }
+                }
+            }
+        });
     });
 
     // Category selection
@@ -119,7 +138,7 @@ export async function renderCreatePost(app) {
         const title = titleInput.value.trim();
         const content = contentTextarea.value.trim();
         const titleValid = title.length >= 3 && title.length <= 30;
-        const contentValid = content.length >= 10 && content.length <= 100;
+        const contentValid = content.length >= 10 && content.length <= 500;
         const categoryValid = selectedCategory !== null && selectedCategory >= 1 && selectedCategory <= 8;
 
         if (titleValid && contentValid && categoryValid) {
@@ -139,8 +158,8 @@ export async function renderCreatePost(app) {
             showError('Title must be between 3 and 30 characters');
             return;
         }
-        if (content.length < 10 || content.length > 100) {
-            showError('Content must be between 10 and 100 characters');
+        if (content.length < 10 || content.length > 500) {
+            showError('Content must be between 10 and 500 characters');
             return;
         }
         if (!selectedCategory || selectedCategory < 1 || selectedCategory > 8) {

@@ -1,6 +1,7 @@
 import { api } from './api.js';
 import { router } from './router.js';
 import { ws } from './websocket.js';
+import { validateEmail, validatePassword, validateLength } from './utils.js';
 
 let currentTab = 'login';
 
@@ -112,9 +113,22 @@ function getRegisterFields() {
 
 async function handleLogin() {
     const form = document.getElementById('auth-form');
-    const identifier = form.querySelector('[name="identifier"]').value;
+    const errorEl = document.getElementById('auth-error');
+    const identifier = form.querySelector('[name="identifier"]').value.trim();
     const password = form.querySelector('[name="password"]').value;
     const rememberMe = document.getElementById('remember-me')?.checked || false;
+
+    // Client-side validation
+    if (!identifier) {
+        errorEl.textContent = 'Please enter your email or username.';
+        errorEl.style.display = 'block';
+        return;
+    }
+    if (!password) {
+        errorEl.textContent = 'Please enter your password.';
+        errorEl.style.display = 'block';
+        return;
+    }
 
     const res = await api.login(identifier, password, rememberMe);
     window.__isAuthenticated = true;
@@ -130,16 +144,73 @@ async function handleLogin() {
 
 async function handleRegister() {
     const form = document.getElementById('auth-form');
+    const errorEl = document.getElementById('auth-error');
+
     const fields = {
-        nickName: form.querySelector('[name="nickName"]').value,
-        email: form.querySelector('[name="email"]').value,
-        firstName: form.querySelector('[name="firstName"]').value,
-        lastName: form.querySelector('[name="lastName"]').value,
+        nickName: form.querySelector('[name="nickName"]').value.trim(),
+        email: form.querySelector('[name="email"]').value.trim(),
+        firstName: form.querySelector('[name="firstName"]').value.trim(),
+        lastName: form.querySelector('[name="lastName"]').value.trim(),
         password: form.querySelector('[name="password"]').value,
         confirmPassword: form.querySelector('[name="confirmPassword"]').value,
-        age: form.querySelector('[name="age"]').value,
-        gender: form.querySelector('[name="gender"]').value,
+        age: form.querySelector('[name="age"]').value.trim(),
+        gender: form.querySelector('[name="gender"]').value.trim().toLowerCase(),
     };
+
+    // Client-side validation
+    const nickErr = validateLength(fields.nickName, 2, 33, 'Username');
+    if (nickErr) {
+        errorEl.textContent = nickErr;
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    const emailErr = validateEmail(fields.email);
+    if (emailErr) {
+        errorEl.textContent = emailErr;
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    const firstNameErr = validateLength(fields.firstName, 1, 50, 'First name');
+    if (firstNameErr) {
+        errorEl.textContent = firstNameErr;
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    const lastNameErr = validateLength(fields.lastName, 1, 50, 'Last name');
+    if (lastNameErr) {
+        errorEl.textContent = lastNameErr;
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    const pwErr = validatePassword(fields.password);
+    if (pwErr) {
+        errorEl.textContent = pwErr;
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    if (fields.password !== fields.confirmPassword) {
+        errorEl.textContent = 'Passwords do not match.';
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    const ageNum = parseInt(fields.age, 10);
+    if (isNaN(ageNum) || ageNum < 1 || ageNum > 100) {
+        errorEl.textContent = 'Please enter a valid age between 1 and 100.';
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    if (fields.gender !== 'male' && fields.gender !== 'female') {
+        errorEl.textContent = 'Gender must be either "male" or "female".';
+        errorEl.style.display = 'block';
+        return;
+    }
 
     const res = await api.register(fields);
     window.__isAuthenticated = true;

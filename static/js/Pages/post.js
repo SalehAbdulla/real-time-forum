@@ -1,5 +1,5 @@
 import { api } from '../api.js';
-import { escapeHtml, timeAgo } from '../utils.js';
+import { escapeHtml, timeAgo, safeUpperCase, showInputError, validateLength } from '../utils.js';
 
 export async function renderPost(app, params) {
     app.innerHTML = '<div class="loading-spinner">Loading post...</div>';
@@ -35,7 +35,7 @@ export async function renderPost(app, params) {
                     <div class="post-detail-user">
                         <div class="post-avatar">${getInitials(post.nickname)}</div>
                         <div class="post-detail-user-info">
-                            <span class="post-username">${escapeHtml((post.nickname || '').toUpperCase())}</span>
+                            <span class="post-username">${escapeHtml(safeUpperCase(post.nickname))}</span>
                             <span class="post-time">${timeAgo(post.createdAt)}</span>
                         </div>
                     </div>
@@ -84,8 +84,11 @@ export async function renderPost(app, params) {
                         </div>
                     </div>
                     <div class="comment-form">
-                        <textarea class="comment-input" id="comment-input" placeholder="Write a comment..." rows="3"></textarea>
-                        <button class="comment-submit-btn" id="comment-submit-btn">Post Comment</button>
+                        <textarea class="comment-input" id="comment-input" placeholder="Write a comment..." rows="3" maxlength="300" data-ascii="true"></textarea>
+                        <div class="comment-form-footer">
+                            <span class="create-char-count" id="comment-char-count">0/300</span>
+                            <button class="comment-submit-btn" id="comment-submit-btn">Post Comment</button>
+                        </div>
                     </div>
                     <div class="comments-list" id="comments-list">
                         <div class="loading-spinner">Loading comments...</div>
@@ -125,9 +128,36 @@ export async function renderPost(app, params) {
         const commentInput = document.getElementById('comment-input');
         const commentSubmitBtn = document.getElementById('comment-submit-btn');
         
+        // Comment character counter
+        const commentCharCount = document.getElementById('comment-char-count');
+        commentInput.addEventListener('input', () => {
+            if (commentCharCount) {
+                commentCharCount.textContent = `${commentInput.value.length}/300`;
+            }
+        });
+
+        // Block non-ASCII characters on comment input
+        commentInput.addEventListener('beforeinput', (e) => {
+            if (e.data) {
+                for (const ch of e.data) {
+                    if (ch.charCodeAt(0) < 32 || ch.charCodeAt(0) > 126) {
+                        e.preventDefault();
+                        showInputError(commentInput.closest('.comment-form'), 'Only English characters are allowed.');
+                        return;
+                    }
+                }
+            }
+        });
+
         commentSubmitBtn.addEventListener('click', async () => {
             const content = commentInput.value.trim();
-            if (!content || content.length < 1) return;
+            
+            // Validate comment
+            const commentErr = validateLength(content, 3, 300, 'Comment');
+            if (commentErr) {
+                showInputError(commentInput.closest('.comment-form'), commentErr);
+                return;
+            }
             
             commentSubmitBtn.disabled = true;
             commentSubmitBtn.textContent = 'Posting...';
@@ -135,10 +165,12 @@ export async function renderPost(app, params) {
             try {
                 await api.createComment(post.postId + '', content);
                 commentInput.value = '';
+                if (commentCharCount) commentCharCount.textContent = '0/300';
                 // Reload comments with current sort
                 loadComments(post.postId, 1, currentSortBy, currentSortOrder);
             } catch (err) {
-                console.error('Failed to create comment:', err);
+                const msg = err.error || err.message || 'Failed to post comment. Please try again.';
+                showInputError(commentInput.closest('.comment-form'), msg);
             } finally {
                 commentSubmitBtn.disabled = false;
                 commentSubmitBtn.textContent = 'Post Comment';
@@ -198,7 +230,7 @@ async function loadComments(postId, page = 1, sortBy = 'createdAt', sortOrder = 
                 <div class="comment-header">
                     <div class="comment-avatar">${getInitials(comment.nickname)}</div>
                     <div class="comment-info">
-                        <span class="comment-username">${escapeHtml((comment.nickname || '').toUpperCase())}</span>
+                        <span class="comment-username">${escapeHtml(safeUpperCase(comment.nickname))}</span>
                         <span class="comment-time">${timeAgo(comment.createdAt)}</span>
                     </div>
                 </div>

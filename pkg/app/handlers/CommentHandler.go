@@ -102,8 +102,13 @@ func (re *HandlerContext) CreateComments(w http.ResponseWriter, r *http.Request)
 	}
 
 	content := strings.TrimSpace(r.FormValue("content"))
-	if content == "" || len(content) < 3 || len(content) > 100 {
-		re.HandleError(w, r, realtimeforum.ErrContentLessThanThreeOrMoreThanHundard)
+	if content == "" || len(content) < 3 || len(content) > 300 {
+		re.HandleError(w, r, realtimeforum.ErrCommentLength)
+		return
+	}
+
+	if !isASCII(content) {
+		re.HandleError(w, r, realtimeforum.ErrNonASCII)
 		return
 	}
 

@@ -24,6 +24,16 @@ func (re *HandlerContext) parseForm(w http.ResponseWriter, r *http.Request) bool
 	return true
 }
 
+// isASCII returns true if the string contains only printable ASCII characters (0x20-0x7E).
+func isASCII(s string) bool {
+	for _, r := range s {
+		if r < 0x20 || r > 0x7E {
+			return false
+		}
+	}
+	return true
+}
+
 // HandleError logs the error with request context and sends an appropriate HTTP response.
 func (re *HandlerContext) HandleError(w http.ResponseWriter, r *http.Request, err error) {
 	// Determine HTTP status code and log level from the error type
@@ -62,12 +72,13 @@ func (re *HandlerContext) HandleError(w http.ResponseWriter, r *http.Request, er
 			err == realtimeforum.ErrInvalidAge,
 			err == realtimeforum.ErrGender,
 			err == realtimeforum.ErrInvalidCredentials,
-			err == realtimeforum.ErrContentEmptyOrMoreThanHundard,
+			err == realtimeforum.ErrTitleLength,
+			err == realtimeforum.ErrContentLength,
+			err == realtimeforum.ErrCommentLength,
 			err == realtimeforum.ErrNoCategorySelected,
 			err == realtimeforum.ErrMissingPostId,
-			err == realtimeforum.ErrContentLessThanThreeOrMoreThanHundard,
-			err == realtimeforum.ErrBadRequest,
-			err == realtimeforum.ErrTitleEmptyOrMoreThanHundard:
+			err == realtimeforum.ErrNonASCII,
+			err == realtimeforum.ErrBadRequest:
 			statusCode = http.StatusBadRequest
 			level = slog.LevelWarn
 		default:

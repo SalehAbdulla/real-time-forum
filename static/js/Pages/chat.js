@@ -1,7 +1,7 @@
 import { api } from '../api.js';
 import { router } from '../router.js';
 import { ws } from '../websocket.js';
-import { escapeHtml } from '../utils.js';
+import { escapeHtml, showInputError } from '../utils.js';
 
 let currentChatUserId = null;
 let currentChatUser = null;
@@ -535,6 +535,16 @@ function sendMessage() {
 
     const text = input.value.trim();
     if (!text || !currentChatUserId) return;
+
+    // Validate message length
+    if (text.length > 2000) {
+        showChatError('Message is too long. Please keep it under 2000 characters.');
+        return;
+    }
+    if (text.length < 1) {
+        showChatError('Please type a message.');
+        return;
+    }
 
     const offline = currentChatUser && currentChatUser.isOnline === 0;
     if (offline) {

@@ -1,5 +1,6 @@
 import { api } from '../api.js';
 import { router } from '../router.js';
+import { escapeHtml, safeUpperCase, timeAgo, showInputError } from '../utils.js';
 
 let currentPage = 1;
 let currentSort = 'createdAt';
@@ -181,7 +182,7 @@ function createPostElement(post) {
             <div class="post-user">
                 <div class="post-avatar">${getInitials(post.nickname)}</div>
                 <div class="post-user-info">
-                    <span class="post-username">${escapeHtml(post.nickname.toUpperCase())}</span>
+                    <span class="post-username">${escapeHtml(safeUpperCase(post.nickname))}</span>
                     <span class="post-meta-row">
                         <span class="post-time">${timeAgo(post.createdAt)}</span>
                         <span class="post-category-tag">${catName}</span>
@@ -288,8 +289,8 @@ function createPostElement(post) {
                     div.style.transform = 'scale(0.95)';
                     setTimeout(() => div.remove(), 300);
                 } catch (err) {
-                    console.error('Failed to delete post:', err);
-                    alert(err.message || 'Failed to delete post');
+                    const msg = err.error || err.message || 'Failed to delete post. Please try again.';
+                    showInputError(div, msg);
                 }
             }
         });
@@ -301,28 +302,4 @@ function createPostElement(post) {
 function getInitials(name) {
     if (!name) return '?';
     return name.substring(0, 2).toUpperCase();
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function timeAgo(timestamp) {
-    if (!timestamp) return '';
-    const now = new Date();
-    const date = new Date(timestamp.replace(' ', 'T') + 'Z');
-    const diffMs = now - date;
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    
-    if (diffHours < 1) {
-        const diffMins = Math.floor(diffMs / (1000 * 60));
-        return diffMins <= 1 ? '1 minute ago' : `${diffMins} minutes ago`;
-    }
-    if (diffHours < 24) {
-        return `${diffHours} hours ago`;
-    }
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays} days ago`;
 }

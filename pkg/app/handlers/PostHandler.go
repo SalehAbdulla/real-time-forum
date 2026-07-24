@@ -178,12 +178,22 @@ func (re *HandlerContext) CreatePost(w http.ResponseWriter, r *http.Request) {
 	categoryId := req.CategoryID
 
 	if title == "" || len(title) < 3 || len(title) > 30 {
-		re.HandleError(w, r, realtimeforum.ErrTitleEmptyOrMoreThanHundard)
+		re.HandleError(w, r, realtimeforum.ErrTitleLength)
 		return
 	}
 
-	if content == "" || len(content) < 10 || len(content) > 100 {
-		re.HandleError(w, r, realtimeforum.ErrContentEmptyOrMoreThanHundard)
+	if !isASCII(title) {
+		re.HandleError(w, r, realtimeforum.ErrNonASCII)
+		return
+	}
+
+	if content == "" || len(content) < 10 || len(content) > 500 {
+		re.HandleError(w, r, realtimeforum.ErrContentLength)
+		return
+	}
+
+	if !isASCII(content) {
+		re.HandleError(w, r, realtimeforum.ErrNonASCII)
 		return
 	}
 

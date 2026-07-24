@@ -1796,6 +1796,30 @@ body {
     transform: none;
 }
 
+.comment-form-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+}
+
+/* ─── Inline Input Error Banner ─────────────────────────────── */
+.input-error-banner {
+    width: 100%;
+    padding: 10px 14px;
+    margin-bottom: var(--space-3);
+    background: rgba(251, 113, 133, 0.1);
+    border: 1px solid rgba(251, 113, 133, 0.25);
+    border-radius: var(--radius-sm);
+    color: #fb7185;
+    font-size: 13px;
+    font-family: Inter, sans-serif;
+    font-weight: 450;
+    line-height: 1.45;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
 .comments-list {
     display: flex;
     flex-direction: column;
@@ -2106,6 +2130,14 @@ body {
     color: var(--text-muted);
     font-family: Inter, sans-serif;
     font-weight: 400;
+}
+
+.create-ascii-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: Inter, sans-serif;
+    font-weight: 400;
+    opacity: 0.7;
 }
 
 .create-categories {

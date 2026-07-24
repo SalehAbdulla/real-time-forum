@@ -20,6 +20,15 @@ type RegisterRequestDTO struct {
 	Gender          string
 }
 
+func isASCIIPrintable(s string) bool {
+	for _, r := range s {
+		if r < 0x20 || r > 0x7E {
+			return false
+		}
+	}
+	return true
+}
+
 func passwordStrength(password string) bool {
 	var hasLetter, hasNumber, hasSymbol bool
 	for _, ch := range password {
@@ -48,6 +57,10 @@ func (d *RegisterRequestDTO) ParseAndValidate(r *http.Request) error {
 	if d.Nickname == "" || d.Email == "" || d.FirstName == "" || d.LastName == "" ||
 		d.Password == "" || d.ConfirmPassword == "" || d.Age == "" || d.Gender == "" {
 		return realtimeforum.ErrBadRequest
+	}
+
+	if !isASCIIPrintable(d.Nickname) || !isASCIIPrintable(d.FirstName) || !isASCIIPrintable(d.LastName) {
+		return realtimeforum.ErrNonASCII
 	}
 
 	if len(d.Nickname) < 2 || len(d.Nickname) > 33 {
