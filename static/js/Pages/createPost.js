@@ -40,8 +40,8 @@ export async function renderCreatePost(app) {
                             autocomplete="off"
                         />
                         <div class="create-field-hint">
-                            <span class="create-char-count" id="title-char-count">0/30</span>
-                            <span class="create-ascii-hint">English characters only</span>
+                            <span class="create-char-count" id="title-char-count">  0/30 </span>
+                            <span class="create-ascii-hint">  English characters only </span>
                         </div>
                     </div>
 
@@ -56,8 +56,9 @@ export async function renderCreatePost(app) {
                             data-ascii="true"
                         ></textarea>
                         <div class="create-field-hint">
-                            <span class="create-char-count" id="content-char-count">0/500</span>
-                            <span class="create-ascii-hint">English characters only</span>
+                            <span class="create-char-count" id="content-char-count">0/500 </span>
+                            
+                            <span class="create-ascii-hint">  English characters only</span>
                         </div>
                     </div>
 
