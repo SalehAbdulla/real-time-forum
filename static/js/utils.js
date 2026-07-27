@@ -1,5 +1,3 @@
-
-
 export function getInitials(name) {
     if (!name) return '?';
     return name.substring(0, 2).toUpperCase();
@@ -120,4 +118,55 @@ export function validateLength(value, min, max, fieldName) {
     if (trimmed.length < min) return `${fieldName} must be at least ${min} characters.`;
     if (trimmed.length > max) return `${fieldName} must be at most ${max} characters.`;
     return null;
+}
+
+/**
+ * Creates a throttled version of a function that only invokes the function
+ * at most once per every `wait` milliseconds.
+ * @param {Function} fn - The function to throttle.
+ * @param {number} wait - The number of milliseconds to throttle invocations to.
+ * @returns {Function} The throttled function.
+ */
+export function throttle(fn, wait) {
+    let lastTime = 0;
+    let timeoutId = null;
+    let lastArgs = null;
+
+    function invoke() {
+        lastTime = Date.now();
+        timeoutId = null;
+        fn.apply(this, lastArgs);
+    }
+
+    const throttled = function (...args) {
+        const now = Date.now();
+        const remaining = wait - (now - lastTime);
+        lastArgs = args;
+
+        if (remaining <= 0) {
+            
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+            lastTime = now;
+            fn.apply(this, args);
+        } else if (!timeoutId) {
+            
+            timeoutId = setTimeout(() => {
+                invoke.call(this);
+            }, remaining);
+        }
+    };
+
+    throttled.cancel = function () {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+        }
+        lastTime = 0;
+        lastArgs = null;
+    };
+
+    return throttled;
 }

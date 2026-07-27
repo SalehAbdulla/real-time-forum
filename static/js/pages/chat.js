@@ -1,7 +1,7 @@
 import { api } from '../api.js';
 import { router } from '../router.js';
 import { ws } from '../websocket.js';
-import { escapeHtml, showInputError } from '../utils.js';
+import { escapeHtml, showInputError, throttle } from '../utils.js';
 
 let currentChatUserId = null;
 let currentChatUser = null;
@@ -71,14 +71,6 @@ export async function renderChat(app, params, queryString) {
                     </div>
 
                     <div class="chat-messages" id="chat-messages">
-                        <div class="chat-load-older" id="chat-load-older" style="display:none;">
-                            <button class="chat-load-older-btn" id="chat-load-older-btn">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="23 18 13.5 8.5 4 18"/>
-                                </svg>
-                                Load older messages
-                            </button>
-                        </div>
                         <div class="chat-messages-loader" id="chat-messages-loader" style="display:none;">
                             <div class="loading-spinner">Loading older messages...</div>
                         </div>
@@ -146,42 +138,45 @@ export async function renderChat(app, params, queryString) {
     }
 
     
-    document.getElementById('chat-load-older-btn')?.addEventListener('click', async () => {
+    setupScrollLoading();
+}
+
+function setupScrollLoading() {
+    const messagesEl = document.getElementById('chat-messages');
+    if (!messagesEl) return;
+
+    
+    if (window._scrollThrottled) {
+        window._scrollThrottled.cancel();
+        messagesEl.removeEventListener('scroll', window._scrollThrottled);
+    }
+
+    window._scrollThrottled = throttle(async () => {
+        if (!currentChatUserId) return;
         if (isLoading || isLoadingOlder) return;
+        if (!hasMore) return;
 
-        const btn = document.getElementById('chat-load-older-btn');
-        const messagesEl = document.getElementById('chat-messages');
-        if (!messagesEl) return;
-
-        isLoadingOlder = true;
-
-        if (btn) {
-            btn.disabled = true;
-            btn.textContent = 'Loading...';
-        }
+        const el = document.getElementById('chat-messages');
+        if (!el) return;
 
         
-        const previousScrollHeight = messagesEl.scrollHeight;
-        const previousScrollTop = messagesEl.scrollTop;
+        if (el.scrollTop <= 80) {
+            isLoadingOlder = true;
+            const previousScrollTop = el.scrollTop;
+            const previousScrollHeight = el.scrollHeight;
 
-        await loadMessages(true);
+            await loadMessages(true);
 
-        
-        const newScrollHeight = messagesEl.scrollHeight;
-        messagesEl.scrollTop = previousScrollTop + (newScrollHeight - previousScrollHeight);
+            if (hasMore) {
+                const newScrollHeight = el.scrollHeight;
+                el.scrollTop = previousScrollTop + (newScrollHeight - previousScrollHeight);
+            }
 
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = `
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="23 18 13.5 8.5 4 18"/>
-                </svg>
-                Load older messages
-            `;
+            isLoadingOlder = false;
         }
+    }, 300);
 
-        isLoadingOlder = false;
-    });
+    messagesEl.addEventListener('scroll', window._scrollThrottled);
 }
 
 function setupWSListeners() {
@@ -407,8 +402,6 @@ async function loadMessages(isOlder = false) {
         uniqueMessages.forEach(msg => messageIds.add(msg.messageId));
 
         if (uniqueMessages.length === 0) {
-            isLoading = false;
-            loader.style.display = 'none';
             return;
         }
 
@@ -427,17 +420,15 @@ async function loadMessages(isOlder = false) {
     } finally {
         isLoading = false;
         loader.style.display = 'none';
+
+        
+        fillViewportIfNeeded();
     }
 }
 
 function renderMessages() {
     const container = document.getElementById('chat-messages-inner');
-    const loadOlderEl = document.getElementById('chat-load-older');
     if (!container) return;
-
-    if (loadOlderEl) {
-        loadOlderEl.style.display = (messages.length > 0 && hasMore) ? 'flex' : 'none';
-    }
 
     if (messages.length === 0) {
         container.innerHTML = `
@@ -490,6 +481,21 @@ function renderMessages() {
 
     container.innerHTML = html;
     updateConversationPreviews();
+
+    
+    fillViewportIfNeeded();
+}
+
+function fillViewportIfNeeded() {
+    const messagesEl = document.getElementById('chat-messages');
+    if (!messagesEl || !hasMore || isLoading || isLoadingOlder || !currentChatUserId) return;
+
+    
+    requestAnimationFrame(() => {
+        if (messagesEl.scrollHeight <= messagesEl.clientHeight + 10 && hasMore) {
+            loadMessages(true);
+        }
+    });
 }
 
 function handleIncomingMessage(payload) {

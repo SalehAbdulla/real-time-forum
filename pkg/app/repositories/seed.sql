@@ -7,7 +7,7 @@
 INSERT INTO user (userId, nickName, firstName, lastName, email, hashedPassword, yearOfBirth, gender) VALUES
 ('a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', 'AhmedK',   'Ahmed',   'Khalid',   'ahmed@demo.com',   '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 1995, 'male'),
 ('b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 'MonaS',    'Mona',    'Saeed',    'mona@demo.com',    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 1998, 'female'),
-('c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f', 'TechGuru', 'Omar',    'Nasser',   'omar@demo.com',    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 1992, 'male'),
+('c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f', 'TechGuru', 'mohammed',    'Nasser', 'mohammed@demo.com',    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 1992, 'male'),
 ('d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a', 'SaraDev',  'Sara',    'Mohammed', 'sara@demo.com',    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 2000, 'female'),
 ('e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b', 'gamer_x',  'Khalid',  'Ali',      'khalid@demo.com',  '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 1997, 'male');
 
