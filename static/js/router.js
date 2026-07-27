@@ -1,3 +1,5 @@
+import { renderAllUserLists, getUsers } from './components/UsersManager.js';
+
 class Router {
     constructor() {
         this.routes = {};
@@ -227,38 +229,9 @@ class Router {
         });
     }
 
-    async loadRightbarUsers() {
-        const container = document.getElementById('rightbar-users');
-        if (!container) return;
-        try {
-            const res = await fetch('/api/v1/messages/users', { credentials: 'include' });
-            const data = await res.json();
-            const users = data.data || [];
-            if (users.length === 0) {
-                container.innerHTML = '<div class="rightbar-empty">No users online</div>';
-                return;
-            }
-            container.innerHTML = users.map(user => `
-                <div class="rightbar-user" data-user-id="${user.userId}">
-                    <div class="rightbar-user-avatar">${user.nickname ? user.nickname.substring(0, 2).toUpperCase() : '?'}</div>
-                    <div class="rightbar-user-info">
-                        <span class="rightbar-user-name">${user.nickname || 'User'}</span>
-                        <span class="rightbar-user-status ${user.isOnline === 1 ? 'online' : 'offline'}">
-                            ${user.isOnline === 1 ? 'Online' : 'Offline'}
-                        </span>
-                    </div>
-                    <div class="rightbar-status-dot ${user.isOnline === 1 ? 'online' : 'offline'}"></div>
-                </div>
-            `).join('');
-
-            container.querySelectorAll('.rightbar-user').forEach(el => {
-                el.addEventListener('click', () => {
-                    this.navigate(`chat/${el.dataset.userId}`);
-                });
-            });
-        } catch (err) {
-            container.innerHTML = '<div class="rightbar-empty">Failed to load</div>';
-        }
+    loadRightbarUsers() {
+        // UsersManager handles all user rendering via renderAllUserLists()
+        renderAllUserLists();
     }
 
     ensureGlobalUsersScroll() {
@@ -274,34 +247,9 @@ class Router {
         }
     }
 
-    async loadGlobalUsersScroll() {
-        const container = document.getElementById('global-users-scroll');
-        if (!container) return;
-        try {
-            const res = await fetch('/api/v1/messages/users', { credentials: 'include' });
-            const data = await res.json();
-            const users = data.data || [];
-            if (users.length === 0) {
-                container.innerHTML = '';
-                return;
-            }
-            container.innerHTML = users.map(user => `
-                <div class="user-card" data-user-id="${user.userId}">
-                    <div class="user-avatar-wrapper">
-                        <div class="user-avatar-sm">${user.nickname ? user.nickname.substring(0, 2).toUpperCase() : '?'}</div>
-                        <div class="online-dot ${user.isOnline === 1 ? 'online' : 'offline'}"></div>
-                    </div>
-                    <div class="user-nickname">${this.escapeHtml(user.nickname)}</div>
-                </div>
-            `).join('');
-            container.querySelectorAll('.user-card').forEach(el => {
-                el.addEventListener('click', () => {
-                    this.navigate(`chat/${el.dataset.userId}`);
-                });
-            });
-        } catch (err) {
-            container.innerHTML = '';
-        }
+    loadGlobalUsersScroll() {
+        // Uses UsersManager's centralized rendering
+        renderAllUserLists();
     }
 
     escapeHtml(str) {

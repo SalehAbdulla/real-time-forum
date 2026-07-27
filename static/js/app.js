@@ -8,6 +8,7 @@ import { renderProfile } from './pages/profile.js';
 import { renderChat } from './pages/chat.js';
 import { renderNotifications } from './pages/notifications.js';
 import { ws } from './websocket.js';
+import { initUsersManager } from './components/UsersManager.js';
 import { createParticles } from './utils.js';
 
 function authGuard() {
@@ -31,7 +32,9 @@ async function init() {
         window.__user = res.data;
         window.__isAuthenticated = true;
         
-        
+        // Register WebSocket listeners BEFORE connecting,
+        // otherwise initial user_status events are dropped.
+        initUsersManager();
         ws.connect();
     } catch {
         window.__isAuthenticated = false;

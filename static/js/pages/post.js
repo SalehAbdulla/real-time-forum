@@ -1,6 +1,7 @@
 import { api } from '../api.js';
 import { escapeHtml, timeAgo, safeUpperCase, showInputError, validateLength } from '../utils.js';
 import { router } from '../router.js';
+import { renderAllUserLists } from '../components/UsersManager.js';
 
 export async function renderPost(app, params) {
     app.innerHTML = '<div class="loading-spinner">Loading post...</div>';
@@ -198,7 +199,7 @@ export async function renderPost(app, params) {
         document.querySelector('.sort-btn').classList.add('active');
         
         
-        loadPostUsers();
+        renderAllUserLists();
         
         
         loadComments(post.postId, currentPage, currentSortBy, currentSortOrder);
@@ -403,36 +404,6 @@ function renderPagination(paginationEl, data, postId, sortBy, sortOrder) {
             }
         });
     });
-}
-
-async function loadPostUsers() {
-    const container = document.getElementById('global-users-scroll');
-    if (!container) return;
-    try {
-        const res = await fetch('/api/v1/messages/users', { credentials: 'include' });
-        const data = await res.json();
-        const users = data.data || [];
-        if (users.length === 0) {
-            container.innerHTML = '';
-            return;
-        }
-        container.innerHTML = users.map(user => `
-            <div class="user-card" data-user-id="${user.userId}">
-                <div class="user-avatar-wrapper">
-                    <div class="user-avatar-sm">${user.nickname ? user.nickname.substring(0, 2).toUpperCase() : '?'}</div>
-                    <div class="online-dot ${user.isOnline === 1 ? 'online' : 'offline'}"></div>
-                </div>
-                <div class="user-nickname">${escapeHtml(user.nickname)}</div>
-            </div>
-        `).join('');
-        container.querySelectorAll('.user-card').forEach(el => {
-            el.addEventListener('click', () => {
-                router.navigate(`chat/${el.dataset.userId}`);
-            });
-        });
-    } catch (err) {
-        container.innerHTML = '';
-    }
 }
 
 function getInitials(name) {

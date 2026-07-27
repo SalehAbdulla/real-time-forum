@@ -1,8 +1,6 @@
 
-import { api } from '../api.js';
 import { router } from '../router.js';
-import { createAvatarWithStatus } from './Avatar.js';
-import { escapeHtml } from '../utils.js';
+import { renderAllUserLists } from './UsersManager.js';
 
 export function createUsersScroll() {
     const wrapper = document.createElement('div');
@@ -15,44 +13,8 @@ export function createUsersScroll() {
     
     wrapper.appendChild(scroll);
     
-    
-    loadUsers(scroll);
+    // UsersManager handles all user list rendering via WebSocket real-time updates
+    renderAllUserLists();
     
     return wrapper;
-}
-
-async function loadUsers(container) {
-    try {
-        const res = await api.getChatUsers();
-        const users = res.data || [];
-        
-        if (users.length === 0) {
-            container.innerHTML = '';
-            return;
-        }
-        
-        container.innerHTML = '';
-        
-        users.forEach(user => {
-            const card = document.createElement('div');
-            card.className = 'user-card';
-            card.dataset.userId = user.userId;
-            
-            const avatarWrapper = createAvatarWithStatus(user.nickname, user.isOnline === 1);
-            card.appendChild(avatarWrapper);
-            
-            const label = document.createElement('div');
-            label.className = 'user-nickname';
-            label.textContent = escapeHtml(user.nickname);
-            card.appendChild(label);
-            
-            card.addEventListener('click', () => {
-                router.navigate(`chat/${user.userId}`);
-            });
-            
-            container.appendChild(card);
-        });
-    } catch (err) {
-        container.innerHTML = '';
-    }
 }

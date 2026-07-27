@@ -84,37 +84,6 @@ export async function renderFeed(app, params, queryString) {
     });
 }
 
-async function loadUsers() {
-    const scroll = document.getElementById('users-scroll');
-    try {
-        const res = await api.getChatUsers();
-        const users = res.data || [];
-
-        if (users.length === 0) {
-            scroll.innerHTML = '';
-            return;
-        }
-
-        scroll.innerHTML = users.map(user => `
-            <div class="user-card" data-user-id="${user.userId}">
-                <div class="user-avatar-wrapper">
-                    <div class="user-avatar-sm">${getInitials(user.nickname)}</div>
-                    <div class="online-dot ${user.isOnline === 1 ? 'online' : 'offline'}"></div>
-                </div>
-                <div class="user-nickname">${escapeHtml(user.nickname)}</div>
-            </div>
-        `).join('');
-
-        document.querySelectorAll('.user-card').forEach(card => {
-            card.addEventListener('click', () => {
-                router.navigate(`chat/${card.dataset.userId}`);
-            });
-        });
-    } catch (err) {
-        scroll.innerHTML = '';
-    }
-}
-
 async function loadPosts(reset = false) {
     if (loading || !hasMore) return;
     loading = true;
