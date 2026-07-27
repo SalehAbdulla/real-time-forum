@@ -271,11 +271,11 @@ function renderConversations(users) {
 
     let html = '';
     if (onlineUsers.length > 0) {
-        html += `<div class="chat-conv-section-header">Online — ${onlineUsers.length}</div>`;
+        html += `<div class="chat-conv-section-header">Online | ${onlineUsers.length}</div>`;
         html += onlineUsers.map(renderItem).join('');
     }
     if (offlineUsers.length > 0) {
-        html += `<div class="chat-conv-section-header">Offline — ${offlineUsers.length}</div>`;
+        html += `<div class="chat-conv-section-header">Offline | ${offlineUsers.length}</div>`;
         html += offlineUsers.map(renderItem).join('');
     }
 

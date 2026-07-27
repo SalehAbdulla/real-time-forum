@@ -26,15 +26,15 @@ export function renderProfile(app) {
                 <div class="profile-details">
                     <div class="profile-detail-row">
                         <span class="profile-detail-label">Email</span>
-                        <span class="profile-detail-value">${escapeHtml(user.email || '—')}</span>
+                        <span class="profile-detail-value">${escapeHtml(user.email || '-')}</span>
                     </div>
                     <div class="profile-detail-row">
                         <span class="profile-detail-label">First Name</span>
-                        <span class="profile-detail-value">${escapeHtml(user.firstName || '—')}</span>
+                        <span class="profile-detail-value">${escapeHtml(user.firstName || '-')}</span>
                     </div>
                     <div class="profile-detail-row">
                         <span class="profile-detail-label">Last Name</span>
-                        <span class="profile-detail-value">${escapeHtml(user.lastName || '—')}</span>
+                        <span class="profile-detail-value">${escapeHtml(user.lastName || '-')}</span>
                     </div>
                 </div>
 

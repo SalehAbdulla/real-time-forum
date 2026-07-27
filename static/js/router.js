@@ -213,7 +213,6 @@ class Router {
             }
         }
 
-        // No route matched — render client-side 404 page
         const app = document.getElementById('app');
         const isAuth = window.__isAuthenticated === true;
         app.innerHTML = `
@@ -230,7 +229,6 @@ class Router {
     }
 
     loadRightbarUsers() {
-        // UsersManager handles all user rendering via renderAllUserLists()
         renderAllUserLists();
     }
 
