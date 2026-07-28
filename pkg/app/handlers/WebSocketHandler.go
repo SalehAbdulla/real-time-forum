@@ -82,6 +82,8 @@ func (re *HandlerContext) handleWebSocketMessage(client *pkgwebsocket.Client, me
 		re.handleOpenChat(client, msg)
 	case pkgwebsocket.MsgTypeCloseChat:
 		re.handleCloseChat(client, msg)
+	case pkgwebsocket.MsgTypeUserOffline:
+		re.handleUserOffline(client)
 	default:
 		log.Printf("unknown message type from user %s: %s", client.UserID, msg.Type)
 	}
@@ -229,6 +231,12 @@ func (re *HandlerContext) handleOpenChat(client *pkgwebsocket.Client, msg pkgweb
 
 func (re *HandlerContext) handleCloseChat(client *pkgwebsocket.Client, msg pkgwebsocket.WSMessage) {
 	client.CurrentChatPartner = ""
+}
+
+func (re *HandlerContext) handleUserOffline(client *pkgwebsocket.Client) {
+	log.Printf("user %s requested to go offline via WebSocket", client.UserID)
+
+	re.Hub.Unregister <- client
 }
 
 func (re *HandlerContext) handleTypingStopped(client *pkgwebsocket.Client, msg pkgwebsocket.WSMessage) {

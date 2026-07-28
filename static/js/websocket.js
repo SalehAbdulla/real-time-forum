@@ -8,12 +8,15 @@ class WSConnection {
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = 10;
         this.reconnectDelay = 1000;
+        this.intentionalClose = false;
     }
 
     connect() {
         if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
             return;
         }
+
+        this.intentionalClose = false;
 
         
         if (window.__isAuthenticated !== true) {
@@ -41,11 +44,16 @@ class WSConnection {
         };
 
         this.ws.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                this.emit(data.type, data.payload || data);
-            } catch (err) {
-                console.error('[WS] Failed to parse message:', err);
+            // The server may batch multiple JSON messages into one frame,
+            // separated by newlines. Parse each line individually.
+            for (const line of event.data.split('\n')) {
+                if (!line.trim()) continue;
+                try {
+                    const data = JSON.parse(line);
+                    this.emit(data.type, data.payload || data);
+                } catch (err) {
+                    console.error('[WS] Failed to parse message:', err);
+                }
             }
         };
 
@@ -53,7 +61,7 @@ class WSConnection {
             console.log('[WS] Disconnected:', event.code, event.reason);
             this.isConnected = false;
             this.emit('disconnected');
-            if (event.code !== 1000) {
+            if (event.code !== 1000 && !this.intentionalClose) {
                 this.scheduleReconnect();
             }
         };
@@ -64,6 +72,7 @@ class WSConnection {
     }
 
     disconnect() {
+        this.intentionalClose = true;
         if (this.reconnectTimer) {
             clearTimeout(this.reconnectTimer);
             this.reconnectTimer = null;

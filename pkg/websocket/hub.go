@@ -38,13 +38,18 @@ func (h *Hub) Run() {
 
 		case client := <-h.Unregister:
 			h.mu.Lock()
-			if _, ok := h.clients[client.UserID]; ok {
+			// Only unregister if this exact connection is the registered one,
+			// and only broadcast offline once (ReadPump also unregisters on close).
+			current, ok := h.clients[client.UserID]
+			if ok && current == client {
 				delete(h.clients, client.UserID)
 				close(client.Send)
 			}
 			h.mu.Unlock()
 
-			h.broadcastUserStatus(client.UserID, 0, "")
+			if ok && current == client {
+				h.broadcastUserStatus(client.UserID, 0, "")
+			}
 
 		case message := <-h.broadcast:
 			h.mu.RLock()

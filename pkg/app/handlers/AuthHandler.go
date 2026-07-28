@@ -122,6 +122,14 @@ func (re *HandlerContext) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Drop the user's websocket registration so other users see them go
+	// offline instantly, even if the client failed to notify us itself.
+	if userID, ok := middleware.UserIDFromContext(r.Context()); ok && userID != "" && re.Hub != nil {
+		if client := re.Hub.GetClientByUserID(userID); client != nil {
+			re.Hub.Unregister <- client
+		}
+	}
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Value:    "",

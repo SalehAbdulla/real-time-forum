@@ -13,6 +13,7 @@ const (
 	MsgTypeTypingStopped  = "typing_stopped"
 	MsgTypeOpenChat       = "open_chat"
 	MsgTypeCloseChat      = "close_chat"
+	MsgTypeUserOffline    = "user_offline"
 )
 
 type WSMessage struct {

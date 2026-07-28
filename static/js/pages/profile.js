@@ -1,6 +1,7 @@
 import { api } from '../api.js';
 import { router } from '../router.js';
 import { escapeHtml, safeUpperCase } from '../utils.js';
+import { ws } from '../websocket.js';
 
 export function renderProfile(app) {
     const user = window.__user || {};
@@ -60,10 +61,15 @@ export function renderProfile(app) {
         btn.disabled = true;
         btn.textContent = 'Signing out...';
 
+        // Signal the server to broadcast offline status immediately
+        ws.send('user_offline');
+        // Close the socket so the hub unregisters this user even if the
+        // signal above is lost — otherwise we stay "online" for everyone.
+        ws.disconnect();
+
         try {
             await api.logout();
         } catch (err) {
-            
             console.error('Logout request failed:', err);
         }
 
